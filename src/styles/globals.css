@@ -1,0 +1,23 @@
+:root {
+  --radius: 0.5rem;
+  --primary: 220, 98%, 61%;
+  --primary-foreground: 0, 0%, 100%;
+  --secondary: 215, 100%, 72%;
+  --secondary-foreground: 0, 0%, 100%;
+  --destructive: 0, 84%, 67%;
+  --destructive-foreground: 0, 0%, 100%;
+  --muted: 220, 15%, 55%;
+  --muted-foreground: 0, 0%, 100%;
+  --accent: 15, 100%, 70%;
+  --accent-foreground: 0, 0%, 100%;
+  --popover: 0, 0%, 100%;
+  --popover-foreground: 0, 0%, 0%;
+  --card: 0, 0%, 100%;
+  --card-foreground: 0, 0%, 0%;
+  /* Add other variables as needed */
+}
+
+/* Include Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities; 

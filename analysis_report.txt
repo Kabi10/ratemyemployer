@@ -1,0 +1,6 @@
+Directory Analysis Report
+Generated at: 2024-12-31T20:55:38.937Z
+Project Path: C:\Users\kabil\WebstormProjects\ratemyemployer
+
+Issues Found:
+1. Duplicate file detected: src\components\ui\StatCard.tsx duplicates src\components\StatCard.tsx

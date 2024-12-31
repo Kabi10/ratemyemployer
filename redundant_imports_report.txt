@@ -1,0 +1,12 @@
+Redundant Imports Report
+Generated at: 2024-12-31T20:55:39.250Z
+Project Path: C:\Users\kabil\WebstormProjects\ratemyemployer
+
+Issues Found:
+1. setup.js:45 - Duplicate import from 'react' (first seen at line 24)
+2. setup.js:70 - Duplicate import from 'react' (first seen at line 24)
+
+Recommendation:
+- Combine duplicate imports into a single import statement
+- Use named imports instead of multiple default imports
+- Remove unused imports
