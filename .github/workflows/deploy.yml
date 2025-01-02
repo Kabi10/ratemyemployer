@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: prod
     
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -34,6 +34,7 @@ jobs:
       run: npm run build
     
     - name: Deploy to Vercel
+      id: deploy
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -56,6 +57,6 @@ jobs:
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: 'deployments'
-        slack-message: '🚀 Successfully deployed to production!'
+        slack-message: '🚀 Successfully deployed to production! URL: ${{ steps.deploy.outputs.url }}'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
