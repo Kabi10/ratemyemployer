@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { Review } from '@/types/database';
+import type { Review } from '@/types';
 
 interface UseReviewsOptions {
   companyId: string;

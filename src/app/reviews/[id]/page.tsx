@@ -19,8 +19,8 @@ interface ReviewWithCompany extends Review {
 
 export default function ReviewDetailsPage() {
   const params = useParams();
-  const _router = useRouter();
-  const _showToast = useToast();
+  const router = useRouter();
+  const { showToast } = useToast();
   const [review, setReview] = useState<ReviewWithCompany | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,16 +35,14 @@ export default function ReviewDetailsPage() {
 
         const { data, error } = await supabase
           .from('reviews')
-          .select(
-            `
+          .select(`
             *,
             company:companies (
               id,
               name,
               industry
             )
-          `
-          )
+          `)
           .eq('id', reviewId)
           .single();
 
@@ -73,7 +71,9 @@ export default function ReviewDetailsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error || 'Review not found'}</p>
+          <p className="text-red-700 dark:text-red-200">
+            {error || 'Review not found'}
+          </p>
         </div>
       </div>
     );
@@ -90,7 +90,9 @@ export default function ReviewDetailsPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-blue-600">{review.rating}/5</div>
+            <div className="text-3xl font-bold text-blue-600">
+              {review.rating}/5
+            </div>
             <div className="text-sm text-gray-500">
               Posted on {new Date(review.created_at).toLocaleDateString()}
             </div>
@@ -107,7 +109,9 @@ export default function ReviewDetailsPage() {
         {review.content && (
           <div className="mb-6">
             <div className="text-lg font-semibold mb-2">Review</div>
-            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{review.content}</p>
+            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+              {review.content}
+            </p>
           </div>
         )}
 
@@ -128,4 +132,4 @@ export default function ReviewDetailsPage() {
       </div>
     </div>
   );
-}
+} 

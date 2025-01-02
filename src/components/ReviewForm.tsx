@@ -21,10 +21,6 @@ interface ReviewFormProps {
 }
 
 const reviewSchema = z.object({
-  title: z
-    .string()
-    .min(3, 'Title must be at least 3 characters')
-    .max(100, 'Title must be less than 100 characters'),
   content: z
     .string()
     .min(20, 'Content must be at least 20 characters')
@@ -62,7 +58,6 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     resolver: zodResolver(reviewSchema),
     defaultValues: {
       rating: initialData?.rating || 3,
-      title: initialData?.title || '',
       content: initialData?.content || '',
       pros: initialData?.pros || '',
       cons: initialData?.cons || '',
@@ -132,6 +127,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         ...data,
         company_id,
         user_id: user.id,
+        title: '',
       };
 
       if (initialData?.id) {
@@ -167,12 +163,6 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Title</label>
-        <Input {...register('title')} placeholder="Review Title" />
-        {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
-      </div>
-
       <div className="space-y-2">
         <label className="block text-sm font-medium">Content</label>
         <textarea

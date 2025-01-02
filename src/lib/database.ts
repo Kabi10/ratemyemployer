@@ -1,10 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Database } from '@/types/supabase';
-
-type Tables = Database['public']['Tables'];
-type Company = Tables['companies']['Row'];
-type Review = Tables['reviews']['Row'];
-type ReviewLike = Tables['review_likes']['Row'];
+import type { Company, Review, ReviewLike } from '@/types';
 
 export async function getCompanies(options: {
   search?: string;
@@ -87,21 +82,11 @@ export async function getCompanyReviews(
   const { data, error } = await query;
 
   if (error) throw error;
-  return data as Review[];
+  return data as (Review & { profiles: { full_name: string; avatar_url: string | null } })[];
 }
 
-export async function createReview(review: Omit<Review, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('reviews')
-    .insert([
-      {
-        ...review,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ])
-    .select()
-    .single();
+export async function createReview(review: Omit<Review, 'id' | 'date'>) {
+  const { data, error } = await supabase.from('reviews').insert([review]).select().single();
 
   if (error) throw error;
   return data as Review;
@@ -109,21 +94,20 @@ export async function createReview(review: Omit<Review, 'id' | 'created_at' | 'u
 
 export async function toggleReviewLike(reviewId: string, userId: string) {
   // First, check if a like record exists
-  const { data: existingLike, error: likeError } = await supabase
+  const { data: existingLike } = await supabase
     .from('review_likes')
     .select('*')
     .eq('review_id', reviewId)
     .eq('user_id', userId)
     .single();
 
-  if (likeError && likeError.code !== 'PGRST116') throw likeError;
-
   if (existingLike) {
     // Toggle the existing like
     const { data, error } = await supabase
       .from('review_likes')
       .update({ liked: !existingLike.liked })
-      .eq('id', existingLike.id)
+      .eq('review_id', reviewId)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -133,14 +117,7 @@ export async function toggleReviewLike(reviewId: string, userId: string) {
     // Create a new like
     const { data, error } = await supabase
       .from('review_likes')
-      .insert([
-        {
-          review_id: reviewId,
-          user_id: userId,
-          liked: true,
-          created_at: new Date().toISOString(),
-        },
-      ])
+      .insert([{ review_id: reviewId, user_id: userId, liked: true }])
       .select()
       .single();
 

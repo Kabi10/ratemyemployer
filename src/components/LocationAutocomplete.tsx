@@ -4,18 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  required?: boolean;
-  placeholder?: string;
-  className?: string;
+  error?: string;
 }
 
-export function LocationAutocomplete({
-  value,
-  onChange,
-  required = false,
-  placeholder = 'Enter location',
-  className = '',
-}: LocationAutocompleteProps) {
+export function LocationAutocomplete({ value, onChange, error }: LocationAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -59,22 +51,16 @@ export function LocationAutocomplete({
   }, [onChange]);
 
   return (
-    <div className="relative">
+    <div>
       <input
         ref={inputRef}
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
-        required={required}
-        className={`${className} ${!isLoaded ? 'bg-gray-100' : ''}`}
-        placeholder={isLoaded ? placeholder : 'Loading places...'}
-        disabled={!isLoaded}
+        className="mt-1"
+        placeholder="Enter location"
       />
-      {!isLoaded && (
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-        </div>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

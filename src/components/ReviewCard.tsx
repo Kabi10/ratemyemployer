@@ -1,7 +1,7 @@
 // components/ReviewCard.tsx
 'use client';
 import React from 'react';
-import { Review } from '@/types/database';
+import { Review } from '@/types';
 import { ReviewActions } from './ReviewActions';
 
 interface ReviewCardProps {

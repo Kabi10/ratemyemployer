@@ -10,3 +10,20 @@ export type User = Database['auth']['Tables']['users']['Row'];
 export type Industry = 'Technology' | 'Finance' | 'Healthcare' | 'Retail' | 'Manufacturing';
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
 export type UserRole = Database['public']['Enums']['user_role'];
+
+// Constants
+export const INDUSTRIES = [
+  'Technology',
+  'Finance',
+  'Healthcare',
+  'Retail',
+  'Manufacturing',
+  'Education',
+  'Construction',
+  'Entertainment',
+  'Transportation',
+  'Energy',
+  'Real Estate',
+  'Agriculture',
+  'Other'
+] as const;

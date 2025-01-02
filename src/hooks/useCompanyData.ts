@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Company, Review } from '@/types/database';
+import { Company, Review } from '@/types';
 import { fetchData } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
 

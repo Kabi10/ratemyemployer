@@ -10,7 +10,18 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 type Review = Database['public']['Tables']['reviews']['Row'];
 type Company = Database['public']['Tables']['companies']['Row'];
 
-interface ReviewWithCompany extends Omit<Review, 'company_id'> {
+interface ReviewWithCompany {
+  id: string;
+  rating: number;
+  title: string;
+  content: string;
+  pros: string | null;
+  cons: string | null;
+  status: string;
+  position: string;
+  employment_status: string;
+  created_at: string;
+  user_id: string;
   company: Pick<Company, 'id' | 'name'>;
 }
 
@@ -36,7 +47,6 @@ function ReviewsList() {
                         position,
                         employment_status,
                         created_at,
-                        updated_at,
                         user_id,
                         company:companies (
                             id,

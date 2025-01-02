@@ -119,45 +119,6 @@ export interface Database {
           }
         ];
       };
-      review_likes: {
-        Row: {
-          id: string;
-          review_id: string;
-          user_id: string;
-          liked: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          review_id: string;
-          user_id: string;
-          liked: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          review_id?: string;
-          user_id?: string;
-          liked?: boolean;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'review_likes_review_id_fkey';
-            columns: ['review_id'];
-            isOneToOne: false;
-            referencedRelation: 'reviews';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'review_likes_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
     };
     Views: {
       [_ in never]: never;

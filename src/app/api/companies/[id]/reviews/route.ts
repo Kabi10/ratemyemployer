@@ -1,27 +1,61 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const supabase = createRouteHandlerClient({ cookies });
 
-  const { data, error } = await supabase
-    .from('reviews')
-    .select(
-      `
-      *,
-      user_profiles:user_id (
-        username,
-        email
-      )
-    `
-    )
-    .eq('company_id', params.id)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('company_id', params.id)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) throw error;
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch reviews' },
+      { status: 500 }
+    );
   }
+}
 
-  return NextResponse.json(data);
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createRouteHandlerClient({ cookies });
+  const formData = await request.json();
+
+  try {
+    const { data: review, error } = await supabase
+      .from('reviews')
+      .insert([
+        {
+          ...formData,
+          company_id: params.id,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(review);
+  } catch (error) {
+    console.error('Error creating review:', error);
+    return NextResponse.json(
+      { error: 'Failed to create review' },
+      { status: 500 }
+    );
+  }
 }
