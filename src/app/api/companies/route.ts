@@ -1,21 +1,28 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import type { Company } from '@/types/database';
+import type { Company } from '@/types';
 
 export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies });
-  const { searchParams } = new URL(request.url);
-
-  const industry = searchParams.get('industry');
+  const searchParams = new URL(request.url).searchParams;
   const search = searchParams.get('search');
-  const limit = searchParams.get('limit');
+  const industry = searchParams.get('industry');
+  const minRating = searchParams.get('minRating');
 
   let query = supabase.from('companies').select('*');
 
-  if (industry) query = query.eq('industry', industry);
-  if (search) query = query.ilike('name', `%${search}%`);
-  if (limit) query = query.limit(parseInt(limit));
+  if (search) {
+    query = query.ilike('name', `%${search}%`);
+  }
+
+  if (industry) {
+    query = query.eq('industry', industry);
+  }
+
+  if (minRating) {
+    query = query.gte('average_rating', minRating);
+  }
 
   const { data, error } = await query;
 
@@ -23,5 +30,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data as Company[]);
+  return NextResponse.json(data);
 }

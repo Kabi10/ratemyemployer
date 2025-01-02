@@ -1,63 +1,57 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { ReviewLike } from '@/types/database';
+
+interface ReviewLike {
+  review_id: string;
+  user_id: string;
+  liked: boolean;
+}
 
 export function useLikes() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [likes, setLikes] = useState<Record<string, boolean>>({});
 
-  const toggleLike = async (reviewId: string, userId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+  async function fetchLikes(userId: string) {
+    const { data, error } = await supabase
+      .from('review_likes')
+      .select('*')
+      .eq('user_id', userId);
 
-      // Check if the like already exists
-      const { data: existingLike, error: selectError } = await supabase
-        .from('review_likes')
-        .select('*')
-        .eq('review_id', reviewId)
-        .eq('user_id', userId)
-        .single();
-
-      if (selectError && selectError.code !== 'PGRST116') {
-        // PGRST116: Row not found
-        throw selectError;
-      }
-
-      if (existingLike) {
-        // Toggle the existing like
-        const { data, error: updateError } = await supabase
-          .from('review_likes')
-          .update({ liked: !existingLike.liked })
-          .eq('review_id', reviewId)
-          .eq('user_id', userId)
-          .select()
-          .single();
-
-        if (updateError) throw updateError;
-        return data as ReviewLike;
-      } else {
-        // Create a new like
-        const { data, error: insertError } = await supabase
-          .from('review_likes')
-          .insert([{ review_id: reviewId, user_id: userId, liked: true }])
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        return data as ReviewLike;
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to toggle like'));
-      throw err;
-    } finally {
-      setLoading(false);
+    if (error) {
+      console.error('Error fetching likes:', error);
+      return;
     }
-  };
 
-  return {
-    toggleLike,
-    loading,
-    error,
-  };
+    const likesMap = data.reduce((acc, like) => {
+      acc[like.review_id] = like.liked;
+      return acc;
+    }, {} as Record<string, boolean>);
+
+    setLikes(likesMap);
+  }
+
+  async function toggleLike(reviewId: string, userId: string) {
+    const currentLiked = likes[reviewId];
+    const newLiked = !currentLiked;
+
+    // Optimistically update UI
+    setLikes(prev => ({ ...prev, [reviewId]: newLiked }));
+
+    const { error } = await supabase
+      .from('review_likes')
+      .upsert([
+        {
+          review_id: reviewId,
+          user_id: userId,
+          liked: newLiked,
+        },
+      ]);
+
+    if (error) {
+      console.error('Error toggling like:', error);
+      // Revert on error
+      setLikes(prev => ({ ...prev, [reviewId]: currentLiked }));
+    }
+  }
+
+  return { likes, fetchLikes, toggleLike };
 }

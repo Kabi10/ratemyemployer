@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Company, Review, ReviewLike } from '@/types/database';
+import type { Company, Review, ReviewLike } from '@/types';
 
 export async function getCompanies(options: {
   search?: string;

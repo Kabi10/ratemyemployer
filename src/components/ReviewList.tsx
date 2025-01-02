@@ -75,7 +75,6 @@ export function ReviewList({ companyId }: ReviewListProps) {
         <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-xl font-semibold mb-1">{review.title}</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 {review.position} • {review.employment_status}
               </p>
