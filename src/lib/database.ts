@@ -37,9 +37,13 @@ export async function getCompanies(options: {
 }
 
 export async function getCompanyById(id: string) {
-  const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
+  const { data: _company, error: companyError } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  if (error) throw error;
+  if (companyError) throw companyError;
   return data as Company;
 }
 
