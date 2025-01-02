@@ -24,6 +24,29 @@ export default [
           jsx: true,
         },
       },
+      globals: {
+        React: 'readonly',
+        JSX: 'readonly',
+        NodeJS: 'readonly',
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        console: 'readonly',
+        window: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        HTMLInputElement: 'readonly',
+        HTMLSpanElement: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        URL: 'readonly',
+        alert: 'readonly',
+        process: 'readonly',
+        module: 'readonly',
+        require: 'readonly'
+      }
     },
     settings: {
       react: {
@@ -37,7 +60,12 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+      'no-unused-vars': 'off',
+      'no-undef': 'off'
     },
   },
 ]; 
