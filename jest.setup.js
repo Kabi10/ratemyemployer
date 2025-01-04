@@ -55,4 +55,19 @@ jest.mock('@supabase/ssr', () => ({
 
 // Mock environment variables
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'example-anon-key' 
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'example-anon-key'
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+}) 
