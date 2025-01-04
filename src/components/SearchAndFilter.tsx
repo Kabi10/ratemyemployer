@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase-client';
 
 export default function SearchAndFilter() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +10,7 @@ export default function SearchAndFilter() {
 
   useEffect(() => {
     async function fetchIndustries() {
+      const supabase = createClient();
       const { data, error } = await supabase.from('companies').select('industry');
 
       if (error) {

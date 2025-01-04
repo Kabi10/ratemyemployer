@@ -1,39 +1,38 @@
 'use client';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabaseClient';
+
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export function AuthButtons() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
 
-  const handleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  const handleSignIn = () => {
+    router.push('/auth/login');
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
+    router.push('/');
   };
 
   return (
     <div>
       {!user ? (
-        <button
+        <Button
           onClick={handleSignIn}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          variant="default"
         >
-          Sign In with Google
-        </button>
+          Sign In
+        </Button>
       ) : (
-        <button
+        <Button
           onClick={handleSignOut}
-          className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+          variant="outline"
         >
           Sign Out
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 interface CheckResults {
-  userRole: {
+  userMetadata: {
     data: any;
     error?: string;
   } | null;
@@ -24,7 +24,7 @@ interface CheckResults {
 
 export default function TestPage() {
   const [results, setResults] = useState<CheckResults>({
-    userRole: null,
+    userMetadata: null,
     companies: null,
     reviews: null,
     auth: null,
@@ -34,18 +34,19 @@ export default function TestPage() {
   useEffect(() => {
     async function checkSchema() {
       const checks: CheckResults = {
-        userRole: null,
+        userMetadata: null,
         companies: null,
         reviews: null,
         auth: null,
       };
 
       try {
-        // Check if user_role type exists
-        const { data: typeData, error: typeError } = await supabase.rpc('get_user_role', {
-          user_id: 'test',
-        });
-        checks.userRole = { data: typeData, error: typeError?.message };
+        // Check user metadata
+        const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+        checks.userMetadata = { 
+          data: users?.map(u => ({ id: u.id, metadata: u.user_metadata })), 
+          error: usersError?.message 
+        };
 
         // Check companies table
         const { data: companiesData, error: companiesError } = await supabase
@@ -85,8 +86,8 @@ export default function TestPage() {
 
       <div className="space-y-6">
         <div className="border rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-2">User Role Function</h2>
-          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(results.userRole, null, 2)}</pre>
+          <h2 className="text-lg font-semibold mb-2">User Metadata</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(results.userMetadata, null, 2)}</pre>
         </div>
 
         <div className="border rounded-lg p-4">

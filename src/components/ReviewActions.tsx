@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase-client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function ReviewActions({
@@ -20,6 +20,7 @@ export function ReviewActions({
       if (!user) return;
 
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('review_likes')
           .select('liked')
@@ -52,6 +53,7 @@ export function ReviewActions({
 
     setIsLoading(true);
     try {
+      const supabase = createClient();
       const { error } = await supabase.from('review_likes').upsert([
         {
           review_id: reviewId,

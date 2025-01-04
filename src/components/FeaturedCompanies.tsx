@@ -1,43 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import type { Database } from '@/types/supabase';
 import { CompanyCard } from '@/components/CompanyCard';
-import { Company } from '@/types';
+import { useCompanies } from '@/hooks/useCompany';
 
 export function FeaturedCompanies() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchFeaturedCompanies() {
-      try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .order('average_rating', { ascending: false })
-          .limit(3);
-
-        if (error) throw error;
-        setCompanies(data || []);
-      } catch (err) {
-        console.error('Error fetching featured companies:', err);
-        setError('Failed to load featured companies');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchFeaturedCompanies();
-  }, []);
+  const { companies, isLoading, error } = useCompanies({
+    limit: 3,
+    withStats: true,
+  });
 
   if (error) {
     return (
       <section className="py-12">
         <h2 className="text-3xl font-bold mb-8 text-center">Featured Companies</h2>
-        <div className="text-red-500 text-center">{error}</div>
+        <div className="text-red-500 text-center">{error.message}</div>
       </section>
     );
   }

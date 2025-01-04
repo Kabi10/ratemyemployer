@@ -2,6 +2,7 @@
 
 import { Suspense, lazy } from 'react';
 import { FloatingAddButton } from '@/components/FloatingAddButton';
+import Link from 'next/link';
 
 // Lazy load components
 const SearchAndFilter = lazy(() => import('@/components/SearchAndFilter'));
@@ -36,7 +37,15 @@ function CompanyListSkeleton() {
 export default function CompaniesPage() {
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Companies</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Companies</h1>
+        <Link
+          href="/companies/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 relative z-10"
+        >
+          Add Company
+        </Link>
+      </div>
 
       <Suspense fallback={<SearchSkeleton />}>
         <SearchAndFilter />
@@ -45,8 +54,6 @@ export default function CompaniesPage() {
       <Suspense fallback={<CompanyListSkeleton />}>
         <CompanyList />
       </Suspense>
-
-      <FloatingAddButton />
     </main>
   );
 }

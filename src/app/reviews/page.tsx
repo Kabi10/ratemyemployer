@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase-client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { Database } from '@/types/supabase';
@@ -33,28 +33,30 @@ function ReviewsList() {
   useEffect(() => {
     async function fetchReviews() {
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('reviews')
           .select(
             `
-                        id,
-                        rating,
-                        title,
-                        content,
-                        pros,
-                        cons,
-                        status,
-                        position,
-                        employment_status,
-                        created_at,
-                        user_id,
-                        company:companies (
-                            id,
-                            name
-                        )
-                    `
+            id,
+            rating,
+            title,
+            content,
+            pros,
+            cons,
+            status,
+            position,
+            employment_status,
+            created_at,
+            user_id,
+            company:companies (
+              id,
+              name
+            )
+          `
           )
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .returns<(Omit<ReviewWithCompany, 'company'> & { company: Pick<Company, 'id' | 'name'> })[]>();
 
         if (error) throw error;
 
