@@ -4,22 +4,22 @@ import { NextResponse } from 'next/server'
 import type { Company } from '@/types'
 
 // Helper function to create Supabase client
-const createClient = () => {
+const createClient = async () => {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         async get(name: string) {
-          const cookieStore = cookies()
+          const cookieStore = await cookies()
           return cookieStore.get(name)?.value
         },
         async set(name: string, value: string, options: CookieOptions) {
-          const cookieStore = cookies()
+          const cookieStore = await cookies()
           cookieStore.set({ name, value, ...options })
         },
         async remove(name: string, options: CookieOptions) {
-          const cookieStore = cookies()
+          const cookieStore = await cookies()
           cookieStore.delete({ name, ...options })
         }
       }
@@ -28,7 +28,7 @@ const createClient = () => {
 }
 
 export async function GET(request: Request) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const searchParams = new URL(request.url).searchParams
   const search = searchParams.get('search')
   const industry = searchParams.get('industry')
