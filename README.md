@@ -83,4 +83,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Your Name - [@YourTwitter](https://twitter.com/YourTwitter)
 
-Project Link: [https://github.com/Kabi10/ratemyemployer](https://github.com/Kabi10/ratemyemployer) 
+Project Link: [https://github.com/Kabi10/ratemyemployer](https://github.com/Kabi10/ratemyemployer)
+
+## Deployment
+
+This project is automatically deployed to Vercel through GitHub Actions. The deployment process includes:
+
+- Automatic deployments on push to `develop` or `main` branches
+- Running tests and linting before deployment
+- Performance checks with Lighthouse
+- Automatic environment variable management
+
+Live site: [ratemyemployer.life](https://ratemyemployer.life) 
