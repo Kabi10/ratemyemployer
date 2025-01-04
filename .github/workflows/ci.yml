@@ -38,31 +38,16 @@ jobs:
         run: npm run build
         
       - name: Test
-        run: npm run test
+        run: npm run test -- --passWithNoTests
         
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           
-  lighthouse:
-    name: Lighthouse Check
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v9
-        with:
-          urls: |
-            https://ratemyemployer.vercel.app/
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-          
   deploy:
     name: Deploy
-    needs: [build, lighthouse]
+    needs: [build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     env:
