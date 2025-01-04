@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase-client';
 
 interface ReviewLike {
   review_id: string;
@@ -11,6 +11,7 @@ export function useLikes() {
   const [likes, setLikes] = useState<Record<string, boolean>>({});
 
   async function fetchLikes(userId: string) {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('review_likes')
       .select('*')
@@ -30,6 +31,7 @@ export function useLikes() {
   }
 
   async function toggleLike(reviewId: string, userId: string) {
+    const supabase = createClient();
     const currentLiked = likes[reviewId];
     const newLiked = !currentLiked;
 

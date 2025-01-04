@@ -1,12 +1,12 @@
 import { supabase } from './supabaseClient';
 
 async function checkDatabaseSchema() {
-  // Check if user_role type exists
-  const { data: typeData, error: typeError } = await supabase.rpc('get_user_role', {
-    user_id: 'test',
+  // Check user metadata and roles
+  const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+  console.log('User metadata test:', { 
+    users: users?.map(u => ({ id: u.id, metadata: u.user_metadata })),
+    error: usersError 
   });
-
-  console.log('User role function test:', { typeData, typeError });
 
   // Check companies table
   const { data: companiesData, error: companiesError } = await supabase

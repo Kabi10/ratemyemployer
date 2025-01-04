@@ -1,57 +1,61 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase-client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Review } from '@/types';
 
-interface UseReviewsOptions {
-  companyId: string;
-  limit?: number;
-  offset?: number;
-  sortBy?: 'date' | 'rating' | 'likes';
-  order?: 'asc' | 'desc';
+interface UseReviewsReturn {
+  reviews: Review[] | null;
+  isLoading: boolean;
+  error: Error | null;
+  mutate: () => Promise<void>;
 }
 
-export function useReviews(options: UseReviewsOptions) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useReviews(): UseReviewsReturn {
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    async function fetchReviews() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        let query = supabase.from('reviews').select('*').eq('company_id', options.companyId);
-
-        // Apply sorting
-        if (options.sortBy) {
-          const column = options.sortBy === 'date' ? 'created_at' : options.sortBy;
-          query = query.order(column, { ascending: options.order === 'asc' });
-        }
-
-        // Apply pagination
-        if (options.limit) {
-          query = query.limit(options.limit);
-        }
-
-        if (options.offset) {
-          query = query.range(options.offset, (options.offset || 0) + (options.limit || 10) - 1);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-
-        setReviews(data as Review[]);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch reviews'));
-      } finally {
-        setLoading(false);
-      }
+  async function fetchReviews() {
+    if (!user) {
+      setReviews(null);
+      setIsLoading(false);
+      return;
     }
 
-    fetchReviews();
-  }, [options.companyId, options.limit, options.offset, options.sortBy, options.order]);
+    try {
+      const supabase = createClient();
+      const { data, error: supabaseError } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          company:companies (
+            id,
+            name,
+            industry,
+            location
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-  return { reviews, loading, error };
-}
+      if (supabaseError) throw supabaseError;
+      setReviews(data);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch reviews'));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchReviews();
+  }, [user]);
+
+  return {
+    reviews,
+    isLoading,
+    error,
+    mutate: fetchReviews
+  };
+} 

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase-client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -69,6 +69,7 @@ export default function Home() {
 
     setIsSearching(true);
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -107,6 +108,7 @@ export default function Home() {
 
       console.log('Submitting data:', cleanData);
       
+      const supabase = createClient();
       const { data: newCompany, error } = await supabase
         .from('companies')
         .insert([cleanData])

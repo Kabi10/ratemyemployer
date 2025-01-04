@@ -1,56 +1,43 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase-client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useToast } from '@/components/Toast';
-import type { Database } from '@/types/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import AdminLayout from '@/components/layouts/AdminLayout';
 
-type UserRole = Database['auth']['Tables']['users']['Row']['role'];
-type User = Database['public']['Functions']['list_users']['Returns'][number];
+type User = {
+  id: string;
+  email: string;
+  created_at: string;
+  app_metadata: {
+    role?: string;
+    provider?: string;
+    providers?: string[];
+  };
+};
+
+const mapSupabaseUser = (user: SupabaseUser): User => ({
+  id: user.id,
+  email: user.email || '',
+  created_at: user.created_at,
+  app_metadata: user.app_metadata || { role: 'user' }
+});
 
 export default function AdminUsers() {
-  const { user } = useAuth();
-  const router = useRouter();
   const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.rpc('get_user_role', {
-          user_id: user.id,
-        });
-
-        if (error || data !== 'admin') {
-          router.push('/');
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking admin status:', err);
-        router.push('/');
-      }
-    };
-
-    checkAdminStatus();
-  }, [user, router]);
-
-  useEffect(() => {
     async function fetchUsers() {
       try {
-        const { data, error } = await supabase.rpc('list_users');
-
+        const supabase = createClient();
+        const { data: { users: supabaseUsers }, error } = await supabase.auth.admin.listUsers();
         if (error) throw error;
-        setUsers(data || []);
+        setUsers((supabaseUsers || []).map(mapSupabaseUser));
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to load users');
@@ -59,21 +46,23 @@ export default function AdminUsers() {
       }
     }
 
-    if (user) {
-      fetchUsers();
-    }
-  }, [user]);
+    fetchUsers();
+  }, []);
 
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase.rpc('update_user_role', {
-        target_user_id: userId,
-        new_role: newRole,
+      const supabase = createClient();
+      const { error } = await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { role: newRole }
       });
 
       if (error) throw error;
 
-      setUsers(users.map(u => (u.id === userId ? { ...u, role: newRole } : u)));
+      setUsers(users.map(u => 
+        u.id === userId 
+          ? { ...u, app_metadata: { ...u.app_metadata, role: newRole } }
+          : u
+      ));
 
       showToast('User role updated successfully', 'success');
     } catch (err) {
@@ -84,24 +73,26 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AdminLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
           <p className="text-red-700 dark:text-red-200">{error}</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       <h1 className="text-3xl font-bold mb-8">Manage Users</h1>
 
       <div className="overflow-x-auto">
@@ -125,10 +116,9 @@ export default function AdminUsers() {
                 <td className="px-6 py-4 whitespace-nowrap">{u.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <select
-                    value={u.role}
-                    onChange={e => handleRoleChange(u.id, e.target.value as UserRole)}
+                    value={u.app_metadata?.role || 'user'}
+                    onChange={e => handleRoleChange(u.id, e.target.value)}
                     className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                    disabled={u.id === user?.id} // Can't change own role
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -142,6 +132,6 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

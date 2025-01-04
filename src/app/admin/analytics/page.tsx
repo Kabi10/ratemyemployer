@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 import {
   LineChart,
   Line,
@@ -33,39 +32,12 @@ interface AnalyticsData {
 }
 
 export default function AdminAnalytics() {
-  const { user } = useAuth();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.rpc('get_user_role', {
-          user_id: user.id,
-        });
-
-        if (error || data !== 'admin') {
-          router.push('/');
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking admin status:', err);
-        router.push('/');
-      }
-    };
-
-    checkAdminStatus();
-  }, [user, router]);
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
+    async function fetchAnalytics() {
       try {
         // Fetch total reviews and average rating
         const { data: totalData, error: totalError } = await supabase
@@ -125,35 +97,35 @@ export default function AdminAnalytics() {
       } finally {
         setLoading(false);
       }
-    };
-
-    if (user) {
-      fetchAnalytics();
     }
-  }, [user]);
+
+    fetchAnalytics();
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AdminLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
           <p className="text-red-700 dark:text-red-200">{error}</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   if (!analytics) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       <h1 className="text-3xl font-bold mb-8">Analytics Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -206,6 +178,6 @@ export default function AdminAnalytics() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

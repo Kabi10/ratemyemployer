@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 interface Stats {
   totalCompanies: number;
@@ -14,8 +13,6 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
-  const router = useRouter();
   const [stats, setStats] = useState<Stats>({
     totalCompanies: 0,
     totalReviews: 0,
@@ -26,35 +23,9 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.rpc('get_user_role', {
-          user_id: user.id,
-        });
-
-        if (error || data !== 'admin') {
-          router.push('/');
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking admin status:', err);
-        router.push('/');
-      }
-    };
-
-    checkAdminStatus();
-  }, [user, router]);
-
-  useEffect(() => {
     const fetchStats = async () => {
       try {
         const { data, error } = await supabase.rpc('get_admin_stats');
-
         if (error) throw error;
         setStats(data);
       } catch (err) {
@@ -65,18 +36,12 @@ export default function AdminDashboard() {
       }
     };
 
-    if (user) {
-      fetchStats();
-    }
-  }, [user]);
-
-  if (!user) {
-    return null;
-  }
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -85,22 +50,22 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
           <p className="text-red-700 dark:text-red-200">{error}</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -171,6 +136,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

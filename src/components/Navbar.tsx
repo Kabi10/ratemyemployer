@@ -1,37 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { UserIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { supabase } from '@/lib/supabaseClient';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) return;
-
-      try {
-        const { data, error } = await supabase.rpc('get_user_role', {
-          user_id: user.id,
-        });
-
-        if (!error && data === 'admin') {
-          setIsAdmin(true);
-        }
-      } catch (err) {
-        console.error('Error checking admin status:', err);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
 
   return (
     <nav className="bg-white shadow-md dark:bg-gray-800">
@@ -112,12 +90,20 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/auth/login"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-              >
-                Sign In
-              </Link>
+              <div className="flex gap-2">
+                <Link
+                  href="/auth/login"
+                  className="text-blue-600 hover:text-blue-700 px-4 py-2 rounded border border-blue-600 hover:border-blue-700 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/auth/login?signup=true"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
           <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

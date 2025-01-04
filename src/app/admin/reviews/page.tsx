@@ -1,19 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { Review, Company } from '@/types';
+import { createClient } from '@/lib/supabase-client';
+import { Review } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
-
-interface ReviewWithCompany extends Review {
-  company: Company;
-}
+import AdminLayout from '@/components/layouts/AdminLayout';
 
 export default function AdminReviewsPage() {
-  const { user } = useAuth();
-  const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { showToast } = useToast();
@@ -23,19 +18,33 @@ export default function AdminReviewsPage() {
   }, []);
 
   async function fetchReviews() {
+    const supabase = createClient();
     try {
       const { data, error } = await supabase
         .from('reviews')
-        .select(
-          `
+        .select(`
           *,
           company:companies(*)
-        `
-        )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setReviews(data || []);
+
+      // Transform the data to include position and employment_status
+      const transformedData = (data || []).map(review => ({
+        ...review,
+        position: review.position || 'Not specified',
+        employment_status: review.employment_status || 'Not specified',
+        company: {
+          ...review.company,
+          industry: review.company.industry || 'Not specified',
+          location: review.company.location || 'Not specified',
+          total_reviews: 0, // These would need to be calculated
+          average_rating: 0, // These would need to be calculated
+        }
+      }));
+
+      setReviews(transformedData);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       showToast('Failed to load reviews', 'error');
@@ -45,6 +54,7 @@ export default function AdminReviewsPage() {
   }
 
   async function handleApproveReview(reviewId: string) {
+    const supabase = createClient();
     try {
       const { error } = await supabase
         .from('reviews')
@@ -61,11 +71,17 @@ export default function AdminReviewsPage() {
   }
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </AdminLayout>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       <h1 className="text-2xl font-bold mb-6">Manage Reviews</h1>
       <div className="space-y-4">
         {reviews.map(review => (
@@ -115,6 +131,6 @@ export default function AdminReviewsPage() {
           </div>
         ))}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
