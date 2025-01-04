@@ -1,16 +1,13 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { CompanyFormData, ReviewFormData } from './schemas';
 
 // Create typed client with minimal configuration
 export const createClient = () => {
-  return createClientComponentClient<Database>({
-    options: {
-      db: {
-        schema: 'public'
-      }
-    }
-  });
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 };
 
 // Error handling utility
