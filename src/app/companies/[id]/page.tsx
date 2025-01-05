@@ -41,7 +41,7 @@ export default function CompanyPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
-            {company.verified && (
+            {company.verification_status === 'verified' && (
               <div className="flex items-center space-x-1 text-blue-500">
                 <CheckBadgeIcon className="h-6 w-6" />
                 <span className="text-sm font-medium">Verified</span>

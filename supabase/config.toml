@@ -59,4 +59,16 @@ enable_signup = false
 enable_confirmations = false
 
 [auth.external]
-enable_signup = false
+enabled = false
+
+[auth.external.github]
+enabled = false
+client_id = ""
+secret = ""
+redirect_uri = ""
+
+[auth.external.google]
+enabled = false
+client_id = ""
+secret = ""
+redirect_uri = ""

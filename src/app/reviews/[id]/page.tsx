@@ -14,7 +14,7 @@ export default function ReviewPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const { company, isLoading, error } = useCompany(id as string, { withReviews: true });
-  const review = company?.reviews?.find(r => r.id === id);
+  const review = company?.reviews?.find(r => r.id.toString() === id);
 
   if (isLoading) {
     return (

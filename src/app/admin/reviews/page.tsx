@@ -88,7 +88,9 @@ export default function AdminReviewsPage() {
           <div key={review.id} className="bg-white shadow rounded-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-xl font-semibold">{review.company.name}</h2>
+                <h2 className="text-xl font-semibold">
+                  {review.company?.name || 'Unknown Company'}
+                </h2>
                 <div className="text-sm text-gray-600 mt-1">
                   {review.position} • {review.employment_status}
                 </div>
@@ -96,7 +98,7 @@ export default function AdminReviewsPage() {
               <div className="flex items-center space-x-4">
                 {review.status !== 'approved' && (
                   <button
-                    onClick={() => handleApproveReview(review.id)}
+                    onClick={() => handleApproveReview(review.id.toString())}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                   >
                     Approve

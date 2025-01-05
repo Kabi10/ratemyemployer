@@ -3,124 +3,112 @@
  * API routes for handling review creation and updates
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase-server';
-import { handleError, ApiErrors } from '@/lib/api-utils';
-import { reviewSchema } from '@/lib/schemas';
-import type { ZodError } from 'zod';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { Review } from '@/types';
+import { Database } from '@/types/supabase';
 
-export async function POST(request: NextRequest) {
+export async function GET() {
   try {
-    const supabase = createServerClient();
-    const session = await supabase.auth.getSession();
-    if (!session.data.session) {
-      throw ApiErrors.Unauthorized();
+    const cookieStore = cookies();
+
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('*, company:companies(*)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const body = await request.json();
-    
-    // Validate request body
-    const validationResult = reviewSchema.safeParse(body);
-    if (!validationResult.success) {
-      const errors = validationResult.error.errors.map(err => ({
-        message: err.message,
-        path: err.path.map(p => p.toString()),
-      }));
-      throw ApiErrors.ValidationError(errors);
-    }
+    return NextResponse.json(reviews);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const cookieStore = cookies();
+
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const review = (await request.json()) as Review;
 
     const { data, error } = await supabase
       .from('reviews')
-      .insert([
-        {
-          ...validationResult.data,
-          user_id: session.data.session.user.id,
-        },
-      ])
+      .insert([review])
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw ApiErrors.BadRequest('Failed to create review');
-
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    return handleError(error);
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = createServerClient();
-    const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get('company_id');
-    const userId = searchParams.get('user_id');
-
-    let query = supabase.from('reviews').select(`
-      *,
-      user_profiles:user_id (
-        username,
-        email
-      )
-    `);
-
-    if (companyId) {
-      query = query.eq('company_id', companyId);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) throw error;
-    if (!data) throw ApiErrors.NotFound('Reviews');
 
     return NextResponse.json(data);
   } catch (error) {
-    return handleError(error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: Request) {
   try {
-    const supabase = createServerClient();
-    const session = await supabase.auth.getSession();
-    if (!session.data.session) {
-      throw ApiErrors.Unauthorized();
+    const cookieStore = cookies();
+
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const { id } = await request.json();
+
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const reviewId = searchParams.get('id');
-
-    if (!reviewId) {
-      throw ApiErrors.BadRequest('Review ID is required');
-    }
-
-    // Check if the review belongs to the user
-    const { data: review, error: fetchError } = await supabase
-      .from('reviews')
-      .select('user_id')
-      .eq('id', reviewId)
-      .single();
-
-    if (fetchError) throw fetchError;
-    if (!review) throw ApiErrors.NotFound('Review');
-
-    if (review.user_id !== session.data.session.user.id) {
-      throw ApiErrors.Forbidden();
-    }
-
-    const { error: deleteError } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', reviewId);
-
-    if (deleteError) throw deleteError;
-
-    return new NextResponse(null, { status: 204 });
+    return NextResponse.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    return handleError(error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

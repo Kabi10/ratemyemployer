@@ -309,7 +309,8 @@ export default function Home() {
                           <LocationAutocomplete
                             value={locationValue || ''}
                             onChange={(value) => setValue('location', value)}
-                            error={errors.location?.message}
+                            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                            placeholder="Enter a location"
                           />
                         </div>
                         <Button

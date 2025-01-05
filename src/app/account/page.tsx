@@ -62,7 +62,9 @@ function AccountPage() {
                   className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-gray-900">{review.company.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {review.company?.name || 'Unknown Company'}
+                    </h3>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {review.employment_status}
                     </span>

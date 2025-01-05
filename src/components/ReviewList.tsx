@@ -6,7 +6,7 @@ import { List } from '@/components/ui/List';
 import type { Review } from '@/types';
 
 interface ReviewListProps {
-  companyId: string;
+  companyId: string | number;
 }
 
 function ReviewCard({ review }: { review: Review }) {
@@ -58,11 +58,13 @@ export function ReviewList({ companyId }: ReviewListProps) {
   const { company, isLoading, error } = useCompany(companyId, { withReviews: true });
   const reviews = company?.reviews || [];
 
+  const keyExtractor = (review: Review) => review.id.toString();
+
   return (
     <List<Review>
       items={reviews}
       renderItem={(review) => <ReviewCard review={review} />}
-      keyExtractor={(review) => review.id}
+      keyExtractor={keyExtractor}
       isLoading={isLoading}
       error={error}
       emptyMessage="No reviews yet. Be the first to review this company!"

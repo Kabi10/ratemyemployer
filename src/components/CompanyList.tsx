@@ -17,11 +17,13 @@ export default function CompanyList() {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
+  const keyExtractor = (company: Company) => company.id.toString();
+
   return (
     <List<Company>
       items={companies}
       renderItem={(company) => <CompanyCard company={company} />}
-      keyExtractor={(company) => company.id}
+      keyExtractor={keyExtractor}
       isLoading={isLoading}
       error={error}
       emptyMessage="No companies found."
