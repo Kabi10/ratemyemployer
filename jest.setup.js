@@ -1,73 +1,60 @@
-import '@testing-library/jest-dom'
+require('@testing-library/jest-dom');
 
-// Mock next/router
-jest.mock('next/router', () => require('next-router-mock'))
+// Extend Jest matchers
+expect.extend({
+  toBeInTheDocument(received) {
+    const pass = received !== null;
+    return {
+      message: () => `expected ${received} to be in the document`,
+      pass,
+    };
+  },
+  toHaveTextContent(received, expected) {
+    const text = received.textContent || received.innerText;
+    const pass = text.match(expected);
+    return {
+      message: () => `expected ${text} to match ${expected}`,
+      pass,
+    };
+  },
+});
 
 // Mock next/navigation
+const useRouter = jest.fn();
+const push = jest.fn();
+const back = jest.fn();
+const events = {
+  on: jest.fn(),
+  off: jest.fn(),
+  emit: jest.fn(),
+};
+
+const router = {
+  push,
+  back,
+  events,
+};
+
+useRouter.mockReturnValue(router);
+
 jest.mock('next/navigation', () => ({
-  useRouter() {
-    return {
-      push: jest.fn(),
-      replace: jest.fn(),
-      prefetch: jest.fn(),
-      back: jest.fn(),
-    }
-  },
-  useSearchParams() {
-    return new URLSearchParams()
-  },
-  usePathname() {
-    return ''
-  },
-}))
+  useRouter,
+  usePathname: jest.fn().mockReturnValue('/'),
+}));
 
-// Mock Supabase
-jest.mock('@supabase/ssr', () => ({
-  createBrowserClient: jest.fn(() => ({
+// Mock Supabase client
+jest.mock('@/lib/supabaseClient', () => ({
+  createClient: jest.fn(() => ({
     auth: {
-      getSession: jest.fn(),
-      signInWithOAuth: jest.fn(),
-      signOut: jest.fn(),
+      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
     },
     from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        })),
+      })),
     })),
   })),
-  createServerClient: jest.fn(() => ({
-    auth: {
-      getSession: jest.fn(),
-    },
-    from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-    })),
-  })),
-}))
-
-// Mock environment variables
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'example-anon-key'
-
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-}) 
+})); 

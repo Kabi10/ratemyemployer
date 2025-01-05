@@ -12,6 +12,9 @@ const customJestConfig = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
     },
+    transform: {
+        '^.+\\.(ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+    },
     testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
     collectCoverage: true,
     collectCoverageFrom: [
@@ -28,6 +31,17 @@ const customJestConfig = {
             branches: 10,
             functions: 10,
             lines: 10,
+        },
+    },
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+    transformIgnorePatterns: [
+        '/node_modules/',
+        '^.+\\.module\\.(css|sass|scss)$',
+    ],
+    globals: {
+        'ts-jest': {
+            tsconfig: '<rootDir>/tsconfig.json',
         },
     },
 }

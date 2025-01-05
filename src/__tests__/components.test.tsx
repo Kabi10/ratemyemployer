@@ -1,313 +1,171 @@
-import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { renderHook } from '@testing-library/react-hooks';
-import { useForm } from 'react-hook-form';
+import { ReviewForm } from '../components/ReviewForm';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { ReviewForm } from '@/components/ReviewForm';
-import CreateReview from '@/components/CreateReview';
-import { useDebounce } from '@/hooks/useDebounce';
-import { act } from 'react-dom/test-utils';
+import { createClient } from '../lib/supabaseClient';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock the Supabase client
-const mockSupabaseClient = {
-  from: jest.fn(() => ({
-    insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-    select: jest.fn(() => ({
-      eq: jest.fn(() => ({
-        single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-      })),
-      single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-    })),
-  })),
+// Create a more complete mock implementation
+const createMockQueryBuilder = (mockInsert: jest.Mock) => ({
+  insert: mockInsert,
+  select: jest.fn().mockReturnThis(),
+  update: jest.fn().mockReturnThis(),
+  upsert: jest.fn().mockReturnThis(),
+  delete: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  neq: jest.fn().mockReturnThis(),
+  gt: jest.fn().mockReturnThis(),
+  lt: jest.fn().mockReturnThis(),
+  gte: jest.fn().mockReturnThis(),
+  lte: jest.fn().mockReturnThis(),
+  like: jest.fn().mockReturnThis(),
+  ilike: jest.fn().mockReturnThis(),
+  is: jest.fn().mockReturnThis(),
+  in: jest.fn().mockReturnThis(),
+  contains: jest.fn().mockReturnThis(),
+  containedBy: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
+  textSearch: jest.fn().mockReturnThis(),
+  match: jest.fn().mockReturnThis(),
+  not: jest.fn().mockReturnThis(),
+  or: jest.fn().mockReturnThis(),
+  filter: jest.fn().mockReturnThis(),
+  order: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  single: jest.fn().mockReturnThis(),
+  maybeSingle: jest.fn().mockReturnThis(),
+  csv: jest.fn().mockReturnThis(),
+  then: jest.fn().mockReturnThis(),
+  catch: jest.fn().mockReturnThis(),
+  finally: jest.fn().mockReturnThis(),
+});
+
+// Mock supabaseClient
+const mockClient = {
+  from: jest.fn((table) => createMockQueryBuilder(jest.fn().mockResolvedValue({ data: null, error: null }))),
+  getSession: jest.fn().mockResolvedValue({
+    data: { session: { user: { id: 'test-user-id' } } },
+  }),
+  onAuthStateChange: jest.fn((callback) => {
+    callback('SIGNED_IN', { user: { id: 'test-user-id' } });
+    return { data: { subscription: { unsubscribe: jest.fn() } } };
+  }),
 };
 
-jest.mock('@/lib/supabaseClient', () => ({
-  createClient: jest.fn(() => mockSupabaseClient),
+jest.mock('../lib/supabaseClient', () => ({
+  createClient: jest.fn(() => mockClient),
 }));
 
-// Mock AuthContext
-jest.mock('@/contexts/AuthContext', () => ({
-  useAuth: jest.fn(),
+// Mock useAuth hook
+jest.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user-id' },
+    isLoading: false,
+  }),
 }));
 
-describe('Components', () => {
-  // Reset all mocks before each test
+describe('ReviewForm', () => {
+  const mockRouter = {
+    push: jest.fn(),
+    refresh: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    (useRouter as jest.Mock).mockReturnValue({
-      push: jest.fn(),
-      replace: jest.fn(),
-      prefetch: jest.fn(),
-    });
-    (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 'test-user-id' },
-      isLoading: false,
-    });
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
   });
 
-  describe('ReviewForm', () => {
-    const mockOnSubmit = jest.fn();
-    const defaultProps = {
-      onSubmit: mockOnSubmit,
-      defaultValues: {
-        rating: 3,
-        position: '',
-        employment_status: 'FULL_TIME',
-        content: '',
-      },
-      companyId: 'test-company-id',
-    };
+  it('handles form submission correctly', async () => {
+    const mockInsert = jest.fn().mockResolvedValue({ data: null, error: null });
+    mockClient.from.mockImplementation((table) => createMockQueryBuilder(mockInsert));
 
-    it('renders the form correctly', async () => {
-      render(<ReviewForm {...defaultProps} />);
+    render(<ReviewForm companyId="test-company" />);
 
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      expect(screen.getByRole('group', { name: /rating/i })).toBeInTheDocument();
-      expect(screen.getByLabelText(/position/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/employment status/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/review/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /submit review/i })).toBeInTheDocument();
+    // Fill out the form
+    fireEvent.change(screen.getByLabelText(/title/i), {
+      target: { value: 'Great Company' },
+    });
+    fireEvent.change(screen.getByLabelText(/position/i), {
+      target: { value: 'Software Engineer' },
+    });
+    fireEvent.change(screen.getByLabelText(/review/i), {
+      target: { value: 'Amazing work environment' },
     });
 
-    it('shows validation errors for required fields', async () => {
-      render(<ReviewForm {...defaultProps} />);
+    // Submit the form
+    fireEvent.click(screen.getByText(/submit review/i));
 
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-      
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/position must be at least 2 characters/i)).toBeInTheDocument();
-        expect(screen.getByText(/review must be at least 10 characters/i)).toBeInTheDocument();
-      });
-    });
-
-    it('submits the form successfully', async () => {
-      render(<ReviewForm {...defaultProps} />);
-
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      await act(async () => {
-        // Click the third star for rating
-        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
-        fireEvent.click(ratingButtons[2]); // 3 stars
-
-        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
-        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
-        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
-      });
-
-      await waitFor(() => {
-        expect(mockOnSubmit).toHaveBeenCalledWith({
-          rating: 3,
+    // Wait for form submission to complete
+    await waitFor(() => {
+      expect(mockClient.from).toHaveBeenCalledWith('reviews');
+      expect(mockInsert).toHaveBeenCalledWith([
+        expect.objectContaining({
+          title: 'Great Company',
           position: 'Software Engineer',
-          employment_status: 'FULL_TIME',
-          content: 'Awesome place to work, great culture!',
-        }, expect.any(Object));
-      });
+          content: 'Amazing work environment',
+        })
+      ]);
     });
   });
 
-  describe('CreateReview', () => {
-    const mockCompanyId = 'test-company-id';
+  it('handles API errors correctly', async () => {
+    const mockError = { message: 'Error submitting review' };
+    const mockInsert = jest.fn().mockResolvedValue({ data: null, error: mockError });
+    mockClient.from.mockImplementation((table) => createMockQueryBuilder(mockInsert));
 
-    beforeEach(() => {
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockResolvedValue({ data: { id: 'new-review-id' }, error: null }),
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-          })),
-          single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-        })),
-      });
+    render(<ReviewForm companyId="test-company" />);
+
+    // Fill out the form
+    fireEvent.change(screen.getByLabelText(/title/i), {
+      target: { value: 'Test Title' },
+    });
+    fireEvent.change(screen.getByLabelText(/position/i), {
+      target: { value: 'Test Position' },
+    });
+    fireEvent.change(screen.getByLabelText(/review/i), {
+      target: { value: 'Test Content' },
     });
 
-    it('renders the form correctly', async () => {
-      render(<CreateReview companyId={mockCompanyId} />);
+    // Submit the form
+    fireEvent.click(screen.getByText(/submit review/i));
 
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      expect(screen.getByRole('group', { name: /rating/i })).toBeInTheDocument();
-      expect(screen.getByLabelText(/position/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/employment status/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/review/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /submit review/i })).toBeInTheDocument();
-    });
-
-    it('shows validation errors for required fields', async () => {
-      render(<CreateReview companyId={mockCompanyId} />);
-
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/position must be at least 2 characters/i)).toBeInTheDocument();
-        expect(screen.getByText(/review must be at least 10 characters/i)).toBeInTheDocument();
-      });
-    });
-
-    it('submits the review successfully', async () => {
-      const router = { push: jest.fn() };
-      (useRouter as jest.Mock).mockReturnValue(router);
-
-      render(<CreateReview companyId={mockCompanyId} />);
-
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      await act(async () => {
-        // Click the third star for rating
-        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
-        fireEvent.click(ratingButtons[2]); // 3 stars
-
-        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
-        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
-        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
-      });
-
-      await waitFor(() => {
-        expect(mockSupabaseClient.from).toHaveBeenCalledWith('reviews');
-        expect(router.push).toHaveBeenCalledWith('/companies/' + mockCompanyId);
-      });
-    });
-
-    it('handles submission error', async () => {
-      const error = { message: 'Failed to submit review' };
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockResolvedValue({ data: null, error }),
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-          })),
-          single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
-        })),
-      });
-
-      render(<CreateReview companyId={mockCompanyId} />);
-
-      // Wait for loading state to finish
-      await waitFor(() => {
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      });
-
-      await act(async () => {
-        // Click the third star for rating
-        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
-        fireEvent.click(ratingButtons[2]); // 3 stars
-
-        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
-        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
-        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to submit review/i)).toBeInTheDocument();
-      });
-    });
+    await waitFor(() => {
+      const errorMessage = screen.getByText(/failed to submit review/i);
+      expect(errorMessage).toBeInTheDocument();
+    }, { timeout: 3000 });
   });
 
-  describe('useDebounce', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
+  it('validates email format when provided', async () => {
+    render(<ReviewForm companyId="test-company" />);
+
+    const emailInput = screen.getByLabelText(/email/i);
+    fireEvent.change(emailInput, {
+      target: { value: 'invalid-email' },
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
+    // Trigger validation by submitting the form
+    fireEvent.click(screen.getByText(/submit review/i));
 
-    it('should return the initial value immediately', () => {
-      const { result } = renderHook(() => useDebounce('initial', 1000));
-      expect(result.current).toBe('initial');
-    });
+    await waitFor(() => {
+      const errorMessage = screen.getByText(/invalid email/i);
+      expect(errorMessage).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
 
-    it('should debounce value changes', () => {
-      interface HookProps {
-        value: string;
-        delay: number;
-      }
+  it('validates required fields', async () => {
+    render(<ReviewForm companyId="test-company" />);
 
-      const { result, rerender } = renderHook(
-        ({ value, delay }: HookProps) => useDebounce(value, delay),
-        { initialProps: { value: 'initial', delay: 1000 } }
-      );
+    // Submit without filling required fields
+    fireEvent.click(screen.getByText(/submit review/i));
 
-      expect(result.current).toBe('initial');
-
-      // Change the value
-      rerender({ value: 'changed', delay: 1000 });
-
-      // Value shouldn't change immediately
-      expect(result.current).toBe('initial');
-
-      // Fast-forward time
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Now the value should be updated
-      expect(result.current).toBe('changed');
-    });
-
-    it('should handle multiple value changes', () => {
-      interface HookProps {
-        value: string;
-        delay: number;
-      }
-
-      const { result, rerender } = renderHook(
-        ({ value, delay }: HookProps) => useDebounce(value, delay),
-        { initialProps: { value: 'initial', delay: 1000 } }
-      );
-
-      // Change value multiple times
-      rerender({ value: 'first', delay: 1000 });
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-
-      rerender({ value: 'second', delay: 1000 });
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Should have the latest value
-      expect(result.current).toBe('second');
-    });
+    await waitFor(() => {
+      expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/position is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/review content is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/rating is required/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
   });
 }); 

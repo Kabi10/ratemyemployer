@@ -1,22 +1,50 @@
-import { render } from '@testing-library/react'
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import Home from '../page';
 
-// Mock the page component since it's a server component
-jest.mock('../page', () => {
-  return function MockHome() {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <h1>Rate My Employer</h1>
-      </main>
-    )
-  }
-})
+jest.mock('@/lib/supabaseClient', () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        order: jest.fn(() => ({
+          limit: jest.fn().mockResolvedValue({ data: [], error: null })
+        }))
+      }))
+    }))
+  }))
+}));
 
-// Import after mocking
-import Home from '../page'
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn()
+  }))
+}));
 
 describe('Home Page', () => {
-  it('renders without crashing', () => {
-    const { container } = render(<Home />)
-    expect(container).toBeTruthy()
-  })
-}) 
+  it('renders the main heading', () => {
+    render(<Home />);
+    const mainHeading = screen.getByText('Rate My Employer');
+    const subHeading = screen.getByText('Share Your Work Experience');
+    expect(mainHeading).toBeInTheDocument();
+    expect(subHeading).toBeInTheDocument();
+  });
+
+  it('renders the search section', () => {
+    render(<Home />);
+    expect(screen.getByPlaceholderText('Search for a company...')).toBeInTheDocument();
+  });
+
+  it('renders the welcome message', () => {
+    render(<Home />);
+    expect(screen.getByText(/join our community to share and discover authentic workplace experiences/i)).toBeInTheDocument();
+  });
+
+  it('renders the search input', () => {
+    render(<Home />);
+    const searchInput = screen.getByRole('textbox');
+    expect(searchInput).toBeInTheDocument();
+    expect(searchInput).toHaveAttribute('placeholder', 'Search for a company...');
+  });
+}); 

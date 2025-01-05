@@ -2,17 +2,37 @@ import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { CompanyFormData, ReviewFormData } from './schemas';
 
-// Create a singleton instance
+// Create a singleton instance with proper configuration
 export const supabase = createBrowserClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    },
+    db: {
+      schema: 'public'
+    }
+  }
 );
 
-// Create typed client with minimal configuration
+// Create typed client with full configuration
 export const createClient = () => {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      db: {
+        schema: 'public'
+      }
+    }
   );
 };
 
@@ -36,23 +56,39 @@ export const dbQuery = {
   companies: {
     create: async (data: CompanyFormData, userId: string) => {
       const client = createClient();
+      const { description, industry, location, name, logo_url, verification_status, verified, website } = data;
       return client
         .from('companies')
-        .insert([{ 
-          ...data, 
+        .insert({
+          description,
+          industry,
+          location,
+          name,
+          logo_url,
+          verification_status,
+          verified,
+          website,
           created_by: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }])
+        })
         .select()
         .single();
     },
     update: async (id: string | number, data: Partial<CompanyFormData>) => {
       const client = createClient();
+      const { description, industry, location, name, logo_url, verification_status, verified, website } = data;
       return client
         .from('companies')
-        .update({ 
-          ...data,
+        .update({
+          description,
+          industry,
+          location,
+          name,
+          logo_url,
+          verification_status,
+          verified,
+          website,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
@@ -61,22 +97,44 @@ export const dbQuery = {
   reviews: {
     create: async (data: ReviewFormData, userId: string) => {
       const client = createClient();
+      const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
       return client
         .from('reviews')
-        .insert([{
-          ...data,
+        .insert({
+          content,
+          employment_status,
+          is_current_employee,
+          position,
+          rating,
+          reviewer_email,
+          reviewer_name,
+          title,
+          pros,
+          cons,
           user_id: userId,
           created_at: new Date().toISOString(),
           status: 'pending'
-        }])
+        })
         .select()
         .single();
     },
     update: async (id: string | number, data: Partial<ReviewFormData>, userId: string) => {
       const client = createClient();
+      const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
       return client
         .from('reviews')
-        .update(data)
+        .update({
+          content,
+          employment_status,
+          is_current_employee,
+          position,
+          rating,
+          reviewer_email,
+          reviewer_name,
+          title,
+          pros,
+          cons
+        })
         .eq('id', id)
         .eq('user_id', userId); // Ensure user can only update their own reviews
     }
