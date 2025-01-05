@@ -1,12 +1,17 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run linting and type checking
-npm run lint
+# Run type checking
 npm run type-check
 
+# Run linting
+npm run lint
+
 # Run tests
-npm run test
+npm run test --bail
+
+# Run formatting
+npm run format
 
 # Add any generated files
 git add -A .

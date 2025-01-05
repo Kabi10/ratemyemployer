@@ -1,0 +1,54 @@
+name: Rate My Employer Project Board
+type: automated
+
+columns:
+  - name: To Do
+    automation:
+      - trigger: new_issue
+        action: move_card
+      - trigger: reopened
+        action: move_card
+
+  - name: In Progress
+    automation:
+      - trigger: assigned
+        action: move_card
+      - trigger: label:status:in progress
+        action: move_card
+
+  - name: Review
+    automation:
+      - trigger: pull_request
+        action: move_card
+      - trigger: label:status:review needed
+        action: move_card
+
+  - name: Done
+    automation:
+      - trigger: closed
+        action: move_card
+      - trigger: merged
+        action: move_card
+
+labels_to_track:
+  - bug
+  - enhancement
+  - documentation
+  - priority:critical
+  - priority:high
+
+automation_rules:
+  - name: Auto assign to project
+    if:
+      - is:issue
+      - is:pull_request
+    then:
+      - add_to_project
+      
+  - name: Auto set In Progress
+    if:
+      - is:issue
+      - is:assigned
+    then:
+      - add_label:status:in progress
+      - move_to:In Progress 

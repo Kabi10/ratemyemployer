@@ -31,6 +31,13 @@ interface AnalyticsData {
   }[];
 }
 
+interface MonthlyReview {
+  month: string;
+  count: number;
+  totalRating: number;
+  averageRating: number;
+}
+
 export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +64,7 @@ export default function AdminAnalytics() {
 
         if (monthlyError) throw monthlyError;
 
-        const reviewsByMonth = monthlyData.reduce((acc: any[], curr) => {
+        const reviewsByMonth = monthlyData.reduce((acc: MonthlyReview[], curr) => {
           const month = new Date(curr.created_at).toLocaleString('default', {
             month: 'short',
             year: 'numeric',
@@ -91,9 +98,8 @@ export default function AdminAnalytics() {
           reviewsByMonth,
           ratingDistribution,
         });
-      } catch (err) {
-        console.error('Error fetching analytics:', err);
-        setError('Failed to load analytics data');
+      } catch (err: unknown) {
+        handleError(err);
       } finally {
         setLoading(false);
       }
@@ -101,6 +107,14 @@ export default function AdminAnalytics() {
 
     fetchAnalytics();
   }, []);
+
+  const handleError = (error: unknown) => {
+    // Log error for debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error:', error);
+    }
+    setError(error instanceof Error ? error.message : 'An error occurred');
+  };
 
   if (loading) {
     return (

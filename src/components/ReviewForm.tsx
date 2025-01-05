@@ -12,15 +12,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from './LoadingSpinner';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { reviewSchema, type ReviewFormData } from '@/lib/schemas';
+import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import type { Database } from '@/types/supabase';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 type Review = Database['public']['Tables']['reviews']['Row'];
-type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
-type EmploymentStatus = Database['public']['Enums']['employment_status'];
 
 interface ReviewFormProps {
   companyId?: string | number;
@@ -41,10 +39,13 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     title: initialData?.title || '',
     content: initialData?.content || '',
     position: initialData?.position || '',
-    employment_status: (initialData?.employment_status || 'Full-time') as 'Full-time' | 'Part-time' | 'Contract' | 'Intern',
+    employment_status: (initialData?.employment_status || 'Full-time') as typeof employmentStatusEnum[number],
     pros: initialData?.pros || '',
     cons: initialData?.cons || '',
     is_current_employee: initialData?.is_current_employee || false,
+    reviewer_name: initialData?.reviewer_name || '',
+    reviewer_email: initialData?.reviewer_email || '',
+    status: initialData?.status || 'pending'
   };
 
   const form = useForm<ReviewFormData>({
@@ -137,6 +138,9 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           pros: data.pros || '',
           cons: data.cons || '',
           is_current_employee: data.is_current_employee,
+          reviewer_name: data.reviewer_name,
+          reviewer_email: data.reviewer_email,
+          status: data.status
         } satisfies Database['public']['Tables']['reviews']['Update'];
 
         const { error: updateError } = await supabase
@@ -161,9 +165,9 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           pros: data.pros || '',
           cons: data.cons || '',
           is_current_employee: data.is_current_employee,
-          status: 'pending',
-          reviewer_name: null,
-          reviewer_email: null,
+          reviewer_name: data.reviewer_name,
+          reviewer_email: data.reviewer_email,
+          status: 'pending'
         } satisfies Database['public']['Tables']['reviews']['Insert'];
 
         const { error: insertError } = await supabase
@@ -278,14 +282,25 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           aria-invalid={form.formState.errors.employment_status ? 'true' : 'false'}
         >
-          <option value="Full-time">Full Time</option>
-          <option value="Part-time">Part Time</option>
-          <option value="Contract">Contract</option>
-          <option value="Intern">Intern</option>
+          {employmentStatusEnum.map((status) => (
+            <option key={status} value={status}>{status}</option>
+          ))}
         </select>
         {form.formState.errors.employment_status && (
           <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.employment_status.message}</p>
         )}
+      </div>
+
+      {/* Current Employee */}
+      <div>
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            {...form.register('is_current_employee')}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-700">I currently work here</span>
+        </label>
       </div>
 
       {/* Review Content */}
@@ -302,6 +317,70 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         {form.formState.errors.content && (
           <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.content.message}</p>
         )}
+      </div>
+
+      {/* Pros */}
+      <div>
+        <label htmlFor="pros" className="block text-sm font-medium text-gray-700 mb-1">Pros</label>
+        <textarea
+          id="pros"
+          {...form.register('pros')}
+          rows={2}
+          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          placeholder="What did you like about working here?"
+          aria-invalid={form.formState.errors.pros ? 'true' : 'false'}
+        />
+        {form.formState.errors.pros && (
+          <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.pros.message}</p>
+        )}
+      </div>
+
+      {/* Cons */}
+      <div>
+        <label htmlFor="cons" className="block text-sm font-medium text-gray-700 mb-1">Cons</label>
+        <textarea
+          id="cons"
+          {...form.register('cons')}
+          rows={2}
+          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          placeholder="What could be improved?"
+          aria-invalid={form.formState.errors.cons ? 'true' : 'false'}
+        />
+        {form.formState.errors.cons && (
+          <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.cons.message}</p>
+        )}
+      </div>
+
+      {/* Optional Contact Information */}
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="reviewer_name" className="block text-sm font-medium text-gray-700 mb-1">Name (Optional)</label>
+          <Input
+            id="reviewer_name"
+            {...form.register('reviewer_name')}
+            placeholder="Your name"
+            className="w-full"
+            aria-invalid={form.formState.errors.reviewer_name ? 'true' : 'false'}
+          />
+          {form.formState.errors.reviewer_name && (
+            <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.reviewer_name.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="reviewer_email" className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+          <Input
+            id="reviewer_email"
+            type="email"
+            {...form.register('reviewer_email')}
+            placeholder="your.email@example.com"
+            className="w-full"
+            aria-invalid={form.formState.errors.reviewer_email ? 'true' : 'false'}
+          />
+          {form.formState.errors.reviewer_email && (
+            <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.reviewer_email.message}</p>
+          )}
+        </div>
       </div>
 
       {error && (

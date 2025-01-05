@@ -16,7 +16,18 @@
     "no-console": ["warn", { 
       "allow": ["warn", "error"] 
     }],
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "react/function-component-definition": ["warn", {
+      "namedComponents": "function-declaration",
+      "unnamedComponents": "arrow-function"
+    }],
+    "import/order": ["warn", {
+      "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+      "newlines-between": "always",
+      "alphabetize": { "order": "asc" }
+    }]
   },
   "overrides": [
     {
