@@ -1,44 +1,16 @@
 # Contributing to Rate My Employer
 
-First off, thank you for considering contributing to Rate My Employer! It's people like you that make Rate My Employer such a great tool.
+We love your input! We want to make contributing to Rate My Employer as easy and transparent as possible, whether it's:
 
-## Code of Conduct
-
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code.
-
-## How Can I Contribute?
-
-### Reporting Bugs
-
-Before creating bug reports, please check the issue list as you might find out that you don't need to create one. When you are creating a bug report, please include as many details as possible:
-
-* Use a clear and descriptive title
-* Describe the exact steps which reproduce the problem
-* Provide specific examples to demonstrate the steps
-* Describe the behavior you observed after following the steps
-* Explain which behavior you expected to see instead and why
-* Include screenshots if possible
-
-### Suggesting Enhancements
-
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, please include:
-
-* Use a clear and descriptive title
-* Provide a step-by-step description of the suggested enhancement
-* Provide specific examples to demonstrate the steps
-* Describe the current behavior and explain which behavior you expected to see instead
-* Explain why this enhancement would be useful
-
-### Pull Requests
-
-* Fill in the required template
-* Do not include issue numbers in the PR title
-* Follow the JavaScript/TypeScript styleguide
-* Include screenshots in your pull request whenever possible
-* End all files with a newline
-* Avoid platform-dependent code
+- Reporting a bug
+- Discussing the current state of the code
+- Submitting a fix
+- Proposing new features
+- Becoming a maintainer
 
 ## Development Process
+
+We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
 1. Fork the repo and create your branch from `develop`
 2. If you've added code that should be tested, add tests
@@ -47,93 +19,48 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 5. Make sure your code lints
 6. Issue that pull request!
 
-### Development Setup
+## Pull Request Process
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+1. Update the README.md with details of changes to the interface, if applicable
+2. Update the documentation with any new dependencies, endpoints, or configuration changes
+3. The PR will be merged once you have the sign-off of two other developers
+4. Code must follow existing styling conventions
+5. Add unit tests for any new code
 
-2. Set up your environment:
-   ```bash
-   cp .env.example .env.local
-   ```
+## Any Contributions You Make Will Be Under the MIT Software License
+In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
 
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
+## Report Bugs Using GitHub's [Issue Tracker](https://github.com/yourusername/ratemyemployer/issues)
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/yourusername/ratemyemployer/issues/new).
 
-### Code Style
+### Write Bug Reports with Detail, Background, and Sample Code
+
+**Great Bug Reports** tend to have:
+
+- A quick summary and/or background
+- Steps to reproduce
+  - Be specific!
+  - Give sample code if you can
+- What you expected would happen
+- What actually happens
+- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+
+## Use a Consistent Coding Style
 
 * Use TypeScript for all new code
-* Follow the existing code style
-* Use meaningful variable names
+* 2 spaces for indentation rather than tabs
+* Use descriptive variable names
 * Comment your code when necessary
-* Keep functions small and focused
-* Use async/await instead of promises
-* Use ES6+ features when possible
+* Follow the existing code style
 
-### Commit Messages
+## Code Review Process
 
-* Use the present tense ("Add feature" not "Added feature")
-* Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-* Limit the first line to 72 characters or less
-* Reference issues and pull requests liberally after the first line
+The core team looks at Pull Requests on a regular basis. After feedback has been given we expect responses within two weeks. After two weeks we may close the PR if it isn't showing any activity.
 
-### Testing
+## Community
+- Join our [Discord channel](link-to-discord)
+- Follow us on [Twitter](link-to-twitter)
+- Read our [Blog](link-to-blog)
 
-* Write tests for all new features
-* Update tests when you change existing functionality
-* Run the entire test suite before submitting a PR
-
-## Project Structure
-
-```
-src/
-├── app/           # Next.js app router pages
-├── components/    # React components
-├── hooks/         # Custom React hooks
-├── lib/          # Utility functions and configurations
-├── types/        # TypeScript type definitions
-└── styles/       # Global styles and Tailwind config
-```
-
-## Additional Notes
-
-### Git Workflow
-
-1. Create a new branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes and commit them:
-   ```bash
-   git add .
-   git commit -m "feat: add some feature"
-   ```
-
-3. Push to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-4. Create a Pull Request
-
-### Commit Message Format
-
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-* `feat:` - A new feature
-* `fix:` - A bug fix
-* `docs:` - Documentation only changes
-* `style:` - Changes that do not affect the meaning of the code
-* `refactor:` - A code change that neither fixes a bug nor adds a feature
-* `perf:` - A code change that improves performance
-* `test:` - Adding missing tests or correcting existing tests
-* `chore:` - Changes to the build process or auxiliary tools
-
-## Questions?
-
-Feel free to open an issue with your question or contact the maintainers directly. 
+## References
+This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md). 
