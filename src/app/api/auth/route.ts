@@ -1,75 +1,70 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
-// Auth callback handler (previously in /auth/callback/route.ts)
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-
-  if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
-    await supabase.auth.exchangeCodeForSession(code);
-    return NextResponse.redirect(new URL('/account', requestUrl.origin));
-  }
-
-  // If no code, assume it's a profile fetch request
-  const supabase = createRouteHandlerClient({ cookies });
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    return NextResponse.json({
-      id: session.user.id,
-      email: session.user.email,
-      role: session.user.user_metadata.role,
-      created_at: session.user.user_metadata.created_at,
-    });
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json(
-      { error: 'Error fetching profile' },
-      { status: 500 }
-    );
-  }
+// Helper function to create Supabase client
+const createClient = () => {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async get(name: string) {
+          const cookieStore = await cookies()
+          return cookieStore.get(name)?.value
+        },
+        async set(name: string, value: string, options: CookieOptions) {
+          const cookieStore = await cookies()
+          cookieStore.set({
+            name,
+            value,
+            ...options,
+            path: '/'
+          })
+        },
+        async remove(name: string, _options: CookieOptions) {
+          const cookieStore = await cookies()
+          cookieStore.delete(name)
+        }
+      }
+    }
+  )
 }
 
-// Profile update handler (previously in /api/profile/route.ts)
-export async function PUT(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
-  const { data: { session } } = await supabase.auth.getSession();
+export async function POST(request: Request) {
+  const { email, password } = await request.json()
+  const supabase = createClient()
 
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 401 })
   }
 
-  try {
-    const body = await request.json();
-    const { data, error } = await supabase.auth.updateUser({
-      data: {
-        ...session.user.user_metadata,
-        ...body,
-        updated_at: new Date().toISOString(),
-      },
-    });
+  return NextResponse.json(data)
+}
 
-    if (error) throw error;
+export async function DELETE() {
+  const supabase = createClient()
+  const { error } = await supabase.auth.signOut()
 
-    return NextResponse.json({
-      id: data.user.id,
-      email: data.user.email,
-      role: data.user.user_metadata.role,
-      created_at: data.user.user_metadata.created_at,
-      updated_at: data.user.user_metadata.updated_at,
-    });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json(
-      { error: 'Error updating profile' },
-      { status: 500 }
-    );
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  return NextResponse.json({ success: true })
+}
+
+export async function GET() {
+  const supabase = createClient()
+  const { data: { session }, error } = await supabase.auth.getSession()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ session })
 } 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { useEffect, useState, useCallback } from 'react';
+import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Review } from '@/types';
 
@@ -16,7 +16,7 @@ export function useReviews(): UseReviewsReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  async function fetchReviews() {
+  const fetchReviews = useCallback(async () => {
     if (!user) {
       setReviews(null);
       setIsLoading(false);
@@ -46,11 +46,11 @@ export function useReviews(): UseReviewsReturn {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [user]);
 
   useEffect(() => {
     fetchReviews();
-  }, [user]);
+  }, [fetchReviews]);
 
   return {
     reviews,

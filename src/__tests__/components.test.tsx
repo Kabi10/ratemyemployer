@@ -18,11 +18,16 @@ jest.mock('next/navigation', () => ({
 const mockSupabaseClient = {
   from: jest.fn(() => ({
     insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-    select: jest.fn().mockResolvedValue({ data: null, error: null }),
+    select: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+      })),
+      single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+    })),
   })),
 };
 
-jest.mock('@/lib/supabase-client', () => ({
+jest.mock('@/lib/supabaseClient', () => ({
   createClient: jest.fn(() => mockSupabaseClient),
 }));
 
@@ -51,57 +56,73 @@ describe('Components', () => {
     const defaultProps = {
       onSubmit: mockOnSubmit,
       defaultValues: {
-        rating: 0,
-        title: '',
+        rating: 3,
+        position: '',
+        employment_status: 'FULL_TIME',
         content: '',
-        pros: '',
-        cons: '',
       },
-      isSubmitting: false,
       companyId: 'test-company-id',
     };
 
     it('renders the form correctly', async () => {
       render(<ReviewForm {...defaultProps} />);
 
-      expect(screen.getByLabelText(/rating/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('group', { name: /rating/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/position/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/employment status/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/review/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/pros/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/cons/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /submit review/i })).toBeInTheDocument();
     });
 
     it('shows validation errors for required fields', async () => {
       render(<ReviewForm {...defaultProps} />);
+
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
       
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
+      });
 
       await waitFor(() => {
-        expect(screen.getByText(/rating is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/title is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/review is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/position must be at least 2 characters/i)).toBeInTheDocument();
+        expect(screen.getByText(/review must be at least 10 characters/i)).toBeInTheDocument();
       });
     });
 
     it('submits the form successfully', async () => {
       render(<ReviewForm {...defaultProps} />);
 
-      fireEvent.change(screen.getByLabelText(/rating/i), { target: { value: '5' } });
-      fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Great Company' } });
-      fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work' } });
-      fireEvent.change(screen.getByLabelText(/pros/i), { target: { value: 'Good benefits' } });
-      fireEvent.change(screen.getByLabelText(/cons/i), { target: { value: 'Long hours' } });
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
 
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+      await act(async () => {
+        // Click the third star for rating
+        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
+        fireEvent.click(ratingButtons[2]); // 3 stars
+
+        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
+        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
+        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
+
+        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
+      });
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
-          rating: 5,
-          title: 'Great Company',
-          content: 'Awesome place to work',
-          pros: 'Good benefits',
-          cons: 'Long hours',
+          rating: 3,
+          position: 'Software Engineer',
+          employment_status: 'FULL_TIME',
+          content: 'Awesome place to work, great culture!',
         }, expect.any(Object));
       });
     });
@@ -113,30 +134,45 @@ describe('Components', () => {
     beforeEach(() => {
       mockSupabaseClient.from.mockReturnValue({
         insert: jest.fn().mockResolvedValue({ data: { id: 'new-review-id' }, error: null }),
-        select: jest.fn().mockResolvedValue({ data: null, error: null }),
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+          })),
+          single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+        })),
       });
     });
 
     it('renders the form correctly', async () => {
       render(<CreateReview companyId={mockCompanyId} />);
 
-      expect(screen.getByLabelText(/rating/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('group', { name: /rating/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/position/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/employment status/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/review/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/pros/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/cons/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /submit review/i })).toBeInTheDocument();
     });
 
     it('shows validation errors for required fields', async () => {
       render(<CreateReview companyId={mockCompanyId} />);
-      
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
+      });
 
       await waitFor(() => {
-        expect(screen.getByText(/rating is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/title is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/review is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/position must be at least 2 characters/i)).toBeInTheDocument();
+        expect(screen.getByText(/review must be at least 10 characters/i)).toBeInTheDocument();
       });
     });
 
@@ -146,13 +182,22 @@ describe('Components', () => {
 
       render(<CreateReview companyId={mockCompanyId} />);
 
-      fireEvent.change(screen.getByLabelText(/rating/i), { target: { value: '5' } });
-      fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Great Company' } });
-      fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work' } });
-      fireEvent.change(screen.getByLabelText(/pros/i), { target: { value: 'Good benefits' } });
-      fireEvent.change(screen.getByLabelText(/cons/i), { target: { value: 'Long hours' } });
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
 
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+      await act(async () => {
+        // Click the third star for rating
+        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
+        fireEvent.click(ratingButtons[2]); // 3 stars
+
+        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
+        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
+        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
+
+        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
+      });
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalledWith('reviews');
@@ -164,19 +209,35 @@ describe('Components', () => {
       const error = { message: 'Failed to submit review' };
       mockSupabaseClient.from.mockReturnValue({
         insert: jest.fn().mockResolvedValue({ data: null, error }),
-        select: jest.fn().mockResolvedValue({ data: null, error: null }),
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+          })),
+          single: jest.fn().mockResolvedValue({ data: { id: 'test-company-id', name: 'Test Company' }, error: null })
+        })),
       });
 
       render(<CreateReview companyId={mockCompanyId} />);
 
-      fireEvent.change(screen.getByLabelText(/rating/i), { target: { value: '5' } });
-      fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Great Company' } });
-      fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work' } });
+      // Wait for loading state to finish
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      });
 
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+      await act(async () => {
+        // Click the third star for rating
+        const ratingButtons = screen.getAllByRole('button', { name: /rate \d stars/i });
+        fireEvent.click(ratingButtons[2]); // 3 stars
+
+        fireEvent.change(screen.getByLabelText(/position/i), { target: { value: 'Software Engineer' } });
+        fireEvent.change(screen.getByLabelText(/employment status/i), { target: { value: 'FULL_TIME' } });
+        fireEvent.change(screen.getByLabelText(/review/i), { target: { value: 'Awesome place to work, great culture!' } });
+
+        fireEvent.click(screen.getByRole('button', { name: /submit review/i }));
+      });
 
       await waitFor(() => {
-        expect(screen.getByText(error.message)).toBeInTheDocument();
+        expect(screen.getByText(/failed to submit review/i)).toBeInTheDocument();
       });
     });
   });
@@ -214,7 +275,7 @@ describe('Components', () => {
       // Value shouldn't change immediately
       expect(result.current).toBe('initial');
 
-      // Fast forward time
+      // Fast-forward time
       act(() => {
         jest.advanceTimersByTime(1000);
       });
@@ -223,7 +284,7 @@ describe('Components', () => {
       expect(result.current).toBe('changed');
     });
 
-    it('should cancel previous timeout on new value', () => {
+    it('should handle multiple value changes', () => {
       interface HookProps {
         value: string;
         delay: number;
@@ -245,7 +306,7 @@ describe('Components', () => {
         jest.advanceTimersByTime(1000);
       });
 
-      // Should only get the latest value
+      // Should have the latest value
       expect(result.current).toBe('second');
     });
   });

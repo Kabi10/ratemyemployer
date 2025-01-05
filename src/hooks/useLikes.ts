@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 
 interface ReviewLike {
   review_id: string;

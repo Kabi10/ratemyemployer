@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useToast } from '@/components/Toast';
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import AdminLayout from '@/components/layouts/AdminLayout';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 type User = {
   id: string;

@@ -29,7 +29,7 @@ function AccountPage() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h1 className="text-2xl font-bold mb-2">Your Profile</h1>
-          <p className="text-gray-600">Welcome back! Here's an overview of your activity.</p>
+          <p className="text-gray-600">Welcome back! Here&apos;s an overview of your activity.</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -39,7 +39,7 @@ function AccountPage() {
               href="/companies"
               className="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
-              Browse Companies →
+              Browse Companies &rarr;
             </a>
           </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { ReviewForm } from '@/components/ReviewForm';
@@ -13,11 +13,7 @@ export default function EditReview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchReview();
-  }, []);
-
-  const fetchReview = async () => {
+  const fetchReview = useCallback(async () => {
     if (!params.id) return;
 
     try {
@@ -35,7 +31,11 @@ export default function EditReview() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchReview();
+  }, [fetchReview]);
 
   if (loading) {
     return (

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { Database } from '@/types/supabase';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorDisplay } from "@/components/ErrorDisplay";
 
 type Review = Database['public']['Tables']['reviews']['Row'];
 type Company = Database['public']['Tables']['companies']['Row'];
@@ -81,13 +82,7 @@ function ReviewsList() {
   }
 
   if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error}</p>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay message={error} />;
   }
 
   return (

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabaseClient';
 import { Review } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
-import AdminLayout from '@/components/layouts/AdminLayout';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -13,11 +13,7 @@ export default function AdminReviewsPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  async function fetchReviews() {
+  const fetchReviews = useCallback(async () => {
     const supabase = createClient();
     try {
       const { data, error } = await supabase
@@ -51,7 +47,11 @@ export default function AdminReviewsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   async function handleApproveReview(reviewId: string) {
     const supabase = createClient();

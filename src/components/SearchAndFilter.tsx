@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 
 export default function SearchAndFilter() {
   const [searchTerm, setSearchTerm] = useState('');
