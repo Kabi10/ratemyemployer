@@ -14,7 +14,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "validate": "npm run type-check && npm run lint && npm run format:check",
-    "update-types": "npx supabase gen types typescript --project-id stvmsmqnrwiifwthlppy > src/types/supabase.ts"
+    "update-types": "npx supabase gen types typescript --project-id stvmsmqnrwiifwthlppy > src/types/supabase.ts",
+    "verify": "ts-node scripts/verify-build.ts",
+    "verify:ci": "cross-env CI=true ts-node scripts/verify-build.ts"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
@@ -74,7 +76,8 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "5.3.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "cross-env": "^7.0.3"
   },
   "jest": {
     "coverageThreshold": {

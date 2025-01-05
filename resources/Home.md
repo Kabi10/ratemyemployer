@@ -40,21 +40,21 @@ Welcome to the Rate My Employer documentation! This wiki contains everything you
 
 ## Recent Updates
 
-### Form Validation Enhancement (2024-01-05)
+### Form Validation Enhancement (2025-01-05)
 - ✅ Added centralized error messages
 - ✅ Improved string handling with trim
 - ✅ Added type-safe validation utility
 - ✅ Enhanced enum validation messages
 - ✅ Added consistent error formatting
 
-### Documentation Improvements (2024-01-05)
+### Documentation Improvements (2025-01-05)
 - ✅ Created comprehensive form validation guide
 - ✅ Added usage examples and best practices
 - ✅ Updated documentation structure
 - ✅ Enhanced navigation and organization
 - ✅ Added recent updates tracking
 
-### Testing Infrastructure (2024-01-04)
+### Testing Infrastructure (2025-01-04)
 - ✅ Added Jest configuration
 - ✅ Implemented React Testing Library setup
 - ✅ Added form validation tests
