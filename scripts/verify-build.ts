@@ -103,6 +103,23 @@ class BuildVerifier {
     }
   }
 
+  async verifyE2ETests() {
+    try {
+      this.runCommand('npm run test:e2e');
+      this.results.push({
+        step: 'E2E Tests',
+        status: 'success',
+        message: 'All E2E tests passed'
+      });
+    } catch (error) {
+      this.results.push({
+        step: 'E2E Tests',
+        status: 'failure',
+        error: error as Error
+      });
+    }
+  }
+
   async verifyBuild() {
     try {
       this.runCommand('npm run build');
@@ -177,6 +194,7 @@ class BuildVerifier {
     await this.verifyTypeScript();
     await this.verifyLinting();
     await this.verifyTests();
+    await this.verifyE2ETests();
     await this.verifyBuild();
 
     const report = this.generateReport();
