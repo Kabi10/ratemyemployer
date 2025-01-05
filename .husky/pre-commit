@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run linting and type checking
+# Run documentation updates
+npm run update-docs
+
+# Add updated documentation files to commit
+git add resources/*.md
+
+# Run other checks
+npm run check
 npm run lint-staged

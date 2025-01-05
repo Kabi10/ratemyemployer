@@ -39,3 +39,27 @@ next-env.d.ts
 
 # OS generated files
 Thumbs.db
+
+# Build artifacts
+/deploy
+/scripts/dist
+/reports
+system-check-report.json
+
+# System files
+*.heapprofile
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
