@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run documentation updates
-npm run update-docs
+# Run linting and type checking
+npm run lint
+npm run type-check
 
-# Add updated documentation files to commit
-git add resources/*.md
+# Run tests
+npm run test
 
-# Run other checks
-npm run check
-npm run lint-staged
+# Add any generated files
+git add -A .

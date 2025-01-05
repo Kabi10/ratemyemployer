@@ -23,7 +23,7 @@ interface UseCompanyReturn {
   mutate: KeyedMutator<CompanyWithDetails | null>;
 }
 
-const fetcher = async (key: string, id: string, options: UseCompanyOptions = {}): Promise<CompanyWithDetails | null> => {
+const fetcher = async (key: string, id: string | number, options: UseCompanyOptions = {}): Promise<CompanyWithDetails | null> => {
   const supabase = createClient();
   const query = supabase.from('companies');
 
@@ -74,9 +74,9 @@ const fetcher = async (key: string, id: string, options: UseCompanyOptions = {})
   }
 };
 
-export function useCompany(id: string | null, options: UseCompanyOptions = {}): UseCompanyReturn {
+export function useCompany(id: string | number | null, options: UseCompanyOptions = {}): UseCompanyReturn {
   const { data, error, isLoading, mutate } = useSWR(
-    id ? ['company', id, options] : null,
+    id ? ['company', id.toString(), options] : null,
     ([_, companyId, opts]) => fetcher('company', companyId, opts),
     {
       revalidateOnFocus: false,

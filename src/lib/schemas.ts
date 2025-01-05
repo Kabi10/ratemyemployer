@@ -3,6 +3,9 @@ import { INDUSTRIES } from '@/types';
 
 // Review Schema
 export const reviewSchema = z.object({
+  title: z.string()
+    .min(2, 'Title must be at least 2 characters')
+    .max(100, 'Title must be less than 100 characters'),
   content: z.string()
     .min(10, 'Review must be at least 10 characters')
     .max(2000, 'Review must be less than 2000 characters'),
@@ -18,7 +21,8 @@ export const reviewSchema = z.object({
   position: z.string()
     .min(2, 'Position must be at least 2 characters')
     .max(100, 'Position must be less than 100 characters'),
-  employment_status: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN'])
+  employment_status: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']),
+  is_current_employee: z.boolean().default(false)
 });
 
 // Company Schema

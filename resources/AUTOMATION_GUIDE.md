@@ -214,3 +214,358 @@ jobs:
 
 *This guide is automatically maintained by the project's automation system.*
 *Last Updated: [Current Date]* 
+
+## Testing Automation
+
+### Test Runner Setup
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run specific test file
+npm test -- path/to/test.tsx
+```
+
+### Coverage Reports
+- Location: `coverage/lcov-report/index.html`
+- Thresholds:
+  ```javascript
+  // jest.config.js
+  module.exports = {
+    coverageThreshold: {
+      global: {
+        statements: 70,
+        branches: 70,
+        functions: 70,
+        lines: 70
+      }
+    }
+  }
+  ```
+
+### Test Utilities
+```typescript
+// src/__tests__/utils/test-utils.tsx
+import { render } from '@testing-library/react';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const AllTheProviders = ({ children }) => {
+  return (
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  );
+};
+
+const customRender = (ui, options = {}) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
+
+export * from '@testing-library/react';
+export { customRender as render };
+```
+
+### Mocking Setup
+```typescript
+// src/__tests__/mocks/supabase.ts
+export const mockSupabase = {
+  auth: {
+    onAuthStateChange: jest.fn().mockImplementation((callback) => {
+      return { data: { subscription: { unsubscribe: jest.fn() } } };
+    }),
+    getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
+    getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null })
+  },
+  from: jest.fn(() => ({
+    select: jest.fn(() => ({
+      eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+      single: jest.fn().mockResolvedValue({ data: null, error: null })
+    })),
+    insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+    update: jest.fn().mockResolvedValue({ data: null, error: null }),
+    delete: jest.fn().mockResolvedValue({ data: null, error: null })
+  }))
+};
+```
+
+## Type Generation
+
+### Supabase Types
+```bash
+# Generate types from Supabase
+npm run update-types
+
+# Watch for schema changes
+npm run update-types -- --watch
+```
+
+### Component Types
+```typescript
+// src/types/components.ts
+export interface ReviewFormProps {
+  companyId?: string | number;
+  initialData?: Review;
+  onSuccess?: () => void;
+}
+
+export interface CompanyCardProps {
+  company: Company;
+  showActions?: boolean;
+}
+```
+
+## Database Automation
+
+### Migrations
+```bash
+# Create new migration
+npm run migration:create
+
+# Apply migrations
+npm run migration:up
+
+# Rollback migration
+npm run migration:down
+```
+
+### Seeding
+```bash
+# Seed database
+npm run db:seed
+
+# Reset database
+npm run db:reset
+```
+
+## CI/CD Workflows
+
+### Pull Request Checks
+```yaml
+name: PR Checks
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm test -- --coverage
+```
+
+### Deployment
+```yaml
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - run: npm ci
+      - run: npm run build
+      - run: npm run deploy
+```
+
+## Code Quality
+
+### Linting
+```bash
+# Run ESLint
+npm run lint
+
+# Fix ESLint issues
+npm run lint:fix
+
+# Run Prettier
+npm run format
+
+# Check types
+npm run type-check
+```
+
+### Git Hooks
+```json
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
+```
+
+## Development Workflow
+
+### Setup
+```bash
+# Install dependencies
+npm install
+
+# Set up environment
+cp .env.example .env.local
+
+# Start development server
+npm run dev
+```
+
+### Testing
+```bash
+# Run tests in watch mode
+npm test -- --watch
+
+# Update snapshots
+npm test -- -u
+
+# Run specific tests
+npm test -- ReviewForm
+```
+
+### Building
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## Security Automation
+
+### Authentication
+```typescript
+// src/middleware.ts
+export { default } from "next-auth/middleware";
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/settings/:path*"]
+};
+```
+
+### API Protection
+```typescript
+// src/lib/auth.ts
+export const getServerSession = async () => {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+};
+```
+
+## Performance Monitoring
+
+### Metrics Collection
+```typescript
+// src/lib/analytics.ts
+export const trackPageView = (url: string) => {
+  // Implementation
+};
+
+export const trackEvent = (name: string, data: any) => {
+  // Implementation
+};
+```
+
+### Error Tracking
+```typescript
+// src/lib/error.ts
+export const captureError = (error: Error) => {
+  // Implementation
+};
+```
+
+## Documentation
+
+### API Documentation
+```typescript
+/**
+ * @api {post} /api/reviews Create Review
+ * @apiName CreateReview
+ * @apiGroup Reviews
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} title Review title
+ * @apiParam {String} content Review content
+ * @apiParam {Number} rating Rating (1-5)
+ * @apiParam {String} employment_status Employment status
+ */
+```
+
+### Component Documentation
+```typescript
+/**
+ * ReviewForm Component
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ReviewForm companyId={1} onSuccess={() => {}} />
+ * ```
+ */
+```
+
+## Monitoring
+
+### Health Checks
+```typescript
+// src/pages/api/health.ts
+export default function handler(req, res) {
+  res.status(200).json({ status: 'healthy' });
+}
+```
+
+### Performance Metrics
+```typescript
+// src/lib/metrics.ts
+export const measureTiming = async (name: string, fn: () => Promise<any>) => {
+  const start = performance.now();
+  const result = await fn();
+  const duration = performance.now() - start;
+  // Log duration
+  return result;
+};
+```
+
+## Deployment
+
+### Environment Variables
+```bash
+# Production
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Development
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+### Build Configuration
+```json
+{
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "type-check": "tsc --noEmit"
+  }
+}
+``` 
