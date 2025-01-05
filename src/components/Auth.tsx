@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -100,10 +100,10 @@ export default function Auth() {
           <CardTitle>Check Your Email</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p>We've sent a confirmation link to <strong>{email}</strong></p>
+          <p>We&apos;ve sent a confirmation link to <strong>{email}</strong></p>
           <p>Please check your email and click the link to complete your registration.</p>
           <p className="text-sm text-muted-foreground">
-            Can't find the email? Check your spam folder or{' '}
+            Can&apos;t find the email? Check your spam folder or{' '}
             <Button
               variant="link"
               className="p-0 h-auto"
@@ -175,7 +175,7 @@ export default function Auth() {
             className="w-full"
             onClick={handleModeSwitch}
           >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            {isSignUp ? 'Already have an account? Sign In' : "Don&apos;t have an account? Sign Up"}
           </Button>
         </form>
       </CardContent>

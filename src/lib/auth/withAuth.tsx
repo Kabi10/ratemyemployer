@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/types';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -18,17 +18,15 @@ export function withAuth(
   return function WithAuthComponent(props: any) {
     const { user, isLoading } = useAuth();
     const router = useRouter();
+    const roleRef = useRef(requiredRole);
 
     useEffect(() => {
       if (!isLoading && !user) {
         router.push(redirectTo);
-        return;
-      }
-
-      if (requiredRole && user?.role !== requiredRole) {
+      } else if (roleRef.current && user?.role !== roleRef.current) {
         router.push('/unauthorized');
       }
-    }, [user, isLoading, router, requiredRole]);
+    }, [isLoading, user, router, redirectTo]);
 
     if (isLoading) {
       return (

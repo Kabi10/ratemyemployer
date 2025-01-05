@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import type { Database } from '@/types/supabase';
 import { Company } from '@/types';
+import { ErrorDisplay } from "@/components/ErrorDisplay";
 
 export default function EditCompany() {
   const params = useParams();
@@ -186,11 +187,7 @@ export default function EditCompany() {
           />
         </div>
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-700 dark:text-red-200">{error}</p>
-          </div>
-        )}
+        {error && <ErrorDisplay message={error} className="mb-4" />}
 
         <button
           type="submit"

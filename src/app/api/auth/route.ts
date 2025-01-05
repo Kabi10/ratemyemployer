@@ -22,7 +22,7 @@ const createClient = () => {
             path: '/'
           })
         },
-        async remove(name: string, options: CookieOptions) {
+        async remove(name: string, _options: CookieOptions) {
           const cookieStore = await cookies()
           cookieStore.delete(name)
         }

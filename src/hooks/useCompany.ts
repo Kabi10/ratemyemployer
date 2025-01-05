@@ -1,5 +1,5 @@
 import useSWR, { KeyedMutator } from 'swr';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { Company, Review } from '@/types';
 import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
@@ -25,7 +25,7 @@ interface UseCompanyReturn {
 
 const fetcher = async (key: string, id: string, options: UseCompanyOptions = {}): Promise<CompanyWithDetails | null> => {
   const supabase = createClient();
-  let query = supabase.from('companies');
+  const query = supabase.from('companies');
 
   if (options.withReviews) {
     const { data, error } = await query
@@ -115,7 +115,7 @@ const companiesListFetcher = async (
   { limit = 10, offset = 0, searchQuery = '', industry = '', withStats = false, withReviews = false }: UseCompaniesOptions
 ): Promise<{ companies: CompanyWithDetails[]; count: number }> => {
   const supabase = createClient();
-  let query = supabase.from('companies');
+  const query = supabase.from('companies');
 
   // Apply filters
   let filtered = query.select(

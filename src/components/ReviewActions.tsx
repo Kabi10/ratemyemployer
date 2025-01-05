@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function ReviewActions({

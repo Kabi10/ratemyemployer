@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -144,16 +144,6 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         }
       } else {
         // Insert new review
-        console.log('Inserting review with data:', {
-          rating: data.rating,
-          content: data.content,
-          position: data.position,
-          employment_status: data.employment_status,
-          company_id,
-          user_id: user.id,
-          title: data.content.slice(0, 100)
-        });
-        
         const { error: insertError } = await supabase
           .from('reviews')
           .insert([{
@@ -168,6 +158,9 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
         if (insertError) {
           console.error('Error inserting review:', insertError);
+          if (insertError.message === "Rate limit exceeded for reviews") {
+            throw new Error("You can only submit one review per company. You can edit your existing review instead.");
+          }
           throw insertError;
         }
       }
@@ -189,7 +182,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex justify-center items-center min-h-[400px]" role="status" aria-label="Loading form...">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -199,50 +192,62 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Rating */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-        <div className="flex items-center space-x-2">
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`p-2 rounded-full ${
-                Number(rating) >= value
-                  ? 'text-yellow-400 hover:text-yellow-500'
-                  : 'text-gray-300 hover:text-gray-400'
-              }`}
-              onClick={() => {
-                setValue('rating', value, { shouldValidate: true });
-              }}
-            >
-              ★
-            </button>
-          ))}
+        <div role="group" aria-label="Rating">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+          <div className="flex items-center space-x-2">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={`p-2 rounded-full ${
+                  Number(rating) >= value
+                    ? 'text-yellow-400 hover:text-yellow-500'
+                    : 'text-gray-300 hover:text-gray-400'
+                }`}
+                onClick={() => {
+                  setValue('rating', value, { shouldValidate: true });
+                }}
+                aria-label={`Rate ${value} stars`}
+                aria-pressed={Number(rating) >= value}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+          <input 
+            type="hidden" 
+            id="rating"
+            {...register('rating', { valueAsNumber: true })} 
+          />
+          {errors.rating && (
+            <p className="mt-1 text-sm text-red-600" role="alert">{errors.rating.message}</p>
+          )}
         </div>
-        <input type="hidden" {...register('rating', { valueAsNumber: true })} />
-        {errors.rating && (
-          <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>
-        )}
       </div>
 
       {/* Position */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+        <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">Position</label>
         <Input
+          id="position"
           {...register('position')}
           placeholder="e.g., Software Engineer"
           className="w-full"
+          aria-invalid={errors.position ? 'true' : 'false'}
         />
         {errors.position && (
-          <p className="mt-1 text-sm text-red-600">{errors.position.message}</p>
+          <p className="mt-1 text-sm text-red-600" role="alert">{errors.position.message}</p>
         )}
       </div>
 
       {/* Employment Status */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Employment Status</label>
+        <label htmlFor="employment_status" className="block text-sm font-medium text-gray-700 mb-1">Employment Status</label>
         <select
+          id="employment_status"
           {...register('employment_status')}
           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+          aria-invalid={errors.employment_status ? 'true' : 'false'}
         >
           <option value="FULL_TIME">Full Time</option>
           <option value="PART_TIME">Part Time</option>
@@ -250,24 +255,27 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           <option value="INTERN">Intern</option>
         </select>
         {errors.employment_status && (
-          <p className="mt-1 text-sm text-red-600">{errors.employment_status.message}</p>
+          <p className="mt-1 text-sm text-red-600" role="alert">{errors.employment_status.message}</p>
         )}
       </div>
 
       {/* Review Content */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
+        <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Review</label>
         <textarea
+          id="content"
           {...register('content')}
           rows={4}
           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           placeholder="Share your overall experience..."
+          aria-invalid={errors.content ? 'true' : 'false'}
         />
         {errors.content && (
-          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+          <p className="mt-1 text-sm text-red-600" role="alert">{errors.content.message}</p>
         )}
       </div>
 
+      {/* Error Message */}
       {error && (
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
@@ -281,6 +289,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         </div>
       )}
 
+      {/* Form Actions */}
       <div className="flex justify-end gap-4">
         <Button
           type="button"
@@ -291,17 +300,11 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         </Button>
         <Button
           type="submit"
-          disabled={isSubmitting}
           className="bg-blue-600 hover:bg-blue-700"
+          disabled={isSubmitting}
+          aria-label="Submit review"
         >
-          {isSubmitting ? (
-            <>
-              <LoadingSpinner className="mr-2" />
-              Submitting...
-            </>
-          ) : (
-            'Submit Review'
-          )}
+          {isSubmitting ? 'Submitting...' : 'Submit Review'}
         </Button>
       </div>
     </form>

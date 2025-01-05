@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, type CompanyFormData } from '@/lib/schemas';
 import { Company, INDUSTRIES } from '@/types';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import Script from 'next/script';
+import { ErrorDisplay } from "@/components/ErrorDisplay";
 
 declare global {
   interface Window {
@@ -142,11 +143,7 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
         }}
       />
 
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4">
-          <p className="text-red-700 dark:text-red-200">{error}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay message={error} />}
 
       <div>
         <label className="block text-sm font-medium mb-2">Company Name</label>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 interface AdminLayoutProps extends PropsWithChildren {}
 
-function AdminLayout({ children }: AdminLayoutProps) {
+function BaseAdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -45,4 +45,4 @@ function AdminLayout({ children }: AdminLayoutProps) {
 }
 
 // Protect the admin layout for admin users
-export default withAuth(AdminLayout, { requiredRole: 'admin' }); 
+export const AdminLayout = withAuth(BaseAdminLayout, { requiredRole: 'admin' }); 
