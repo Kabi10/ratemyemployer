@@ -1,142 +1,71 @@
-# Rate My Employer
+# Rate My Employer 🏢
 
-A platform for employees to share their experiences and rate their employers. Built with Next.js, TypeScript, and Supabase.
+> A modern platform for transparent employer reviews and ratings.
 
-## Features
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yourusername/ratemyemployer/ci.yml?branch=main)](https://github.com/yourusername/ratemyemployer/actions)
+[![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/yourusername/ratemyemployer/wiki)
+[![License](https://img.shields.io/github/license/yourusername/ratemyemployer)](LICENSE)
 
-- 🔐 Secure authentication with Supabase Auth
-- 📝 Create, read, update, and delete company reviews
-- 🌟 Rate companies on various metrics
-- 📊 View company statistics and analytics
-- 🔍 Search and filter companies
-- 📱 Responsive design for all devices
-- 🎨 Modern UI with Tailwind CSS and shadcn/ui
+## Overview
 
-## Work in Progress
+Rate My Employer is a platform where employees can share honest, constructive feedback about their workplace experiences. Built with Next.js, TypeScript, and Supabase.
 
-### Current Status
-- Build System (40% complete)
-  - ✓ Fixed package.json dependencies
-  - ✓ Updated webpack configuration
-  - ✓ Cleaned up redundant routes
-  - ✓ Fixed module resolution issues
-  - ~ Punycode warning still present but not blocking
-  - Pending TypeScript/linting fixes
+### Key Features
+- 🔒 Secure, anonymous reviews
+- ✨ Modern, responsive UI
+- 🔍 Advanced search and filtering
+- 📊 Company insights and analytics
+- 🌐 Multi-language support
 
-- Authentication System (20% complete)
-  - ✓ Verified auth routes
-  - ✓ Cleaned up login redirects
-  - ✓ Fixed auth imports
-  - Pending auth flow testing
-  - Pending middleware verification
+## Quick Start
 
-- Database & API (0% complete)
-  - Pending Supabase connection verification
-  - Pending API route testing
-  - Pending data model validation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/ratemyemployer.git
 
-- UI/UX (0% complete)
-  - Pending component testing
-  - Pending responsive design verification
-  - Pending accessibility checks
+# Install dependencies
+npm install
 
-- Testing & Quality (0% complete)
-  - Pending unit tests
-  - Pending integration tests
-  - Pending E2E tests
+# Set up environment variables
+cp .env.example .env.local
 
-### Upcoming Improvements
-1. Review System Enhancements:
-   - Add pre-submission check for existing company reviews
-   - Add direct link to edit existing review when rate limit is hit
-   - Improve error messaging for rate limits
+# Start development server
+npm run dev
+```
 
-2. Priority Tasks:
-   - Complete build system fixes
-   - Verify authentication flows
-   - Test Supabase connections
-   - Implement comprehensive error handling
+Visit `http://localhost:3000` to see the app.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React 19, TypeScript
-- **Styling**: Tailwind CSS, shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Auth)
+- **Frontend**: Next.js, TypeScript, Tamagui
+- **Backend**: Supabase
 - **Testing**: Jest, React Testing Library
+- **State**: Zustand, TanStack Query
 - **CI/CD**: GitHub Actions
-- **Linting**: ESLint, Prettier
-- **Type Checking**: TypeScript
 
-## Getting Started
+## Documentation
 
-### Prerequisites
+Detailed documentation is available in our [Wiki](https://github.com/yourusername/ratemyemployer/wiki):
 
-- Node.js 18 or later
-- npm or yarn
-- Supabase account and project
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Kabi10/ratemyemployer.git
-   cd ratemyemployer
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Fill in your Supabase credentials in `.env.local`
-
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
+- [Getting Started Guide](https://github.com/yourusername/ratemyemployer/wiki/Getting-Started)
+- [Contributing Guidelines](https://github.com/yourusername/ratemyemployer/wiki/Contributing)
+- [API Documentation](https://github.com/yourusername/ratemyemployer/wiki/API-Documentation)
+- [Deployment Guide](https://github.com/yourusername/ratemyemployer/wiki/Deployment)
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
+## Support
 
-Your Name - [@YourTwitter](https://twitter.com/YourTwitter)
+- 📚 [Documentation](https://github.com/yourusername/ratemyemployer/wiki)
+- 🐛 [Issue Tracker](https://github.com/yourusername/ratemyemployer/issues)
+- 💬 [Discussions](https://github.com/yourusername/ratemyemployer/discussions)
 
-Project Link: [https://github.com/Kabi10/ratemyemployer](https://github.com/Kabi10/ratemyemployer)
+---
 
-## Deployment
-
-This project is automatically deployed to Vercel through GitHub Actions. The deployment process includes:
-
-- Automatic deployments on push to `develop` or `main` branches
-- Running tests and linting before deployment
-- Performance checks with Lighthouse
-- Automatic environment variable management
-
-Live site: [ratemyemployer.life](https://ratemyemployer.life) 
+<p align="center">Made with ❤️ by the Rate My Employer team</p> 
