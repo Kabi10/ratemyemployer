@@ -16,8 +16,8 @@
     "validate": "npm run type-check && npm run lint && npm run format:check",
     "update-types": "npx supabase gen types typescript --project-id stvmsmqnrwiifwthlppy > src/types/supabase.ts",
     "cli": "node --loader ts-node/esm scripts/cli.ts",
-    "verify": "node --loader ts-node/esm scripts/verify-build.ts",
-    "verify:ci": "cross-env CI=true node --loader ts-node/esm scripts/verify-build.ts",
+    "verify": "tsx scripts/verify-build.ts",
+    "verify:ci": "cross-env CI=true tsx scripts/verify-build.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
@@ -39,8 +39,8 @@
     "@supabase/supabase-js": "^2.47.10",
     "@tailwindcss/forms": "^0.5.7",
     "@types/google.maps": "^3.58.1",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "^17.0.83",
+    "@types/react-dom": "^17.0.20",
     "chalk": "^5.4.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -86,5 +86,9 @@
     "tsx": "^4.19.2",
     "typescript": "5.3.3",
     "vitest": "^2.1.8"
+  },
+  "resolutions": {
+    "@types/react": "^17.0.83",
+    "@types/react-dom": "^17.0.20"
   }
 }
