@@ -152,7 +152,7 @@ const checks: SystemCheck[] = [
     description: 'Check test coverage and performance',
     run: async () => {
       try {
-        const coverageResult = execSync('npm run test:coverage', { encoding: 'utf8' });
+        const coverageResult = execSync('npm run coverage', { encoding: 'utf8' });
         const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
         
         return {
