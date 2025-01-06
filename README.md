@@ -1,28 +1,37 @@
 # RateMyEmployer
 
-A platform for sharing and discovering authentic workplace experiences.
+A platform for sharing and discovering authentic workplace experiences. Help others make informed career decisions by sharing your experiences.
 
 ## Features
 
 - Company reviews and ratings
-- Detailed company profiles
-- Search and filter companies
-- User authentication
-- Dark mode support
+- Detailed company profiles with benefits and values
+- Advanced search and filter capabilities
+- Secure user authentication
+- Responsive design with dark mode support
+- Real-time updates
+- Data validation and sanitization
+- Role-based access control
 
 ## Tech Stack
 
 - Next.js 13 (App Router)
 - TypeScript
 - Tailwind CSS
-- Supabase
+- Supabase (PostgreSQL + Auth)
 - Shadcn UI
+- SWR for data fetching
+- Zod for validation
+- Vitest for testing
 
 ## Development
 
 ```bash
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env.local
 
 # Run development server
 npm run dev
@@ -36,15 +45,23 @@ npm run build
 
 ## Testing
 
-We use Vitest for testing. The test suite focuses on essential MVP features:
+We use Vitest for unit and integration tests, and Playwright for E2E testing.
 
-- UI Component rendering
-- Basic functionality
-- User interactions
-
-Run tests with:
 ```bash
+# Run unit and integration tests
 npm test
+
+# Run E2E tests
+npm run test:e2e
+
+# Run tests with UI
+npm run test:e2e:ui
+
+# Run tests in debug mode
+npm run test:e2e:debug
+
+# View test report
+npm run test:e2e:report
 ```
 
 ## Project Structure
