@@ -1,9 +1,10 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ReviewForm } from '@/components/ReviewForm';
 
-export default function NewReview() {
+function NewReviewForm() {
   const searchParams = useSearchParams();
   const companyId = searchParams.get('companyId');
 
@@ -51,5 +52,13 @@ export default function NewReview() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewReviewPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewReviewForm />
+    </Suspense>
   );
 }

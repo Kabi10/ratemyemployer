@@ -1,23 +1,20 @@
 'use client';
 
 import { ThemeProvider } from 'next-themes';
-import { type ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/components/Toast';
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function Providers({ children }: Props) {
   return (
     <AuthProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        storageKey="theme"
-      >
-        {children}
+      <ThemeProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   );

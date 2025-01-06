@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
@@ -21,7 +21,7 @@ function validateUrl(url: string): boolean {
   }
 }
 
-export default function AddCompanyPage() {
+function AddCompanyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const suggestedName = searchParams.get('name') || '';
@@ -218,5 +218,13 @@ export default function AddCompanyPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function AddCompanyPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AddCompanyForm />
+    </Suspense>
   );
 }
