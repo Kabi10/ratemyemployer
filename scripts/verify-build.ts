@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
+import { fileURLToPath } from 'url';
 
 interface VerificationResult {
   step: string;
@@ -209,7 +210,9 @@ class BuildVerifier {
 }
 
 // Run verification if this script is executed directly
-if (require.main === module) {
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
   const verifier = new BuildVerifier();
   verifier.runAll()
     .then(success => {

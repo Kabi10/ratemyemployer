@@ -2,6 +2,7 @@
   "name": "ratemyemployer",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,8 +15,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "validate": "npm run type-check && npm run lint && npm run format:check",
     "update-types": "npx supabase gen types typescript --project-id stvmsmqnrwiifwthlppy > src/types/supabase.ts",
-    "verify": "ts-node scripts/verify-build.ts",
-    "verify:ci": "cross-env CI=true ts-node scripts/verify-build.ts",
+    "verify": "node --loader ts-node/esm scripts/verify-build.ts",
+    "verify:ci": "cross-env CI=true node --loader ts-node/esm scripts/verify-build.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
