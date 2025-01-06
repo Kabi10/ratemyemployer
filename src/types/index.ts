@@ -1,30 +1,18 @@
 // src/types/index.ts
-import { DatabaseEnums } from '@/types/supabase';
-import type { 
-  Database,
-  CompanyRow,
-  ReviewRow,
-  UserProfileRow,
-  ReviewLikeRow,
-  EmploymentStatus,
-  ReviewStatus,
-  VerificationStatus,
-  Role
-} from '@/types/supabase';
+import { Database } from '@/types/supabase';
 
-// Re-export database types
-export type {
-  Database,
-  EmploymentStatus,
-  ReviewStatus,
-  VerificationStatus,
-  Role
-};
+type Tables = Database['public']['Tables'];
+type Enums = Database['public']['Enums'];
 
-// Company size type
-export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
+export type CompanyRow = Tables['companies']['Row'];
+export type ReviewRow = Tables['reviews']['Row'];
+export type UserProfileRow = Tables['user_profiles']['Row'];
 
-// Industry constants and type
+export type EmploymentStatus = Enums['employment_status'];
+export type ReviewStatus = Enums['review_status'];
+export type VerificationStatus = Enums['verification_status'];
+
+// Constants
 export const INDUSTRIES = [
   'Technology',
   'Finance',
@@ -41,31 +29,41 @@ export const INDUSTRIES = [
   'Other'
 ] as const;
 
+// Types
 export type Industry = typeof INDUSTRIES[number];
+export type Role = 'user' | 'admin' | 'moderator';
+export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
 
-// Extended types with additional fields
-export type Company = Omit<CompanyRow, 'industry'> & {
-  industry: Industry | null;
+// Database-derived types
+export type Company = Omit<CompanyRow, 'id'> & {
+  id?: number;
   size?: CompanySize;
 };
 
-export type Review = ReviewRow & {
-  company?: Company | null;
+export type Review = Omit<ReviewRow, 'id'> & {
+  id?: number;
+  company?: Company;
   likes?: number;
 };
 
-export type Profile = UserProfileRow;
-export type ReviewLike = ReviewLikeRow;
+export type Profile = {
+  id: string;
+  email: string;
+  username: string | null;
+  role: string | null;
+  is_verified: boolean | null;
+  created_at: string;
+};
 
 // Analytics types
-export interface Stats {
+export type AdminStats = {
   total_users: number;
   total_companies: number;
   total_reviews: number;
   average_rating: number;
   pending_reviews: number;
   pending_verifications: number;
-}
+};
 
 export interface MonthlyReview {
   month: string;
@@ -74,16 +72,20 @@ export interface MonthlyReview {
   averageRating: number;
 }
 
+export type ReviewLike = {
+  id: string;
+  user_id: string;
+  review_id: number;
+  created_at: string;
+};
+
 // Type guards
 export const isValidIndustry = (industry: string | null): industry is Industry => {
   return industry !== null && INDUSTRIES.includes(industry as Industry);
 };
 
-export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
-  return DatabaseEnums.employment_status.includes(status as EmploymentStatus);
-};
+export const EMPLOYMENT_STATUSES = ['Full-time', 'Part-time', 'Contract', 'Intern'] as const;
 
-// Utility type for form data
-export type FormDataType<T> = {
-  [K in keyof T]: T[K] extends Date ? string : T[K];
+export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
+  return EMPLOYMENT_STATUSES.includes(status as EmploymentStatus);
 };

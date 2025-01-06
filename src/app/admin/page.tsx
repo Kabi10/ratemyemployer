@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { withAuth } from '@/lib/auth/withAuth';
 import { supabase } from '@/lib/supabaseClient';
-import Link from 'next/link';
-import { AdminLayout } from '@/components/layouts/AdminLayout';
 
-interface Stats {
+interface DashboardStats {
   total_users: number;
   total_companies: number;
   total_reviews: number;
@@ -14,139 +13,141 @@ interface Stats {
   pending_verifications: number;
 }
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({
+interface ReviewWithRating {
+  rating: number | null;
+}
+
+function AdminPage() {
+  const [stats, setStats] = useState<DashboardStats>({
     total_users: 0,
     total_companies: 0,
     total_reviews: 0,
     average_rating: 0,
     pending_reviews: 0,
-    pending_verifications: 0,
+    pending_verifications: 0
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function fetchStats() {
-      const { data, error } = await supabase.rpc('get_admin_stats');
+      try {
+        const { count: userCount } = await supabase
+          .from('user_profiles')
+          .select('*', { count: 'exact', head: true });
 
-      if (error) {
-        console.error('Error fetching stats:', error);
-        return;
-      }
+        const { count: companyCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true });
 
-      if (data) {
+        const { count: reviewCount } = await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true });
+
+        const { data: ratings } = await supabase
+          .from('reviews')
+          .select('rating')
+          .not('rating', 'is', null) as { data: ReviewWithRating[] | null };
+
+        const { count: pendingReviewCount } = await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        const { count: pendingVerificationCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_verified', false);
+
+        const averageRating = ratings && ratings.length > 0
+          ? ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length
+          : 0;
+
         setStats({
-          total_users: data.total_users || 0,
-          total_companies: data.total_companies || 0,
-          total_reviews: data.total_reviews || 0,
-          average_rating: data.average_rating || 0,
-          pending_reviews: data.pending_reviews || 0,
-          pending_verifications: data.pending_verifications || 0,
+          total_users: userCount || 0,
+          total_companies: companyCount || 0,
+          total_reviews: reviewCount || 0,
+          average_rating: averageRating,
+          pending_reviews: pendingReviewCount || 0,
+          pending_verifications: pendingVerificationCount || 0
         });
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to fetch stats'));
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchStats();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            ))}
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-gray-600">Loading dashboard stats...</p>
           </div>
         </div>
-      </AdminLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <AdminLayout>
-        <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error}</p>
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-red-600">Error: {error.message}</p>
+          </div>
         </div>
-      </AdminLayout>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">Total Companies</h3>
-          <p className="text-3xl font-bold text-blue-600">{stats.total_companies}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">Total Reviews</h3>
-          <p className="text-3xl font-bold text-green-600">{stats.total_reviews}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-          <p className="text-3xl font-bold text-purple-600">{stats.total_users}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">Pending Reviews</h3>
-          <p className="text-3xl font-bold text-yellow-600">{stats.pending_reviews}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-          <div className="space-y-4">
-            <Link
-              href="/admin/analytics"
-              className="block w-full py-2 px-4 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-center"
-            >
-              View Analytics
-            </Link>
-            <Link
-              href="/admin/companies"
-              className="block w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-center"
-            >
-              Manage Companies
-            </Link>
-            <Link
-              href="/admin/reviews"
-              className="block w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-center"
-            >
-              Manage Reviews
-            </Link>
-            <Link
-              href="/admin/users"
-              className="block w-full py-2 px-4 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors text-center"
-            >
-              Manage Users
-            </Link>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">System Status</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span>Database Status</span>
-              <span className="text-green-500">●</span>
+    <div className="min-h-screen bg-gray-100 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-700">Total Users</h3>
+              <p className="text-3xl font-bold text-blue-900">{stats.total_users}</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span>Storage Status</span>
-              <span className="text-green-500">●</span>
+            
+            <div className="bg-green-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-green-700">Total Companies</h3>
+              <p className="text-3xl font-bold text-green-900">{stats.total_companies}</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span>Auth Service</span>
-              <span className="text-green-500">●</span>
+            
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-purple-700">Total Reviews</h3>
+              <p className="text-3xl font-bold text-purple-900">{stats.total_reviews}</p>
+            </div>
+            
+            <div className="bg-yellow-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-yellow-700">Average Rating</h3>
+              <p className="text-3xl font-bold text-yellow-900">
+                {stats.average_rating.toFixed(1)}
+              </p>
+            </div>
+            
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-700">Pending Reviews</h3>
+              <p className="text-3xl font-bold text-red-900">{stats.pending_reviews}</p>
+            </div>
+            
+            <div className="bg-indigo-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-indigo-700">Pending Verifications</h3>
+              <p className="text-3xl font-bold text-indigo-900">{stats.pending_verifications}</p>
             </div>
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 }
+
+export default withAuth(AdminPage);

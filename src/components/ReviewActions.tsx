@@ -1,89 +1,94 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabaseClient';
-import { useAuth } from '@/contexts/AuthContext';
+import { createBrowserClient } from '@supabase/ssr';
+import { Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ReviewLike } from '@/types';
 
-export function ReviewActions({
-  reviewId,
-  initialLikes,
-}: {
-  reviewId: string;
+interface ReviewActionsProps {
+  reviewId: number;
+  userId?: string;
   initialLikes: number;
-}) {
-  const { user } = useAuth();
-  const [likes, setLikes] = useState(initialLikes);
+  onLikeChange?: (liked: boolean) => void;
+}
+
+export function ReviewActions({ reviewId, userId, initialLikes, onLikeChange }: ReviewActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(initialLikes);
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
-    async function fetchLikeStatus() {
-      if (!user) return;
+    async function checkLikeStatus() {
+      if (!userId) return;
 
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('review_likes')
-          .select('liked')
-          .eq('review_id', reviewId)
-          .eq('user_id', user.id)
-          .single();
+      const { data, error } = await supabase
+        .rpc('has_user_liked_review', {
+          p_user_id: userId,
+          p_review_id: reviewId
+        });
 
-        if (error && error.code !== 'PGRST116') {
-          // PGRST116 means no rows found
-          console.error('Error fetching like status:', error);
-          return;
-        }
-
-        setIsLiked(data?.liked ?? false);
-      } catch (error) {
-        console.error('Error fetching like status:', error);
+      if (!error) {
+        setIsLiked(!!data);
+        onLikeChange?.(!!data);
       }
     }
 
-    fetchLikeStatus();
-  }, [user, reviewId]);
+    checkLikeStatus();
+  }, [reviewId, userId, supabase, onLikeChange]);
 
-  const handleLike = async () => {
-    if (!user) {
-      alert('Please sign in to like reviews');
-      return;
-    }
-
-    if (isLoading) return;
+  const handleLikeClick = async () => {
+    if (!userId || isLoading) return;
 
     setIsLoading(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('review_likes').upsert([
-        {
-          review_id: reviewId,
-          user_id: user.id,
-          liked: !isLiked,
-        },
-      ]);
+      if (isLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from('review_likes')
+          .delete()
+          .eq('user_id', userId)
+          .eq('review_id', reviewId);
 
-      if (error) throw error;
+        if (!error) {
+          setIsLiked(false);
+          setLikeCount(prev => Math.max(0, prev - 1));
+          onLikeChange?.(false);
+        }
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('review_likes')
+          .insert({
+            user_id: userId,
+            review_id: reviewId
+          });
 
-      setLikes(prev => (isLiked ? prev - 1 : prev + 1));
-      setIsLiked(!isLiked);
-    } catch (error) {
-      console.error('Error updating like:', error);
-      alert('Failed to update like. Please try again.');
+        if (!error) {
+          setIsLiked(true);
+          setLikeCount(prev => prev + 1);
+          onLikeChange?.(true);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <button
-      onClick={handleLike}
-      disabled={isLoading}
-      className={`flex items-center gap-2 px-4 py-2 rounded-md ${
-        isLiked ? 'bg-blue-500 text-white' : 'bg-gray-100'
-      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleLikeClick}
+      disabled={!userId || isLoading}
+      className={isLiked ? 'text-red-500' : ''}
     >
-      <span>{isLiked ? 'Liked' : 'Like'}</span>
-      <span>{likes}</span>
-    </button>
+      <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+      <span className="ml-2">{isLiked ? 'Unlike' : 'Like'}</span>
+      <span className="ml-1">({likeCount})</span>
+    </Button>
   );
 }

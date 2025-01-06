@@ -1,56 +1,70 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabaseClient';
-import { useAuth } from '@/contexts/AuthContext';
+import { createBrowserClient } from '@supabase/ssr';
+import { ReviewLike } from '@/types';
 
-interface ReviewLikes {
-  [reviewId: string]: boolean;
-}
-
-export function useLikes(reviewId: string) {
+export function useLikes(reviewId: number, userId?: string) {
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-  const { user } = useAuth();
-  const supabase = createClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
-    const fetchLikes = async () => {
-      if (!user) return;
+    async function checkLikeStatus() {
+      if (!userId) return;
 
-      const { data: likes } = await supabase
-        .from('review_likes')
-        .select('*')
-        .eq('review_id', parseInt(reviewId, 10))
-        .eq('user_id', user.id)
-        .single();
+      const { data, error } = await supabase
+        .rpc('has_user_liked_review', {
+          p_user_id: userId,
+          p_review_id: reviewId
+        });
 
-      setIsLiked(!!likes?.liked);
-    };
+      if (!error) {
+        setIsLiked(!!data);
+      }
+    }
 
-    fetchLikes();
-  }, [reviewId, user]);
+    checkLikeStatus();
+  }, [reviewId, userId, supabase]);
 
   const toggleLike = async () => {
-    if (!user) return;
+    if (!userId || isLoading) return;
 
-    const newLikeState = !isLiked;
-    setIsLiked(newLikeState);
-    setLikesCount(prev => prev + (newLikeState ? 1 : -1));
+    setIsLoading(true);
+    try {
+      if (isLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from('review_likes')
+          .delete()
+          .eq('user_id', userId)
+          .eq('review_id', reviewId);
 
-    const { error } = await supabase
-      .from('review_likes')
-      .upsert({
-        review_id: parseInt(reviewId, 10),
-        user_id: user.id,
-        liked: newLikeState,
-      });
+        if (!error) {
+          setIsLiked(false);
+        }
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('review_likes')
+          .insert({
+            user_id: userId,
+            review_id: reviewId
+          });
 
-    if (error) {
-      // Revert optimistic update on error
-      setIsLiked(!newLikeState);
-      setLikesCount(prev => prev + (!newLikeState ? 1 : -1));
-      console.error('Error toggling like:', error);
+        if (!error) {
+          setIsLiked(true);
+        }
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return { isLiked, likesCount, toggleLike };
+  return {
+    isLiked,
+    isLoading,
+    toggleLike
+  };
 }

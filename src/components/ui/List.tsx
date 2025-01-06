@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ListProps<T> {
   items: T[];
@@ -75,7 +75,7 @@ export function List<T>({
   if (items.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">{emptyMessage}</p>
+        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
       </div>
     );
   }
@@ -97,19 +97,19 @@ export function List<T>({
           <button
             onClick={() => pagination.onPageChange(pagination.page - 1)}
             disabled={pagination.page === 1}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ChevronLeftIcon className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-          <span className="text-sm">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <button
             onClick={() => pagination.onPageChange(pagination.page + 1)}
             disabled={pagination.page === pagination.totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ChevronRightIcon className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
         </div>
       )}

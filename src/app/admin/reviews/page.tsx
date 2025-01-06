@@ -1,138 +1,160 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabaseClient';
-import { Review } from '@/types';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/Toast';
-import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { useEffect, useState } from 'react';
+import { withAuth } from '@/lib/auth/withAuth';
+import { supabase } from '@/lib/supabaseClient';
+import { formatDateDisplay } from '@/utils/date';
 
-export default function AdminReviewsPage() {
+interface Review {
+  id: number;
+  title: string | null;
+  content: string | null;
+  rating: number | null;
+  created_at: string | null;
+  status: string | null;
+  company: {
+    id: number;
+    name: string;
+    industry: string | null;
+    location: string | null;
+  } | null;
+}
+
+function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const { showToast } = useToast();
-
-  const fetchReviews = useCallback(async () => {
-    const supabase = createClient();
-    try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-          *,
-          company:companies(*)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Transform the data to include position and employment_status
-      const transformedData = (data || []).map(review => ({
-        ...review,
-        position: review.position || 'Not specified',
-        employment_status: review.employment_status || 'Not specified',
-        company: {
-          ...review.company,
-          industry: review.company.industry || 'Not specified',
-          location: review.company.location || 'Not specified',
-          total_reviews: 0, // These would need to be calculated
-          average_rating: 0, // These would need to be calculated
-        }
-      }));
-
-      setReviews(transformedData);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      showToast('Failed to load reviews', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    async function fetchReviews() {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('reviews')
+          .select(`
+            *,
+            company:companies (
+              id,
+              name,
+              industry,
+              location
+            )
+          `)
+          .order('created_at', { ascending: false });
 
-  async function handleApproveReview(reviewId: string) {
-    const supabase = createClient();
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        if (data) {
+          setReviews(data as Review[]);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to fetch reviews'));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchReviews();
+  }, []);
+
+  const handleApproveReview = async (reviewId: number) => {
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('reviews')
         .update({ status: 'approved' })
         .eq('id', reviewId);
 
-      if (error) throw error;
-      showToast('Review approved successfully', 'success');
-      fetchReviews();
-    } catch (error) {
-      console.error('Error approving review:', error);
-      showToast('Failed to approve review', 'error');
+      if (updateError) {
+        throw updateError;
+      }
+
+      setReviews(reviews.map(review => 
+        review.id === reviewId 
+          ? { ...review, status: 'approved' }
+          : review
+      ));
+    } catch (err) {
+      console.error('Error approving review:', err);
     }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-gray-600">Loading reviews...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  if (loading) {
+  if (error) {
     return (
-      <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-red-600">Error: {error.message}</p>
+          </div>
         </div>
-      </AdminLayout>
+        </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <h1 className="text-2xl font-bold mb-6">Manage Reviews</h1>
-      <div className="space-y-4">
-        {reviews.map(review => (
-          <div key={review.id} className="bg-white shadow rounded-lg p-6">
-            <div className="flex justify-between items-start mb-4">
+    <div className="min-h-screen bg-gray-100 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-6">Review Management</h1>
+          
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div key={review.id} className="bg-gray-50 rounded-lg p-6">
+                <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-xl font-semibold">
+                    <h3 className="text-lg font-semibold">
                   {review.company?.name || 'Unknown Company'}
-                </h2>
-                <div className="text-sm text-gray-600 mt-1">
-                  {review.position} • {review.employment_status}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {review.company?.industry || 'Industry not specified'} • 
+                      {review.company?.location || 'Location not specified'}
+                    </p>
                 </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                {review.status !== 'approved' && (
+                  {review.status === 'pending' && (
                   <button
-                    onClick={() => handleApproveReview(review.id.toString())}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                      onClick={() => handleApproveReview(review.id)}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                   >
                     Approve
                   </button>
                 )}
-                <button
-                  onClick={() => router.push(`/reviews/${review.id}/edit`)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Edit
-                </button>
               </div>
+                
+                <div className="mt-4">
+                  <p className="text-gray-700">{review.content || 'No content provided'}</p>
             </div>
-            <div className="flex items-center mb-2">
-              <div className="text-lg font-bold">{review.rating}/5</div>
-              <span className="ml-2 text-sm text-gray-600">
-                Posted on {new Date(review.created_at).toLocaleDateString()}
-              </span>
-            </div>
-            <h3 className="font-semibold mb-2">{review.title}</h3>
-            <p className="text-gray-700 mb-4">{review.content}</p>
-            <div className="grid grid-cols-2 gap-4">
+                
+                <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
               <div>
-                <h4 className="font-medium text-green-600 mb-1">Pros</h4>
-                <p className="text-sm text-gray-600">{review.pros || 'None provided'}</p>
+                    Rating: <span className="font-medium">{review.rating || 'Not rated'}</span>
               </div>
               <div>
-                <h4 className="font-medium text-red-600 mb-1">Cons</h4>
-                <p className="text-sm text-gray-600">{review.cons || 'None provided'}</p>
+                    Posted on {formatDateDisplay(review.created_at)}
               </div>
             </div>
           </div>
         ))}
+            
+            {reviews.length === 0 && (
+              <p className="text-center text-gray-600">No reviews found.</p>
+            )}
+          </div>
+        </div>
       </div>
-    </AdminLayout>
+      </div>
   );
 }
+
+export default withAuth(AdminReviewsPage);

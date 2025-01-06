@@ -1,52 +1,55 @@
-import { Database } from '@/lib/database.types';
+import { Database } from '@/types/supabase';
 
 // User mock data
 export const mockUser = {
   id: 'test-user-id',
   email: 'test@example.com',
   created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
   role: 'user',
-  profile: {
-    full_name: 'Test User',
-    avatar_url: 'https://example.com/avatar.jpg'
-  }
+  username: 'testuser',
+  is_verified: true
 };
 
 // Review mock data
 export const mockReview: Database['public']['Tables']['reviews']['Row'] = {
-  id: 'test-review-id',
+  id: 1,
   title: 'Great Company to Work For',
   content: 'This is a detailed review of the company...',
   rating: 4,
   created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
+  company_id: 1,
   user_id: mockUser.id,
-  company_id: 'test-company-id',
   pros: 'Good benefits, work-life balance',
   cons: 'Limited growth opportunities',
   position: 'Software Engineer',
-  employment_status: 'FULL_TIME',
-  likes_count: 10,
-  is_verified: true,
-  location: 'San Francisco, CA'
+  employment_status: 'Full-time',
+  is_current_employee: true,
+  reviewer_name: 'Test User',
+  reviewer_email: 'test@example.com',
+  status: 'approved'
 };
 
 // Company mock data
 export const mockCompany: Database['public']['Tables']['companies']['Row'] = {
-  id: 'test-company-id',
+  id: 1,
   name: 'Tech Corp Inc',
   description: 'Leading technology company...',
   industry: 'Technology',
   location: 'San Francisco, CA',
   website: 'https://techcorp.example.com',
-  size: 'MEDIUM',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   logo_url: 'https://example.com/logo.png',
-  review_count: 25,
+  total_reviews: 25,
   average_rating: 4.2,
-  verified: true
+  verified: true,
+  benefits: 'Great health insurance, 401k matching',
+  ceo: 'John Doe',
+  company_values: 'Innovation, Integrity, Excellence',
+  created_by: mockUser.id,
+  recommendation_rate: 85,
+  verification_date: new Date().toISOString(),
+  verification_status: 'verified'
 };
 
 // Mock likes data

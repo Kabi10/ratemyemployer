@@ -1,12 +1,24 @@
 'use client';
 
-import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from 'next-themes';
+import { type ReactNode } from 'react';
+import { AuthProvider } from '@/contexts/AuthContext';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: ReactNode;
+}
+
+export function Providers({ children }: Props) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>{children}</AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        storageKey="theme"
+      >
+        {children}
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

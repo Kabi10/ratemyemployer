@@ -1,7 +1,6 @@
 'use client';
 
-import { ChevronDownIcon, UserIcon } from '@heroicons/react/24/outline';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,9 +36,9 @@ export function Navbar(): JSX.Element {
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center gap-3 px-5 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-200"
                 >
-                  <UserIcon className="w-6 h-6" />
+                  <User className="w-6 h-6" />
                   <span className="hidden sm:inline text-lg">{user.email}</span>
-                  <ChevronDownIcon className="w-5 h-5" />
+                  <ChevronDown className="w-5 h-5" />
                 </button>
 
                 {showDropdown && (

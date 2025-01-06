@@ -1,10 +1,10 @@
 'use client';
 
 import { withAuth } from '@/lib/auth/withAuth';
-import { PropsWithChildren } from 'react';
+import * as React from 'react';
 import Link from 'next/link';
 
-interface AdminLayoutProps extends PropsWithChildren {}
+type AdminLayoutProps = React.PropsWithChildren<{}>;
 
 function BaseAdminLayout({ children }: AdminLayoutProps) {
   return (

@@ -1,95 +1,117 @@
 'use client';
 
-import { withAuth } from '@/lib/auth/withAuth';
-import { useReviews } from '@/hooks/useReviews';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabaseClient';
+import type { Database } from '@/types/supabase';
+import { formatDateDisplay } from '@/utils/date';
 
-function AccountPage() {
-  const { reviews, isLoading, error } = useReviews();
+type ReviewWithCompany = Database['public']['Tables']['reviews']['Row'] & {
+  company: Database['public']['Tables']['companies']['Row'] | null;
+};
 
-  if (isLoading) {
+export default function AccountPage() {
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchReviews = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*, company:companies(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setReviews(data || []);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        setError('Failed to load reviews');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [user]);
+
+  if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          Error: {error.message}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6">
+            <p className="text-center text-gray-600 dark:text-gray-400">Please log in to view your account.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h1 className="text-2xl font-bold mb-2">Your Profile</h1>
-          <p className="text-gray-600">Welcome back! Here&apos;s an overview of your activity.</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Your Reviews</h2>
-            <a
-              href="/companies"
-              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-            >
-              Browse Companies &rarr;
-            </a>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Account</h1>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Profile Information</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">Email</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{user.email}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">Member Since</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{formatDateDisplay(user.created_at)}</p>
+              </div>
+            </div>
           </div>
 
-          {reviews?.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
-              <p className="text-gray-600 mb-4">Share your experiences and help others make informed decisions.</p>
-              <a
-                href="/companies"
-                className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Write Your First Review
-              </a>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviews?.map((review) => (
-                <div
-                  key={review.id}
-                  className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {review.company?.name || 'Unknown Company'}
-                    </h3>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {review.employment_status}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-gray-600">{review.content}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span className="text-yellow-400 mr-1">★</span>
-                      <span className="font-medium">{review.rating}</span>
-                      <span className="text-gray-400 mx-2">•</span>
-                      <span className="text-sm text-gray-500">{review.position}</span>
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Your Reviews</h2>
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-600 dark:text-red-400">{error}</div>
+            ) : reviews.length > 0 ? (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review.id} className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                          {review.company?.name || 'Unknown Company'}
+                        </h3>
+                        <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mt-1">
+                          {review.title || 'Untitled Review'}
+                        </h4>
+                      </div>
+                      <div className="text-yellow-400">{'★'.repeat(review.rating || 0)}</div>
                     </div>
-                    <span className="text-sm text-gray-400">
-                      {new Date(review.created_at).toLocaleDateString()}
-                    </span>
+                    <p className="text-gray-600 dark:text-gray-300 mt-2">{review.content}</p>
+                    <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      Posted on {formatDateDisplay(review.created_at || '')}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400">You haven't written any reviews yet.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-// Protect the account page for authenticated users
-export default withAuth(AccountPage);

@@ -140,56 +140,61 @@ export default function Home() {
   }, [showAddCompany, searchQuery, setValue]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-            <span className="block">Rate My Employer</span>
-            <span className="block text-blue-600 dark:text-blue-400">
-              Share Your Work Experience
-            </span>
-          </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 dark:text-gray-400 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Join our community to share and discover authentic workplace experiences.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
+        <div className="text-center space-y-12 sm:space-y-16 md:space-y-20">
+          <div className="space-y-6 sm:space-y-8">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight font-extrabold">
+              <span className="block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 leading-tight opacity-0 animate-fade-in-up [animation-delay:200ms]">
+                Rate My Employer
+              </span>
+              <span className="block text-4xl sm:text-5xl md:text-6xl mt-4 sm:mt-6 text-gray-600 dark:text-gray-300 opacity-0 animate-fade-in [animation-delay:400ms]">
+                Share Your Work Experience
+              </span>
+            </h1>
+            <p className="mt-8 max-w-2xl mx-auto text-xl sm:text-2xl text-gray-600 dark:text-gray-300 opacity-0 animate-fade-in [animation-delay:600ms]">
+              Help others make informed career decisions.
+            </p>
+          </div>
 
-          <div className="mt-8 max-w-xl mx-auto">
+          <div className="max-w-2xl mx-auto opacity-0 animate-fade-in [animation-delay:800ms]">
             <div className="relative">
               <Input
                 type="text"
                 placeholder="Search for a company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 text-lg"
+                className="w-full px-8 py-6 text-xl rounded-2xl shadow-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
               />
               {isSearching && (
-                <div className="absolute right-3 top-3">
+                <div className="absolute right-6 top-6">
                   <LoadingSpinner />
                 </div>
               )}
             </div>
 
             {searchResults.length > 0 && (
-              <div className="mt-4 space-y-2">
+              <div className="mt-8 space-y-4">
                 {searchResults.map((company) => (
                   <div
                     key={company.id}
-                    className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
+                    className="block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-semibold">{company.name}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{company.name}</h3>
                         {company.industry && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{company.industry}</p>
+                          <p className="text-base text-gray-600 dark:text-gray-300 mt-2">{company.industry}</p>
                         )}
                       </div>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="default"
+                        size="lg"
                         onClick={() => {
                           setSelectedCompany(company);
                           setShowAddReview(true);
                         }}
+                        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-sm text-lg px-6"
                       >
                         Write Review
                       </Button>
@@ -198,11 +203,10 @@ export default function Home() {
                 ))}
 
                 {!hasExactMatch && searchQuery.trim() && (
-                  <div className="mt-4">
+                  <div className="mt-6">
                     <Button
                       onClick={() => setShowAddCompany(true)}
-                      className="w-full"
-                      variant="outline"
+                      className="w-full py-8 text-xl font-medium rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all duration-300"
                     >
                       Add &quot;{searchQuery.trim()}&quot; as a new company
                     </Button>
@@ -212,12 +216,11 @@ export default function Home() {
             )}
 
             {searchQuery.trim() && !isSearching && searchResults.length === 0 && (
-              <div className="mt-4">
-                <p className="text-gray-600 dark:text-gray-400">No companies found.</p>
+              <div className="mt-12 text-center space-y-6">
+                <p className="text-xl text-gray-600 dark:text-gray-400">No companies found matching your search.</p>
                 <Button
                   onClick={() => setShowAddCompany(true)}
-                  className="mt-2"
-                  variant="outline"
+                  className="py-8 px-10 text-xl font-medium rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all duration-300"
                 >
                   Add &quot;{searchQuery.trim()}&quot; as a new company
                 </Button>

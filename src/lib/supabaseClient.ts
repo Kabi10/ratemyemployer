@@ -27,27 +27,8 @@ export const supabase = createBrowserClient<Database>(
   }
 );
 
-// Create typed client with full configuration
-export const createClient = () => {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase credentials not found');
-  }
-
-  return createBrowserClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      },
-      db: {
-        schema: 'public'
-      }
-    }
-  );
-};
+// Use the singleton instance instead of creating new ones
+export const createClient = () => supabase;
 
 // Error handling utility
 export const handleSupabaseError = (error: unknown): string => {
@@ -68,9 +49,8 @@ export const handleSupabaseError = (error: unknown): string => {
 export const dbQuery = {
   companies: {
     create: async (data: CompanyFormData, userId: string) => {
-      const client = createClient();
       const { description, industry, location, name, logo_url, verification_status, verified, website } = data;
-      return client
+      return supabase
         .from('companies')
         .insert({
           description,
@@ -89,9 +69,8 @@ export const dbQuery = {
         .single();
     },
     update: async (id: string | number, data: Partial<CompanyFormData>) => {
-      const client = createClient();
       const { description, industry, location, name, logo_url, verification_status, verified, website } = data;
-      return client
+      return supabase
         .from('companies')
         .update({
           description,
@@ -109,9 +88,8 @@ export const dbQuery = {
   },
   reviews: {
     create: async (data: ReviewFormData, userId: string) => {
-      const client = createClient();
       const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
-      return client
+      return supabase
         .from('reviews')
         .insert({
           content,
@@ -132,9 +110,8 @@ export const dbQuery = {
         .single();
     },
     update: async (id: string | number, data: Partial<ReviewFormData>, userId: string) => {
-      const client = createClient();
       const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
-      return client
+      return supabase
         .from('reviews')
         .update({
           content,

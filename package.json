@@ -15,15 +15,15 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "validate": "npm run type-check && npm run lint && npm run format:check",
     "update-types": "npx supabase gen types typescript --project-id stvmsmqnrwiifwthlppy > src/types/supabase.ts",
-    "cli": "node --loader ts-node/esm scripts/cli.ts",
-    "verify": "tsx scripts/verify-build.ts",
-    "verify:ci": "cross-env CI=true tsx scripts/verify-build.ts",
+    "cli": "cross-env NODE_OPTIONS=\"--import tsx\" node scripts/cli.ts",
+    "verify": "cross-env NODE_OPTIONS=\"--import tsx\" node scripts/verify-build.ts",
+    "verify:ci": "cross-env CI=true NODE_OPTIONS=\"--import tsx\" node scripts/verify-build.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:setup": "tsx scripts/test/setup.ts",
-    "test:fix": "tsx scripts/test/fix.ts",
+    "test:setup": "cross-env NODE_OPTIONS=\"--import tsx\" node scripts/test/setup.ts",
+    "test:fix": "cross-env NODE_OPTIONS=\"--import tsx\" node scripts/test/fix.ts",
     "test:all": "npm run test:setup && npm run test:fix && npm run test"
   },
   "dependencies": {
@@ -39,8 +39,8 @@
     "@supabase/supabase-js": "^2.47.10",
     "@tailwindcss/forms": "^0.5.7",
     "@types/google.maps": "^3.58.1",
-    "@types/react": "^17.0.83",
-    "@types/react-dom": "^17.0.20",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
     "chalk": "^5.4.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -88,7 +88,11 @@
     "vitest": "^2.1.8"
   },
   "resolutions": {
-    "@types/react": "^17.0.83",
-    "@types/react-dom": "^17.0.20"
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19"
+  },
+  "overrides": {
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19"
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { ChartBarIcon } from '@heroicons/react/24/outline';
+import { BarChart2 } from 'lucide-react';
 
 interface PerformanceMetrics {
   loadTime: number | null;
@@ -124,7 +124,7 @@ export default function PerformanceMonitor() {
       className="fixed bottom-6 right-20 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 z-50 border border-gray-200 dark:border-gray-700"
       title="Toggle Performance Monitor (Alt+P)"
     >
-      <ChartBarIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+      <BarChart2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />
     </button>
   );
 

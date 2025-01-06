@@ -1,98 +1,146 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDateDisplay } from '@/utils/date';
 
 interface Profile {
   id: string;
   email: string;
+  username: string | null;
+  role: string | null;
+  is_verified: boolean | null;
   created_at: string;
   updated_at: string;
 }
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function fetchProfile() {
-      if (!user) return;
+    if (!user) return;
 
+    const fetchProfile = async () => {
       try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-
-        if (data) {
-          setProfile({
-            ...data,
-            updated_at: data.updated_at || new Date().toISOString(),
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError('Failed to load profile');
+        const response = await fetch(`/api/users/${user.id}/profile`);
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const data = await response.json();
+        
+        setProfile({
+          id: data.id,
+          email: data.email || '',
+          username: data.username,
+          role: data.role,
+          is_verified: data.is_verified,
+          created_at: data.created_at,
+          updated_at: data.updated_at || data.created_at
+        });
+      } catch (error) {
+        setError(error instanceof Error ? error : new Error('An error occurred'));
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
-    }
+    };
 
     fetchProfile();
   }, [user]);
 
-  if (loading) {
+  if (!user) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-gray-600">Please log in to view your profile.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-gray-600">Loading profile...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-md">
-        {error}
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-red-600">Error: {error.message}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="p-4 bg-yellow-50 text-yellow-600 rounded-md">
-        Profile not found
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <p className="text-center text-gray-600">Profile not found.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
-      
-      <div className="bg-white shadow rounded-lg p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Email</label>
-          <p className="mt-1">{profile.email}</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Member Since</label>
-          <p className="mt-1">{new Date(profile.created_at).toLocaleDateString()}</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Last Updated</label>
-          <p className="mt-1">{new Date(profile.updated_at).toLocaleDateString()}</p>
+    <div className="min-h-screen bg-gray-100 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-6">Profile</h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="font-medium">{profile.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Username</p>
+                  <p className="font-medium">{profile.username || 'Not set'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Role</p>
+                  <p className="font-medium">{profile.role || 'User'}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h2 className="text-lg font-semibold mb-4">Account Details</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">Account Created</p>
+                  <p className="font-medium">{formatDateDisplay(profile.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Last Updated</p>
+                  <p className="font-medium">{formatDateDisplay(profile.updated_at)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Verification Status</p>
+                  <p className="font-medium">
+                    {profile.is_verified ? 'Verified' : 'Not verified'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

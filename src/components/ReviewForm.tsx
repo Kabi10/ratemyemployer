@@ -44,11 +44,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     position: initialData?.position || '',
     employment_status: (initialData?.employment_status || 'Full-time') as typeof employmentStatusEnum[number],
     is_current_employee: initialData?.is_current_employee || false,
-    status: initialData?.status || 'pending',
-    pros: initialData?.pros || '',
-    cons: initialData?.cons || '',
-    reviewer_name: initialData?.reviewer_name || '',
-    reviewer_email: initialData?.reviewer_email || ''
+    status: initialData?.status || 'pending'
   };
 
   const form = useForm<ReviewFormData>({
@@ -157,7 +153,13 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           .from('reviews')
           .insert([
             {
-              ...data,
+              rating: data.rating,
+              title: data.title,
+              content: data.content,
+              position: data.position,
+              employment_status: data.employment_status,
+              is_current_employee: data.is_current_employee,
+              status: data.status,
               company_id,
               user_id: user.id
             }
@@ -191,7 +193,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
       {/* Rating */}
       <div>
         <div role="group" aria-label="Rating">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
           <div className="flex items-center space-x-2">
             {[1, 2, 3, 4, 5].map((value) => (
               <button
@@ -225,7 +227,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
       {/* Title */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
         <Input
           id="title"
           {...form.register('title')}
@@ -240,12 +242,12 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
       {/* Review Content */}
       <div>
-        <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Review</label>
+        <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Review</label>
         <textarea
           id="content"
           {...form.register('content')}
           rows={8}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           placeholder="Share your detailed experience working at this company. Consider including both positive aspects and areas for improvement..."
           aria-invalid={form.formState.errors.content ? 'true' : 'false'}
         />
@@ -256,7 +258,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
       {/* Position */}
       <div>
-        <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+        <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
         <Input
           id="position"
           {...form.register('position')}
@@ -271,11 +273,11 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
       {/* Employment Status */}
       <div>
-        <label htmlFor="employment_status" className="block text-sm font-medium text-gray-700 mb-1">Employment Status</label>
+        <label htmlFor="employment_status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Employment Status</label>
         <select
           id="employment_status"
           {...form.register('employment_status')}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           aria-invalid={form.formState.errors.employment_status ? 'true' : 'false'}
         >
           {employmentStatusEnum.map((status) => (
@@ -293,17 +295,17 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           <input
             type="checkbox"
             {...form.register('is_current_employee')}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-blue-600 focus:ring-blue-500"
           />
-          <span className="text-sm text-gray-700">I currently work here</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300">I currently work here</span>
         </label>
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
           <div className="flex">
             <div className="ml-3">
-              <p className="text-sm font-medium text-red-800" role="alert">{error}</p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-200" role="alert">{error}</p>
             </div>
           </div>
         </div>
@@ -313,7 +315,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           {isSubmitting ? (
             <>
