@@ -89,7 +89,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "5.3.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "@testing-library/react-hooks": "^8.0.1"
   },
   "resolutions": {
     "@types/react": "^18.2.55",
