@@ -1,71 +1,73 @@
-# Rate My Employer 🏢
+# RateMyEmployer
 
-> A modern platform for transparent employer reviews and ratings.
+A platform for sharing and discovering authentic workplace experiences.
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yourusername/ratemyemployer/ci.yml?branch=main)](https://github.com/yourusername/ratemyemployer/actions)
-[![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/yourusername/ratemyemployer/wiki)
-[![License](https://img.shields.io/github/license/yourusername/ratemyemployer)](LICENSE)
+## Features
 
-## Overview
-
-Rate My Employer is a platform where employees can share honest, constructive feedback about their workplace experiences. Built with Next.js, TypeScript, and Supabase.
-
-### Key Features
-- 🔒 Secure, anonymous reviews
-- ✨ Modern, responsive UI
-- 🔍 Advanced search and filtering
-- 📊 Company insights and analytics
-- 🌐 Multi-language support
-
-## Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/ratemyemployer.git
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-
-# Start development server
-npm run dev
-```
-
-Visit `http://localhost:3000` to see the app.
+- Company reviews and ratings
+- Detailed company profiles
+- Search and filter companies
+- User authentication
+- Dark mode support
 
 ## Tech Stack
 
-- **Frontend**: Next.js, TypeScript, Tamagui
-- **Backend**: Supabase
-- **Testing**: Jest, React Testing Library
-- **State**: Zustand, TanStack Query
-- **CI/CD**: GitHub Actions
+- Next.js 13 (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase
+- Shadcn UI
 
-## Documentation
+## Development
 
-Detailed documentation is available in our [Wiki](https://github.com/yourusername/ratemyemployer/wiki):
+```bash
+# Install dependencies
+npm install
 
-- [Getting Started Guide](https://github.com/yourusername/ratemyemployer/wiki/Getting-Started)
-- [Contributing Guidelines](https://github.com/yourusername/ratemyemployer/wiki/Contributing)
-- [API Documentation](https://github.com/yourusername/ratemyemployer/wiki/API-Documentation)
-- [Deployment Guide](https://github.com/yourusername/ratemyemployer/wiki/Deployment)
+# Run development server
+npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
+```
+
+## Testing
+
+We use Vitest for testing. The test suite focuses on essential MVP features:
+
+- UI Component rendering
+- Basic functionality
+- User interactions
+
+Run tests with:
+```bash
+npm test
+```
+
+## Project Structure
+
+```
+src/
+├── app/             # Next.js app router pages
+├── components/      # React components
+├── contexts/        # React contexts
+├── hooks/          # Custom hooks
+├── lib/            # Utilities and configurations
+├── types/          # TypeScript types
+└── __tests__/      # Test files
+```
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- 📚 [Documentation](https://github.com/yourusername/ratemyemployer/wiki)
-- 🐛 [Issue Tracker](https://github.com/yourusername/ratemyemployer/issues)
-- 💬 [Discussions](https://github.com/yourusername/ratemyemployer/discussions)
-
----
-
-<p align="center">Made with ❤️ by the Rate My Employer team</p> 
+This project is licensed under the MIT License - see the LICENSE file for details. 

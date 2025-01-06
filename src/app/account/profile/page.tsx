@@ -13,14 +13,14 @@ interface Profile {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user?.id) return;
+      if (!user) return;
 
       try {
         const { data, error } = await supabase
@@ -29,8 +29,17 @@ export default function ProfilePage() {
           .eq('id', user.id)
           .single();
 
-        if (error) throw error;
-        setProfile(data);
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        if (data) {
+          setProfile({
+            ...data,
+            updated_at: data.updated_at || new Date().toISOString(),
+          });
+        }
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile');

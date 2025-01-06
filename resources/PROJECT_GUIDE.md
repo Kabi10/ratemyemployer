@@ -5,30 +5,24 @@
 ### Testing Progress
 - Current Coverage: 7%
 - Target Coverage: 70%
-- Components Tested:
-  - ReviewForm ✅
-  - Home Page ✅
-  - Authentication Flow (In Progress)
-  - Review Submission Flow (In Progress)
+- Test Files Consolidated: ✅
+- Core Tests Implemented: ✅
+- Feature Tests Implemented: ✅
+- UI Tests Implemented: ✅
+- Integration Tests Implemented: ✅
 
 ### Next Steps
-1. Fix failing tests:
-   - Supabase auth state change mock
-   - Loading state handling
-   - Form submission tests
-   - Home page tests
+1. Improve test coverage:
+   - Add more test cases to core tests
+   - Expand feature test scenarios
+   - Add UI component variations
+   - Enhance integration test flows
 
-2. Add missing tests:
-   - Company components
-   - Review list components
-   - Profile components
-   - Settings components
-
-3. Improve test coverage:
-   - Add more test cases
-   - Test edge cases
-   - Test error scenarios
-   - Test loading states
+2. Optimize test performance:
+   - Improve mock implementations
+   - Reduce test execution time
+   - Enhance error handling
+   - Streamline test utilities
 
 ## Project Structure
 
@@ -36,25 +30,52 @@
 ```
 src/
 ├── __tests__/           # Test files
-│   ├── components.test.tsx
-│   ├── pages.test.tsx
-│   └── utils/
-│       └── test-utils.tsx
-├── app/                 # Next.js app router
-├── components/          # React components
-├── contexts/            # React contexts
-├── lib/                 # Utilities
-└── types/              # TypeScript types
+│   ├── core.test.ts              # Core business logic tests
+│   ├── company-features.test.tsx # Company feature tests
+│   ├── review-features.test.tsx  # Review feature tests
+│   ├── ui.test.tsx              # UI component tests
+│   ├── integration.test.tsx     # Integration tests
+│   ├── setup.ts                 # Test setup and configuration
+│   ├── mocks/                   # Mock data and utilities
+│   └── utils/                   # Test utilities
+├── app/                # Next.js app router
+├── components/         # React components
+├── contexts/          # React contexts
+├── lib/               # Utilities
+└── types/             # TypeScript types
 ```
 
-### Test Files
-```
-__tests__/
-├── components.test.tsx  # Component tests
-├── pages.test.tsx      # Page tests
-└── utils/
-    └── test-utils.tsx  # Test utilities
-```
+### Test Categories
+
+#### Core Tests (`core.test.ts`)
+- Authentication flows
+- Database operations
+- API endpoints
+- Error handling
+
+#### Company Feature Tests (`company-features.test.tsx`)
+- Company CRUD operations
+- Company search and filtering
+- Company reviews
+- Company statistics
+
+#### Review Feature Tests (`review-features.test.tsx`)
+- Review submission
+- Review filtering
+- Review likes
+- Review management
+
+#### UI Tests (`ui.test.tsx`)
+- Basic components
+- Navigation components
+- Form components
+- Card components
+
+#### Integration Tests (`integration.test.tsx`)
+- End-to-end flows
+- Cross-component interactions
+- State management
+- API integrations
 
 ## Development Setup
 
@@ -80,14 +101,14 @@ npm run dev
 
 ### Testing
 ```bash
-# Run tests
+# Run all tests
 npm test
+
+# Run specific test file
+npm test core.test.ts
 
 # Run tests with coverage
 npm test -- --coverage
-
-# Run specific tests
-npm test ReviewForm
 ```
 
 ## Development Workflow
@@ -115,26 +136,63 @@ npm test ReviewForm
 
 ## Testing Guidelines
 
-### 1. Component Tests
-- Test rendering
+### 1. Test Organization
+- Place tests in appropriate directories based on type
+- Use consistent file naming: `ComponentName.test.tsx`
+- Keep test utilities centralized in `utils/`
+- Maintain mock data in `__mocks__/`
+- Group related tests in describe blocks
+
+### 2. Component Tests
+- Test rendering and props
 - Test user interactions
 - Test loading states
 - Test error states
 - Test success states
+- Use `test-utils.tsx` for common setup
 
-### 2. Integration Tests
-- Test form submission
-- Test API calls
-- Test navigation
+### 3. Integration Tests
+- Test complete features
+- Test form submissions
+- Test API interactions
+- Test navigation flows
+- Test data persistence
+- Use MSW for API mocking
+
+### 4. E2E Tests
+- Test critical user flows
 - Test authentication
-- Test data flow
+- Test data creation
+- Test error scenarios
+- Test responsive behavior
+- Use Playwright for automation
 
-### 3. Test Coverage
-- Aim for 70% coverage
+### 5. Mock Data
+- Use centralized mock data
+- Create factory functions
+- Mock API responses
+- Mock authentication
+- Mock external services
+- Keep mocks up to date
+
+### 6. Test Coverage
+- Aim for 85% coverage
 - Focus on critical paths
 - Test edge cases
 - Test error handling
 - Test async operations
+- Monitor coverage trends
+
+### 7. Best Practices
+- Write tests first (TDD)
+- Keep tests focused
+- Use meaningful descriptions
+- Follow AAA pattern
+- Mock external dependencies
+- Use data-testid for queries
+- Avoid implementation details
+- Test user behavior
+- Maintain test documentation
 
 ## Deployment
 
@@ -268,3 +326,55 @@ npm test ReviewForm
 - Improve tests
 - Refactor code
 - Update types
+
+## Testing Structure
+
+### Directory Organization
+All tests are now centralized in `src/__tests__/` with the following structure:
+```
+src/__tests__/
+├── components/     # Component tests
+├── hooks/         # Hook tests
+├── lib/          # Library/utility tests
+├── integration/  # Integration tests
+├── e2e/         # End-to-end tests
+├── utils/       # Test utilities
+│   ├── renderUtils.tsx      # Common render utilities
+│   ├── customMatchers.ts   # Custom test matchers
+│   └── testHelpers.ts     # Test setup/cleanup helpers
+└── mocks/       # Mock data and handlers
+    ├── mockData.ts        # Mock test data
+    └── handlers.ts       # MSW API handlers
+```
+
+### Import Conventions
+- Use relative imports for test files
+- Example:
+  ```typescript
+  // Instead of @/components/Button
+  import { Button } from '../../../components/Button'
+  
+  // Instead of @/utils/test-utils
+  import { renderWithProviders } from '../utils/renderUtils'
+  ```
+
+### Test Setup
+- All test configuration is in `src/__tests__/setup.ts`
+- Uses Vitest as the test runner
+- MSW for API mocking
+- Custom test utilities and matchers
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run coverage
+
+# Run specific tests
+npm test path/to/test
+
+# Run e2e tests
+npm run test:e2e
+```

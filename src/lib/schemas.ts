@@ -27,19 +27,11 @@ export const reviewSchema = z.object({
     .trim(),
   content: z.string()
     .min(10, ERROR_MESSAGES.min('Review', 10))
-    .max(2000, ERROR_MESSAGES.max('Review', 2000))
+    .max(3000, ERROR_MESSAGES.max('Review', 3000))
     .trim(),
   rating: z.number()
     .min(1, ERROR_MESSAGES.rating)
     .max(5, ERROR_MESSAGES.rating),
-  pros: z.string()
-    .max(500, ERROR_MESSAGES.max('Pros', 500))
-    .trim()
-    .optional(),
-  cons: z.string()
-    .max(500, ERROR_MESSAGES.max('Cons', 500))
-    .trim()
-    .optional(),
   position: z.string()
     .min(2, ERROR_MESSAGES.min('Position', 2))
     .max(100, ERROR_MESSAGES.max('Position', 100))
@@ -48,9 +40,11 @@ export const reviewSchema = z.object({
     errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Employment status', employmentStatusEnum) })
   }),
   is_current_employee: z.boolean().default(false),
+  status: z.enum(reviewStatusEnum).default('pending'),
+  pros: z.string().max(500, ERROR_MESSAGES.max('Pros', 500)).trim().optional(),
+  cons: z.string().max(500, ERROR_MESSAGES.max('Cons', 500)).trim().optional(),
   reviewer_name: z.string().trim().optional(),
-  reviewer_email: z.string().email(ERROR_MESSAGES.email).optional(),
-  status: z.enum(reviewStatusEnum).default('pending')
+  reviewer_email: z.string().email(ERROR_MESSAGES.email).optional()
 });
 
 // Company Schema

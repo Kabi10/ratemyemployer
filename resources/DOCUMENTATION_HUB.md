@@ -1,123 +1,79 @@
-# Rate My Employer - Documentation Hub 📚
+# Documentation Hub
 
-## Quick Navigation
-- [Getting Started](#getting-started)
-- [Development Guides](#development-guides)
-- [Testing & Quality](#testing--quality)
-- [Error Handling](#error-handling)
-- [System Architecture](#system-architecture)
+## Quick Links
 
-## Getting Started
-- [Project Setup Guide](PROJECT_GUIDE.md)
-- [Development Environment](PROJECT_GUIDE.md#development-environment)
-- [First Time Setup](PROJECT_GUIDE.md#first-time-setup)
-- [Running Locally](PROJECT_GUIDE.md#running-locally)
+### Testing
+- [Test Automation Guide](./AUTOMATION_GUIDE.md) - Complete guide to test automation
+- [Test Error Solutions](./ERRORS_AND_SOLUTIONS.md#test-related-errors) - Common test errors and fixes
+- [Project Guide](./PROJECT_GUIDE.md#testing) - Testing setup and organization
 
-## Development Guides
-- [Form Validation Guide](FORM_VALIDATION.md)
-  - Schema Definitions
-  - Error Handling
-  - Best Practices
-- [Automation Guide](AUTOMATION_GUIDE.md)
-  - CI/CD Pipeline
-  - Automated Testing
-  - Deployment Process
-- [System Checks](SYSTEM_CHECKS.md)
-  - Health Monitoring
-  - Performance Metrics
-  - Security Audits
+### Test Structure
+```
+src/__tests__/
+├── core.test.ts              # Core business logic tests
+├── company-features.test.tsx # Company feature tests
+├── review-features.test.tsx  # Review feature tests
+├── ui.test.tsx              # UI component tests
+├── integration.test.tsx     # Integration tests
+├── setup.ts                 # Test setup and configuration
+├── mocks/                   # Mock data and utilities
+└── utils/                   # Test utilities
+```
 
-## Testing & Quality
-- [Test Coverage Goals](PROJECT_GUIDE.md#testing)
-  - Current: 70%
-  - Target: 85%
-  - Critical Paths: 100%
-- [Testing Strategy](PROJECT_GUIDE.md#testing-strategy)
-  - Unit Tests
-  - Integration Tests
-  - E2E Tests
-- [Quality Metrics](SYSTEM_CHECKS.md#quality-metrics)
-  - Performance Benchmarks
-  - Code Quality Standards
-  - Accessibility Compliance
+### Development
+- [Project Guide](./PROJECT_GUIDE.md) - Project overview and setup
+- [Form Validation](./FORM_VALIDATION.md) - Form validation patterns
+- [System Checks](./SYSTEM_CHECKS.md) - System health checks
 
-## Error Handling
-- [Common Issues & Solutions](ERRORS_AND_SOLUTIONS.md)
-- [Troubleshooting Guide](ERRORS_AND_SOLUTIONS.md#troubleshooting)
-- [Error Codes Reference](ERRORS_AND_SOLUTIONS.md#error-codes)
-
-## System Architecture
-- [Database Schema](PROJECT_GUIDE.md#database)
-- [API Documentation](PROJECT_GUIDE.md#api)
-- [Component Library](PROJECT_GUIDE.md#components)
-- [Type System](FORM_VALIDATION.md#type-system)
+### Automation
+- [CI/CD](./.github/workflows/) - Continuous Integration/Deployment
+- [Build Process](./BUILD_PROCESS.md) - Build and deployment
+- [Database](./DATABASE.md) - Database management
 
 ## Recent Updates
 
-### Form Validation Enhancement (2024-01-05)
-- ✅ Added centralized error messages
-- ✅ Improved string handling with trim
-- ✅ Added type-safe validation utility
-- ✅ Enhanced enum validation messages
-- ✅ Added consistent error formatting
+### Test Framework
+- ✨ Consolidated test files into 5 main categories
+- 🔧 Improved test organization
+- 📝 Updated test documentation
+- 🧪 Enhanced mock implementations
 
-### Documentation Improvements (2024-01-05)
-- ✅ Created comprehensive form validation guide
-- ✅ Added usage examples and best practices
-- ✅ Updated documentation structure
-- ✅ Enhanced navigation and organization
-- ✅ Added recent updates tracking
+### Documentation
+- 📚 Updated test automation guide
+- 🔍 Added common error solutions
+- 📖 Improved test examples
+- 🛠️ New troubleshooting guides
 
-### Testing Infrastructure (2024-01-04)
-- ✅ Added Jest configuration
-- ✅ Implemented React Testing Library setup
-- ✅ Added form validation tests
-- ✅ Created mock data utilities
-- ✅ Set up CI test pipeline
+## Getting Started
 
-## Documentation Standards
+1. **Running Tests**
+   ```bash
+   # Run all tests
+   npm test
 
-### File Organization
-```
-resources/
-├── DOCUMENTATION_HUB.md     # Main documentation entry point
-├── PROJECT_GUIDE.md         # Project setup and guidelines
-├── FORM_VALIDATION.md       # Form validation documentation
-├── ERRORS_AND_SOLUTIONS.md  # Troubleshooting guide
-├── SYSTEM_CHECKS.md         # System health and monitoring
-└── AUTOMATION_GUIDE.md      # CI/CD and automation
-```
+   # Run specific test file
+   npm test core.test.ts
 
-### Writing Guidelines
-1. **Clarity**: Write clear, concise documentation
-2. **Examples**: Include practical code examples
-3. **Updates**: Keep documentation current
-4. **Links**: Cross-reference related docs
-5. **Types**: Include TypeScript types and schemas
+   # Run tests with coverage
+   npm test -- --coverage
+   ```
 
-### Version Control
-- Document major version changes
-- Track breaking changes
-- Maintain changelog
-- Update type definitions
-- Document schema migrations
+2. **Test Categories**
+   - Core Business Logic (`core.test.ts`)
+   - Company Features (`company-features.test.tsx`)
+   - Review Features (`review-features.test.tsx`)
+   - UI Components (`ui.test.tsx`)
+   - Integration Tests (`integration.test.tsx`)
 
 ## Contributing
-1. Follow the documentation template
-2. Include code examples
-3. Test all documented features
-4. Update related documentation
-5. Maintain type information
-6. Document schema changes
 
-## Quick Links
-- [GitHub Repository](https://github.com/yourusername/ratemyemployer)
-- [API Documentation](./api-docs)
-- [Component Library](./components)
-- [Database Schema](./schema)
+1. Follow the test organization structure
+2. Use provided test utilities and templates
+3. Update documentation for significant changes
+4. Run test coverage before committing
 
-## Maintenance Schedule
-- **Daily**: Update error solutions
-- **Weekly**: Review and update guides
-- **Monthly**: Full documentation audit
-- **Quarterly**: Major version updates 
+## Need Help?
+
+- Check [ERRORS_AND_SOLUTIONS.md](./ERRORS_AND_SOLUTIONS.md)
+- Review [AUTOMATION_GUIDE.md](./AUTOMATION_GUIDE.md)
+- Run test diagnostics: `npm test` 

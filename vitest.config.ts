@@ -1,24 +1,37 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/setupTests.ts'],
+    setupFiles: ['./src/__tests__/setup.ts'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
     coverage: {
-      provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.{ts,tsx}'],
-      exclude: ['**/*.d.ts', '**/*.test.{ts,tsx}', '**/node_modules/**'],
+      exclude: [
+        'node_modules/',
+        'src/types/',
+      ],
+    },
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    maxConcurrency: 1,
+    maxWorkers: 1,
+    minWorkers: 1,
+    silent: true,
+    sequence: {
+      shuffle: false,
+    },
+    reporters: ['basic'],
+    onConsoleLog: (log, type) => {
+      if (log.includes('node_modules')) return false;
+      return true;
     },
   },
-}) 
+});

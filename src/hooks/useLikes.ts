@@ -1,59 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface ReviewLike {
-  review_id: string;
-  user_id: string;
-  liked: boolean;
+interface ReviewLikes {
+  [reviewId: string]: boolean;
 }
 
-export function useLikes() {
-  const [likes, setLikes] = useState<Record<string, boolean>>({});
+export function useLikes(reviewId: string) {
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const { user } = useAuth();
+  const supabase = createClient();
 
-  async function fetchLikes(userId: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('review_likes')
-      .select('*')
-      .eq('user_id', userId);
+  useEffect(() => {
+    const fetchLikes = async () => {
+      if (!user) return;
 
-    if (error) {
-      console.error('Error fetching likes:', error);
-      return;
-    }
+      const { data: likes } = await supabase
+        .from('review_likes')
+        .select('*')
+        .eq('review_id', parseInt(reviewId, 10))
+        .eq('user_id', user.id)
+        .single();
 
-    const likesMap = data.reduce((acc, like) => {
-      acc[like.review_id] = like.liked;
-      return acc;
-    }, {} as Record<string, boolean>);
+      setIsLiked(!!likes?.liked);
+    };
 
-    setLikes(likesMap);
-  }
+    fetchLikes();
+  }, [reviewId, user]);
 
-  async function toggleLike(reviewId: string, userId: string) {
-    const supabase = createClient();
-    const currentLiked = likes[reviewId];
-    const newLiked = !currentLiked;
+  const toggleLike = async () => {
+    if (!user) return;
 
-    // Optimistically update UI
-    setLikes(prev => ({ ...prev, [reviewId]: newLiked }));
+    const newLikeState = !isLiked;
+    setIsLiked(newLikeState);
+    setLikesCount(prev => prev + (newLikeState ? 1 : -1));
 
     const { error } = await supabase
       .from('review_likes')
-      .upsert([
-        {
-          review_id: reviewId,
-          user_id: userId,
-          liked: newLiked,
-        },
-      ]);
+      .upsert({
+        review_id: parseInt(reviewId, 10),
+        user_id: user.id,
+        liked: newLikeState,
+      });
 
     if (error) {
+      // Revert optimistic update on error
+      setIsLiked(!newLikeState);
+      setLikesCount(prev => prev + (!newLikeState ? 1 : -1));
       console.error('Error toggling like:', error);
-      // Revert on error
-      setLikes(prev => ({ ...prev, [reviewId]: currentLiked }));
     }
-  }
+  };
 
-  return { likes, fetchLikes, toggleLike };
+  return { isLiked, likesCount, toggleLike };
 }

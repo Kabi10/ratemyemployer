@@ -6,35 +6,46 @@ import Link from 'next/link';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 interface Stats {
-  totalCompanies: number;
-  totalReviews: number;
-  totalUsers: number;
-  pendingReviews: number;
+  total_users: number;
+  total_companies: number;
+  total_reviews: number;
+  average_rating: number;
+  pending_reviews: number;
+  pending_verifications: number;
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({
-    totalCompanies: 0,
-    totalReviews: 0,
-    totalUsers: 0,
-    pendingReviews: 0,
+    total_users: 0,
+    total_companies: 0,
+    total_reviews: 0,
+    average_rating: 0,
+    pending_reviews: 0,
+    pending_verifications: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_admin_stats');
-        if (error) throw error;
-        setStats(data);
-      } catch (err) {
-        console.error('Error fetching stats:', err);
-        setError('Failed to load dashboard statistics');
-      } finally {
-        setLoading(false);
+    async function fetchStats() {
+      const { data, error } = await supabase.rpc('get_admin_stats');
+
+      if (error) {
+        console.error('Error fetching stats:', error);
+        return;
       }
-    };
+
+      if (data) {
+        setStats({
+          total_users: data.total_users || 0,
+          total_companies: data.total_companies || 0,
+          total_reviews: data.total_reviews || 0,
+          average_rating: data.average_rating || 0,
+          pending_reviews: data.pending_reviews || 0,
+          pending_verifications: data.pending_verifications || 0,
+        });
+      }
+    }
 
     fetchStats();
   }, []);
@@ -71,19 +82,19 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Total Companies</h3>
-          <p className="text-3xl font-bold text-blue-600">{stats.totalCompanies}</p>
+          <p className="text-3xl font-bold text-blue-600">{stats.total_companies}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Total Reviews</h3>
-          <p className="text-3xl font-bold text-green-600">{stats.totalReviews}</p>
+          <p className="text-3xl font-bold text-green-600">{stats.total_reviews}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-          <p className="text-3xl font-bold text-purple-600">{stats.totalUsers}</p>
+          <p className="text-3xl font-bold text-purple-600">{stats.total_users}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Pending Reviews</h3>
-          <p className="text-3xl font-bold text-yellow-600">{stats.pendingReviews}</p>
+          <p className="text-3xl font-bold text-yellow-600">{stats.pending_reviews}</p>
         </div>
       </div>
 

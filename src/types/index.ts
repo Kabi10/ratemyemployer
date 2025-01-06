@@ -1,65 +1,30 @@
 // src/types/index.ts
-import type { Database } from '@/types/supabase';
+import { DatabaseEnums } from '@/types/supabase';
+import type { 
+  Database,
+  CompanyRow,
+  ReviewRow,
+  UserProfileRow,
+  ReviewLikeRow,
+  EmploymentStatus,
+  ReviewStatus,
+  VerificationStatus,
+  Role
+} from '@/types/supabase';
 
-export type { Database } from '@/types/supabase';
+// Re-export database types
+export type {
+  Database,
+  EmploymentStatus,
+  ReviewStatus,
+  VerificationStatus,
+  Role
+};
 
-// Base types from database
-type BaseCompany = Database['public']['Tables']['companies']['Row'];
-type BaseReview = Database['public']['Tables']['reviews']['Row'];
-export type User = Database['auth']['Tables']['users']['Row'];
-
-// Extended types with additional fields
-export interface Company {
-  id: number;
-  name: string;
-  industry: string;
-  location: string;
-  website?: string;
-  size?: CompanySize;
-  logo_url?: string;
-  benefits?: string;
-  company_values?: string;
-  ceo?: string;
-  verification_status: VerificationStatus;
-  created_at: string;
-  total_reviews: number;
-  average_rating: number;
-  updated_at?: string;
-  description?: string;
-  recommendation_rate?: number;
-}
-
-export interface Review {
-  id: number;
-  company_id: number;
-  user_id: string | null;
-  rating: number;
-  title: string;
-  content: string | null;
-  pros: string;
-  cons: string;
-  position: string;
-  employment_status: EmploymentStatus;
-  created_at: string;
-  status: ReviewStatus;
-  reviewer_name: string | null;
-  reviewer_email: string | null;
-  company?: Company;
-  likes?: number;
-  is_current_employee: boolean;
-}
-
-// Enums
-export type EmploymentStatus = Database['public']['Enums']['employment_status'];
-export type ReviewStatus = Database['public']['Enums']['review_status'];
-export type VerificationStatus = Database['public']['Enums']['verification_status'];
-export type Role = 'user' | 'admin' | 'moderator';
-
-// Re-export common types
-export type Industry = typeof INDUSTRIES[number];
+// Company size type
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
 
-// Constants
+// Industry constants and type
 export const INDUSTRIES = [
   'Technology',
   'Finance',
@@ -76,10 +41,49 @@ export const INDUSTRIES = [
   'Other'
 ] as const;
 
-// ReviewLike type
-export interface ReviewLike {
-  id: number;
-  review_id: number;
-  user_id: string;
-  created_at: string;
+export type Industry = typeof INDUSTRIES[number];
+
+// Extended types with additional fields
+export type Company = Omit<CompanyRow, 'industry'> & {
+  industry: Industry | null;
+  size?: CompanySize;
+};
+
+export type Review = ReviewRow & {
+  company?: Company | null;
+  likes?: number;
+};
+
+export type Profile = UserProfileRow;
+export type ReviewLike = ReviewLikeRow;
+
+// Analytics types
+export interface Stats {
+  total_users: number;
+  total_companies: number;
+  total_reviews: number;
+  average_rating: number;
+  pending_reviews: number;
+  pending_verifications: number;
 }
+
+export interface MonthlyReview {
+  month: string;
+  totalReviews: number;
+  totalRating: number;
+  averageRating: number;
+}
+
+// Type guards
+export const isValidIndustry = (industry: string | null): industry is Industry => {
+  return industry !== null && INDUSTRIES.includes(industry as Industry);
+};
+
+export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
+  return DatabaseEnums.employment_status.includes(status as EmploymentStatus);
+};
+
+// Utility type for form data
+export type FormDataType<T> = {
+  [K in keyof T]: T[K] extends Date ? string : T[K];
+};

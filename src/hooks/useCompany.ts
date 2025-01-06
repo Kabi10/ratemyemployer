@@ -1,7 +1,7 @@
+import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 import useSWR, { KeyedMutator } from 'swr';
 import { createClient } from '@/lib/supabaseClient';
 import { Company, Review } from '@/types';
-import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 interface UseCompanyOptions {
   withReviews?: boolean;
@@ -19,8 +19,16 @@ interface CompanyWithDetails extends Company {
 interface UseCompanyReturn {
   company: CompanyWithDetails | null;
   isLoading: boolean;
-  error: any;
+  error: PostgrestError | Error | null;
   mutate: KeyedMutator<CompanyWithDetails | null>;
+}
+
+interface UseCompaniesReturn {
+  companies: CompanyWithDetails[];
+  totalCount: number;
+  isLoading: boolean;
+  error: PostgrestError | Error | null;
+  mutate: KeyedMutator<{ companies: CompanyWithDetails[]; count: number }>;
 }
 
 const fetcher = async (key: string, id: string | number, options: UseCompanyOptions = {}): Promise<CompanyWithDetails | null> => {
@@ -32,11 +40,7 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
       .select(`
         *,
         reviews (
-          *,
-          user_profiles:user_id (
-            username,
-            email
-          )
+          *
         )
       `)
       .eq('id', id)
@@ -58,7 +62,7 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
 
       const totalReviews = reviewStats?.length || 0;
       const averageRating = totalReviews && reviewStats
-        ? reviewStats.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+        ? reviewStats.reduce((acc, review) => acc + (review.rating ?? 0), 0) / totalReviews
         : 0;
 
       return {
@@ -100,14 +104,6 @@ interface UseCompaniesOptions {
   industry?: string;
   withStats?: boolean;
   withReviews?: boolean;
-}
-
-interface UseCompaniesReturn {
-  companies: CompanyWithDetails[];
-  totalCount: number;
-  isLoading: boolean;
-  error: any;
-  mutate: KeyedMutator<{ companies: CompanyWithDetails[]; count: number }>;
 }
 
 const companiesListFetcher = async (
@@ -156,7 +152,7 @@ const companiesListFetcher = async (
 
         const totalReviews = reviewStats?.length || 0;
         const averageRating = totalReviews && reviewStats
-          ? reviewStats.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+          ? reviewStats.reduce((acc, review) => acc + (review.rating ?? 0), 0) / totalReviews
           : 0;
 
         return {

@@ -1,127 +1,237 @@
-import { supabase } from './supabaseClient';
-import type { Company, Review, ReviewLike } from '@/types';
+import { createClient } from '@supabase/supabase-js';
 
-export async function getCompanies(options: {
-  search?: string;
-  industry?: string;
-  minRating?: number;
-  limit?: number;
-  offset?: number;
-}) {
-  let query = supabase.from('companies').select('*').order('average_rating', { ascending: false });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (options.search) {
-    query = query.ilike('name', `%${options.search}%`);
-  }
-
-  if (options.industry) {
-    query = query.eq('industry', options.industry);
-  }
-
-  if (options.minRating) {
-    query = query.gte('average_rating', options.minRating);
-  }
-
-  if (options.limit) {
-    query = query.limit(options.limit);
-  }
-
-  if (options.offset) {
-    query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return data as Company[];
+export interface Company {
+  id: number;
+  name: string;
+  description: string | null;
+  industry: string | null;
+  location: string | null;
+  website: string | null;
+  size: string | null;
+  founded_year: number | null;
+  ceo: string | null;
+  company_values: string | null;
+  benefits: string | null;
+  work_life_balance: string | null;
+  career_growth: string | null;
+  interview_process: string | null;
+  created_at: string | null;
+  created_by: string | null;
+  average_rating: number | null;
+  total_reviews: number | null;
 }
 
-export async function getCompanyById(id: string) {
-  const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
-
-  if (error) throw error;
-  return data as Company;
+export interface Review {
+  id: number;
+  company_id: number;
+  user_id: string;
+  rating: number;
+  title: string | null;
+  content: string | null;
+  pros: string | null;
+  cons: string | null;
+  employment_status: string | null;
+  job_title: string | null;
+  department: string | null;
+  location: string | null;
+  is_current_employee: boolean | null;
+  created_at: string | null;
+  company: Company | null;
 }
 
-export async function getCompanyReviews(
-  companyId: string,
-  options: {
-    limit?: number;
-    offset?: number;
-    sortBy?: 'created_at' | 'rating' | 'likes';
-    order?: 'asc' | 'desc';
-  }
-) {
-  let query = supabase
+export interface ReviewLike {
+  id: number;
+  review_id: number;
+  user_id: string;
+  created_at: string;
+  liked: boolean;
+}
+
+interface Database {
+  public: {
+    Tables: {
+      companies: {
+        Row: Company;
+        Insert: Partial<Company>;
+        Update: Partial<Company>;
+      };
+      reviews: {
+        Row: Omit<Review, 'company'>;
+        Insert: Partial<Omit<Review, 'company'>>;
+        Update: Partial<Omit<Review, 'company'>>;
+      };
+      review_likes: {
+        Row: ReviewLike;
+        Insert: Partial<ReviewLike>;
+        Update: Partial<ReviewLike>;
+      };
+      user_profiles: {
+        Row: {
+          id: string;
+          email: string | null;
+          name: string | null;
+          avatar_url: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id: string;
+          email?: string | null;
+          name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          email?: string | null;
+          name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string | null;
+        };
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+  };
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+
+export async function getCompanies() {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*');
+  return { data, error };
+}
+
+export async function getCompany(id: number) {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', id)
+    .single();
+  return { data, error };
+}
+
+export async function getReviews(companyId?: number) {
+  const query = supabase
     .from('reviews')
-    .select(
-      `
-      *,
-      user_profiles:user_id (
-        username,
-        email
-      )
-    `
-    )
-    .eq('company_id', companyId);
+    .select('*, company:companies(*)');
 
-  if (options.sortBy) {
-    query = query.order(options.sortBy, { ascending: options.order === 'asc' });
-  } else {
-    query = query.order('created_at', { ascending: false });
-  }
-
-  if (options.limit) {
-    query = query.limit(options.limit);
-  }
-
-  if (options.offset) {
-    query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+  if (companyId) {
+    query.eq('company_id', companyId);
   }
 
   const { data, error } = await query;
-
-  if (error) throw error;
-  return data as (Review & { profiles: { full_name: string; avatar_url: string | null } })[];
+  return { data, error };
 }
 
-export async function createReview(review: Omit<Review, 'id' | 'date'>) {
-  const { data, error } = await supabase.from('reviews').insert([review]).select().single();
-
-  if (error) throw error;
-  return data as Review;
+export async function getReview(id: number) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, company:companies(*)')
+    .eq('id', id)
+    .single();
+  return { data, error };
 }
 
-export async function toggleReviewLike(reviewId: string, userId: string) {
-  // First, check if a like record exists
-  const { data: existingLike } = await supabase
+export async function getLikes(reviewId: number, userId: string) {
+  const { data, error } = await supabase
     .from('review_likes')
     .select('*')
     .eq('review_id', reviewId)
     .eq('user_id', userId)
     .single();
 
-  if (existingLike) {
-    // Toggle the existing like
-    const { data, error } = await supabase
-      .from('review_likes')
-      .update({ liked: !existingLike.liked })
-      .eq('review_id', reviewId)
-      .eq('user_id', userId)
-      .select()
-      .single();
+  return {
+    data: data as ReviewLike | null,
+    error
+  };
+}
 
-    if (error) throw error;
-    return data as ReviewLike;
-  } else {
-    // Create a new like
-    const { data, error } = await supabase
-      .from('review_likes')
-      .insert([{ review_id: reviewId, user_id: userId, liked: true }])
-      .select()
-      .single();
+export async function createLike(data: Partial<ReviewLike>) {
+  const { error } = await supabase
+    .from('review_likes')
+    .insert([{
+      id: data.id,
+      review_id: data.review_id,
+      user_id: data.user_id,
+      created_at: new Date().toISOString(),
+      liked: data.liked
+    }]);
 
-    if (error) throw error;
-    return data as ReviewLike;
-  }
+  return { error };
+}
+
+export async function updateLike(data: Partial<ReviewLike>) {
+  const { error } = await supabase
+    .from('review_likes')
+    .update({
+      id: data.id,
+      review_id: data.review_id,
+      user_id: data.user_id,
+      created_at: new Date().toISOString(),
+      liked: data.liked
+    })
+    .eq('id', data.id!);
+
+  return { error };
+}
+
+export async function deleteLike(id: number) {
+  const { error } = await supabase
+    .from('review_likes')
+    .delete()
+    .eq('id', id);
+
+  return { error };
+}
+
+export async function createCompany(data: Partial<Company>) {
+  const { error } = await supabase
+    .from('companies')
+    .insert([data]);
+  return { error };
+}
+
+export async function updateCompany(id: number, data: Partial<Company>) {
+  const { error } = await supabase
+    .from('companies')
+    .update(data)
+    .eq('id', id);
+  return { error };
+}
+
+export async function deleteCompany(id: number) {
+  const { error } = await supabase
+    .from('companies')
+    .delete()
+    .eq('id', id);
+  return { error };
+}
+
+export async function createReview(data: Partial<Review>) {
+  const { error } = await supabase
+    .from('reviews')
+    .insert([data]);
+  return { error };
+}
+
+export async function updateReview(id: number, data: Partial<Review>) {
+  const { error } = await supabase
+    .from('reviews')
+    .update(data)
+    .eq('id', id);
+  return { error };
+}
+
+export async function deleteReview(id: number) {
+  const { error } = await supabase
+    .from('reviews')
+    .delete()
+    .eq('id', id);
+  return { error };
 }

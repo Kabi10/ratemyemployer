@@ -569,3 +569,205 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
   }
 }
 ``` 
+
+# Test Automation Guide
+
+## Directory Structure
+```
+scripts/
+├── test/                    # Test-related scripts
+│   ├── setup.ts            # Sets up test environment and structure
+│   └── fix.ts              # Fixes test files (imports, props, utilities)
+├── verify-build.ts         # Build verification
+├── get-schema.ts           # Database schema utilities
+├── db-utils.ts            # Database utilities
+└── ...                    # Other utility scripts
+```
+
+## Test Scripts
+
+### 1. Test Setup (`npm run test:setup`)
+- Creates test directory structure under `src/__tests__/`
+- Sets up test utilities and mock files
+- Organizes existing test files into appropriate directories
+- Cleans up empty directories
+
+Directory structure created:
+```
+src/__tests__/
+├── components/            # Component tests
+├── hooks/                # Hook tests
+├── lib/                  # Library/utility tests
+├── contexts/             # Context tests
+├── utils/                # Test utilities
+├── mocks/                # Mock data and services
+├── integration/          # Integration tests
+└── e2e/                  # End-to-end tests
+```
+
+### 2. Test Fixes (`npm run test:fix`)
+Automatically fixes common issues in test files:
+- Import statements
+- Component props
+- Test utilities
+- Mock data imports
+
+### 3. Combined Test Command (`npm run test:all`)
+Runs the complete test suite:
+1. Sets up test environment (`test:setup`)
+2. Fixes test files (`test:fix`)
+3. Runs tests (`test`)
+
+## Test Utilities
+
+### Mock Data
+Located in `src/__tests__/mocks/`:
+- `user.mock.ts` - User data
+- `review.mock.ts` - Review data
+- `company.mock.ts` - Company data
+
+### Test Utils
+Located in `src/__tests__/utils/`:
+- `test-setup.ts` - Global test setup
+- `test-utils.tsx` - Common test utilities
+- `test-types.ts` - Test-specific types
+
+## Usage Examples
+
+### Setting Up Tests
+```bash
+# Full setup
+npm run test:all
+
+# Individual steps
+npm run test:setup  # Setup only
+npm run test:fix    # Fix issues only
+npm run test       # Run tests only
+```
+
+### Writing Tests
+```typescript
+import { describe, it, expect } from 'vitest';
+import { renderWithProviders } from '../utils/test-utils';
+import { mockUser, mockReview, mockCompany } from '../mocks/mockData';
+
+describe('Component Test', () => {
+  it('should render correctly', () => {
+    const { container } = renderWithProviders(
+      <Component prop={mockData} />
+    );
+    expect(container).toBeInTheDocument();
+  });
+});
+```
+
+## Best Practices
+
+1. **Test Organization**
+   - Place tests in appropriate directories based on type
+   - Use descriptive file names
+   - Follow the established directory structure
+
+2. **Mock Data**
+   - Use centralized mock data from `mocks/` directory
+   - Keep mock data minimal but sufficient
+   - Use type-safe mock data
+
+3. **Test Utilities**
+   - Use `renderWithProviders` for components that need context
+   - Import test utilities from centralized location
+   - Follow established patterns for common operations
+
+4. **Maintenance**
+   - Run `npm run test:fix` after adding new tests
+   - Keep mock data up to date with schema changes
+   - Clean up unused test files and utilities
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Import Errors**
+   ```bash
+   npm run test:fix  # Fixes most import issues
+   ```
+
+2. **Missing Props**
+   ```bash
+   npm run test:fix  # Adds required props to components
+   ```
+
+3. **Test Environment Issues**
+   ```bash
+   npm run test:setup  # Resets test environment
+   ```
+
+### Getting Help
+- Check the error logs in `resources/ERRORS_AND_SOLUTIONS.md`
+- Run tests with debug flag: `npm run test:e2e:debug`
+- Review test setup in `src/__tests__/utils/test-setup.ts` 
+
+## 🧪 Test Organization
+
+### Test File Structure
+```
+src/__tests__/
+├── core.test.ts              # Core business logic tests
+├── company-features.test.tsx # Company feature tests
+├── review-features.test.tsx  # Review feature tests
+├── ui.test.tsx              # UI component tests
+├── integration.test.tsx     # Integration tests
+├── setup.ts                 # Test setup and configuration
+├── mocks/                   # Mock data and utilities
+└── utils/                   # Test utilities
+```
+
+### Test Categories
+
+#### 1. Core Business Logic Tests (`core.test.ts`)
+- Authentication flows
+- Database operations
+- API endpoints
+- Error handling
+
+#### 2. Company Feature Tests (`company-features.test.tsx`)
+- Company CRUD operations
+- Company search and filtering
+- Company reviews
+- Company statistics
+
+#### 3. Review Feature Tests (`review-features.test.tsx`)
+- Review submission
+- Review filtering
+- Review likes
+- Review management
+
+#### 4. UI Component Tests (`ui.test.tsx`)
+- Basic components (buttons, inputs)
+- Navigation components
+- Form components
+- Card components
+
+#### 5. Integration Tests (`integration.test.tsx`)
+- End-to-end flows
+- Cross-component interactions
+- State management
+- API integrations
+
+### Test Utilities
+- Mock data generation
+- Test helpers
+- Custom matchers
+- Type definitions
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test core.test.ts
+
+# Run tests with coverage
+npm test -- --coverage
+``` 

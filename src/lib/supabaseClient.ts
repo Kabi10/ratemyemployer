@@ -2,10 +2,19 @@ import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { CompanyFormData, ReviewFormData } from './schemas';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Missing environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be defined'
+  );
+}
+
 // Create a singleton instance with proper configuration
 export const supabase = createBrowserClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: true,
@@ -20,9 +29,13 @@ export const supabase = createBrowserClient<Database>(
 
 // Create typed client with full configuration
 export const createClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase credentials not found');
+  }
+
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       auth: {
         persistSession: true,

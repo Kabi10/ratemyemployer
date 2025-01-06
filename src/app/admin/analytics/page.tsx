@@ -16,26 +16,89 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
+import { MonthlyReview } from '@/types';
+
+interface Review {
+  rating: number | null;
+  created_at?: string | null;
+}
+
+interface ReviewWithRating extends Review {
+  rating: number;
+  created_at: string;
+}
 
 interface AnalyticsData {
   totalReviews: number;
   averageRating: number;
-  reviewsByMonth: {
-    month: string;
-    count: number;
-    averageRating: number;
-  }[];
+  reviewsByMonth: MonthlyReview[];
   ratingDistribution: {
     rating: number;
     count: number;
   }[];
 }
 
-interface MonthlyReview {
-  month: string;
-  count: number;
-  totalRating: number;
-  averageRating: number;
+function formatDate(dateString: string | null): string {
+  if (!dateString) return 'Date not available';
+  return new Date(dateString).toLocaleDateString();
+}
+
+function calculateAverageRating(reviews: Review[]): number {
+  const validReviews = reviews.filter((review): review is Review & { rating: number } => 
+    typeof review.rating === 'number'
+  );
+  if (validReviews.length === 0) return 0;
+  return validReviews.reduce((acc, curr) => acc + curr.rating, 0) / validReviews.length;
+}
+
+function isValidReview(review: Review): review is Review & { rating: number; created_at: string } {
+  return typeof review.rating === 'number' && typeof review.created_at === 'string';
+}
+
+function processMonthlyData(reviews: Review[]): MonthlyReview[] {
+  const monthlyData: { [key: string]: MonthlyReview } = {};
+
+  reviews
+    .filter((review): review is Review & { rating: number } => 
+      typeof review.rating === 'number' && review.created_at !== null
+    )
+    .forEach(review => {
+      const month = new Date(review.created_at!).toLocaleString('default', {
+        month: 'long',
+        year: 'numeric',
+      });
+
+      if (monthlyData[month]) {
+        monthlyData[month].totalReviews++;
+        monthlyData[month].totalRating += review.rating;
+        monthlyData[month].averageRating = monthlyData[month].totalRating / monthlyData[month].totalReviews;
+      } else {
+        monthlyData[month] = {
+          month,
+          totalReviews: 1,
+          totalRating: review.rating,
+          averageRating: review.rating,
+        };
+      }
+    });
+
+  return Object.values(monthlyData);
+}
+
+function calculateTotalStats(reviews: { rating: number | null }[]): { totalReviews: number; averageRating: number } {
+  const validReviews = reviews.filter((review): review is { rating: number } => 
+    typeof review.rating === 'number'
+  );
+  
+  if (validReviews.length === 0) {
+    return { totalReviews: 0, averageRating: 0 };
+  }
+
+  const totalReviews = validReviews.length;
+  const totalRating = validReviews.reduce((acc, curr) => acc + curr.rating, 0);
+  const averageRating = totalRating / totalReviews;
+
+  return { totalReviews, averageRating };
 }
 
 export default function AdminAnalytics() {
@@ -53,8 +116,7 @@ export default function AdminAnalytics() {
 
         if (totalError) throw totalError;
 
-        const totalReviews = totalData.length;
-        const averageRating = totalData.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews;
+        const { totalReviews, averageRating } = calculateTotalStats(totalData);
 
         // Fetch reviews by month
         const { data: monthlyData, error: monthlyError } = await supabase
@@ -64,27 +126,7 @@ export default function AdminAnalytics() {
 
         if (monthlyError) throw monthlyError;
 
-        const reviewsByMonth = monthlyData.reduce((acc: MonthlyReview[], curr) => {
-          const month = new Date(curr.created_at).toLocaleString('default', {
-            month: 'short',
-            year: 'numeric',
-          });
-          const existingMonth = acc.find(m => m.month === month);
-
-          if (existingMonth) {
-            existingMonth.count++;
-            existingMonth.totalRating += curr.rating;
-            existingMonth.averageRating = existingMonth.totalRating / existingMonth.count;
-          } else {
-            acc.push({
-              month,
-              count: 1,
-              totalRating: curr.rating,
-              averageRating: curr.rating,
-            });
-          }
-          return acc;
-        }, []);
+        const reviewsByMonth = processMonthlyData(monthlyData);
 
         // Calculate rating distribution
         const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({

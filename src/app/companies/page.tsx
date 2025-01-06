@@ -36,24 +36,28 @@ function CompanyListSkeleton() {
 
 export default function CompaniesPage() {
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Companies</h1>
-        <Link
-          href="/companies/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 relative z-10"
-        >
-          Add Company
-        </Link>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="container mx-auto px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Companies</h1>
+          <Link
+            href="/companies/new"
+            className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-xl shadow-sm transition-colors"
+          >
+            Add Company
+          </Link>
+        </div>
+
+        <Suspense fallback={<SearchSkeleton />}>
+          <SearchAndFilter />
+        </Suspense>
+
+        <div className="mt-12">
+          <Suspense fallback={<CompanyListSkeleton />}>
+            <CompanyList />
+          </Suspense>
+        </div>
       </div>
-
-      <Suspense fallback={<SearchSkeleton />}>
-        <SearchAndFilter />
-      </Suspense>
-
-      <Suspense fallback={<CompanyListSkeleton />}>
-        <CompanyList />
-      </Suspense>
     </main>
   );
 }

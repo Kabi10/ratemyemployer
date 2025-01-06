@@ -103,6 +103,20 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
+const SelectGroup = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Group>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Group
+    ref={ref}
+    className={cn('', className)}
+    {...props}
+  >
+    {children}
+  </SelectPrimitive.Group>
+));
+SelectGroup.displayName = SelectPrimitive.Group.displayName;
+
 const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
@@ -123,4 +137,5 @@ export {
   SelectLabel,
   SelectItem,
   SelectSeparator,
+  SelectGroup,
 };
