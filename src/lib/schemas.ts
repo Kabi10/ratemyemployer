@@ -22,13 +22,9 @@ const ERROR_MESSAGES = {
 // Review Schema
 export const reviewSchema = z.object({
   title: z.string()
-    .min(2, ERROR_MESSAGES.min('Title', 2))
     .max(100, ERROR_MESSAGES.max('Title', 100))
-    .trim(),
-  content: z.string()
-    .min(10, ERROR_MESSAGES.min('Review', 10))
-    .max(3000, ERROR_MESSAGES.max('Review', 3000))
-    .trim(),
+    .trim()
+    .optional(),
   rating: z.number()
     .min(1, ERROR_MESSAGES.rating)
     .max(5, ERROR_MESSAGES.rating),
@@ -41,8 +37,14 @@ export const reviewSchema = z.object({
   }),
   is_current_employee: z.boolean().default(false),
   status: z.enum(reviewStatusEnum).default('pending'),
-  pros: z.string().max(500, ERROR_MESSAGES.max('Pros', 500)).trim().optional(),
-  cons: z.string().max(500, ERROR_MESSAGES.max('Cons', 500)).trim().optional(),
+  pros: z.string()
+    .min(10, ERROR_MESSAGES.min('Pros', 10))
+    .max(500, ERROR_MESSAGES.max('Pros', 500))
+    .trim(),
+  cons: z.string()
+    .min(10, ERROR_MESSAGES.min('Cons', 10))
+    .max(500, ERROR_MESSAGES.max('Cons', 500))
+    .trim(),
   reviewer_name: z.string().trim().optional(),
   reviewer_email: z.string().email(ERROR_MESSAGES.email).optional()
 });

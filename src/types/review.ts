@@ -3,21 +3,17 @@ export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface Review {
   id: string;
-  title: string;
-  content: string;
-  rating: number;
-  pros: string;
-  cons: string;
-  position: string;
-  employment_status: EmploymentStatus;
-  user_id: string;
+  title: string | null;
+  content: string | null;
+  rating: number | null;
+  pros: string | null;
+  cons: string | null;
+  position: string | null;
+  employment_status: EmploymentStatus | null;
   company_id: string;
   created_at: string;
-  updated_at: string;
-  likes: number;
-  author: string;
-  status: ReviewStatus;
-  is_current_employee: boolean;
-  reviewer_email?: string;
-  reviewer_name?: string;
+  status: ReviewStatus | null;
+  is_current_employee: boolean | null;
+  reviewer_email?: string | null;
+  reviewer_name?: string | null;
 } 

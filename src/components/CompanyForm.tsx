@@ -11,15 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import Script from 'next/script';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
-
-declare global {
-  interface Window {
-    google: any;
-    initAutocomplete: () => void;
-  }
-}
+import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 
 interface CompanyFormProps {
   initialData?: Company;
@@ -31,13 +24,14 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isMapScriptLoaded, setIsMapScriptLoaded] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -52,78 +46,60 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     },
   });
 
+  const location = watch('location');
+
   useEffect(() => {
-    if (isMapScriptLoaded) {
-      console.log('Google Maps script loaded, initializing autocomplete...');
-      const input = document.getElementById('location-input') as HTMLInputElement;
-      if (!input) {
-        console.error('Location input element not found');
-        return;
-      }
-
-      try {
-        const autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ['(cities)'],
-          fields: ['formatted_address', 'geometry']
-        });
-
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace();
-          console.log('Selected place:', place);
-          if (place.formatted_address) {
-            setValue('location', place.formatted_address);
-          }
-        });
-      } catch (error) {
-        console.error('Error initializing Google Maps autocomplete:', error);
-      }
+    if (location && location.length > 0) {
+      setLocationError(null);
     }
-  }, [isMapScriptLoaded, setValue]);
+  }, [location]);
 
   const onSubmit = async (data: CompanyFormData) => {
     if (!user) {
-      router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
+      setError('You must be logged in to add a company');
+      return;
+    }
+
+    if (!data.location) {
+      setLocationError('Please select a location');
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
+    setLocationError(null);
 
     try {
       const supabase = createClient();
       if (initialData?.id) {
-        const { error: updateError } = await supabase
+        const { error: submitError } = await supabase
           .from('companies')
-          .update({ 
+          .update({
             ...data,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', initialData.id);
-        if (updateError) throw updateError;
+
+        if (submitError) throw submitError;
       } else {
-        const { data: newCompany, error: insertError } = await supabase
+        const { error: submitError } = await supabase
           .from('companies')
-          .insert([{ 
-            ...data, 
+          .insert({
+            ...data,
             created_by: user.id,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
-          .select()
-          .single();
-        if (insertError) throw insertError;
-        if (newCompany) {
-          router.push(`/companies/${newCompany.id}`);
-        }
+            updated_at: new Date().toISOString(),
+          });
+
+        if (submitError) throw submitError;
       }
 
       reset();
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
+      router.push('/companies');
     } catch (err) {
-      console.error('Error:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      console.error('Error submitting company:', err);
+      setError('Failed to submit company. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -131,18 +107,6 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-        onLoad={() => {
-          console.log('Google Maps script tag loaded');
-          setIsMapScriptLoaded(true);
-        }}
-        onError={(e) => {
-          console.error('Error loading Google Maps script:', e);
-          setError('Failed to load location search. Please enter location manually.');
-        }}
-      />
-
       {error && <ErrorDisplay message={error} />}
 
       <div>
@@ -164,12 +128,17 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Location</label>
-        <Input
-          id="location-input"
-          {...register('location')}
+        <label className="block text-sm font-medium mb-2">
+          Location <span className="text-red-500">*</span>
+        </label>
+        <LocationAutocomplete
+          value={location || ''}
+          onChange={(value) => setValue('location', value)}
+          className="w-full p-3 border rounded-lg"
           placeholder="Start typing a city name..."
+          required
         />
+        {locationError && <p className="mt-1 text-sm text-red-600">{locationError}</p>}
         {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>}
       </div>
 
@@ -200,21 +169,8 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
         {errors.size && <p className="mt-1 text-sm text-red-600">{errors.size.message}</p>}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-2">Logo URL</label>
-        <Input {...register('logo_url')} type="url" />
-        {errors.logo_url && <p className="mt-1 text-sm text-red-600">{errors.logo_url.message}</p>}
-      </div>
-
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <LoadingSpinner size="sm" className="mr-2" />
-            Submitting...
-          </>
-        ) : (
-          initialData ? 'Update Company' : 'Add Company'
-        )}
+        {isSubmitting ? <LoadingSpinner /> : initialData ? 'Update Company' : 'Add Company'}
       </Button>
     </form>
   );

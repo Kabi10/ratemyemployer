@@ -39,8 +39,24 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
     const { data, error } = await query
       .select(`
         *,
-        reviews (
-          *
+        reviews!inner (
+          id,
+          title,
+          content,
+          rating,
+          pros,
+          cons,
+          position,
+          employment_status,
+          company_id,
+          created_at,
+          updated_at,
+          user_id,
+          likes,
+          status,
+          is_current_employee,
+          reviewer_email,
+          reviewer_name
         )
       `)
       .eq('id', id)
@@ -102,13 +118,14 @@ interface UseCompaniesOptions {
   offset?: number;
   searchQuery?: string;
   industry?: string;
+  location?: string;
   withStats?: boolean;
   withReviews?: boolean;
 }
 
 const companiesListFetcher = async (
   key: string,
-  { limit = 10, offset = 0, searchQuery = '', industry = '', withStats = false, withReviews = false }: UseCompaniesOptions
+  { limit = 10, offset = 0, searchQuery = '', industry = '', location = '', withStats = false, withReviews = false }: UseCompaniesOptions
 ): Promise<{ companies: CompanyWithDetails[]; count: number }> => {
   const supabase = createClient();
   const query = supabase.from('companies');
@@ -119,11 +136,7 @@ const companiesListFetcher = async (
       ? `
         *,
         reviews (
-          *,
-          user_profiles:user_id (
-            username,
-            email
-          )
+          *
         )
       `
       : '*',
@@ -135,6 +148,9 @@ const companiesListFetcher = async (
   }
   if (industry) {
     filtered = filtered.eq('industry', industry);
+  }
+  if (location) {
+    filtered = filtered.eq('location', location);
   }
 
   // Apply pagination

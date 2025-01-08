@@ -454,3 +454,81 @@ npm run test:setup
 3. Review test logs in `src/__tests__/utils/test-setup.ts`
 4. Check test configuration in `vitest.config.ts`
 5. Review mock data in `src/__tests__/mocks/`
+
+## Vercel Deployment Issues
+
+### Environment Variable Reference Error
+
+**Error:**
+```
+Error: Environment Variable "NEXT_PUBLIC_SUPABASE_URL" references Secret "next_public_supabase_url", which does not exist.
+```
+
+**Solution:**
+1. Go to Vercel Dashboard > Project Settings > Environment Variables
+2. Add variables directly without using secret references
+3. Make sure to add variables to all required environments (Production, Preview, Development)
+
+### Build Cache Issues
+
+**Error:**
+- Deployments failing quickly (under 10 seconds)
+- Old code being deployed despite new commits
+
+**Solution:**
+1. Clear build cache:
+   - Uncheck "Use existing Build Cache" when redeploying
+   - Or remove local cache:
+   ```bash
+   rm -rf .vercel
+   npx vercel link
+   ```
+
+### Node.js Version Mismatch
+
+**Error:**
+- Build failures related to Node.js version compatibility
+- Package dependency issues
+
+**Solution:**
+1. Specify Node.js version in `package.json`:
+   ```json
+   {
+     "engines": {
+       "node": ">=18.17.0"
+     }
+   }
+   ```
+2. Use LTS version (18.x or 20.x) for better compatibility
+
+### CLI Deployment Issues
+
+**Error:**
+- CLI commands not working
+- Permission issues
+
+**Solution:**
+1. Install CLI globally:
+   ```bash
+   npm i -g vercel
+   ```
+2. Use `npx` for one-time commands:
+   ```bash
+   npx vercel deploy --prod
+   ```
+3. Ensure you're logged in:
+   ```bash
+   npx vercel login
+   ```
+
+### Git Integration Issues
+
+**Error:**
+- Wrong commit being deployed
+- Changes not reflecting in deployment
+
+**Solution:**
+1. Verify the connected repository in Vercel Dashboard
+2. Check production branch settings
+3. Try disconnecting and reconnecting repository
+4. Ensure changes are pushed to the correct branch

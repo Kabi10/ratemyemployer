@@ -1,8 +1,10 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { FloatingAddButton } from '@/components/FloatingAddButton';
-import Link from 'next/link';
+import { CompanyForm } from '@/components/CompanyForm';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Lazy load components
 const SearchAndFilter = lazy(() => import('@/components/SearchAndFilter'));
@@ -35,29 +37,74 @@ function CompanyListSkeleton() {
 }
 
 export default function CompaniesPage() {
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedIndustry, setSelectedIndustry] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddCompany, setShowAddCompany] = useState(false);
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 page-transition">
       <div className="container mx-auto px-6 lg:px-8 py-12">
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Companies</h1>
-          <Link
-            href="/companies/new"
+          <Button
+            onClick={() => setShowAddCompany(true)}
             className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-xl shadow-sm transition-colors"
           >
             Add Company
-          </Link>
+          </Button>
         </div>
 
         <Suspense fallback={<SearchSkeleton />}>
-          <SearchAndFilter />
+          <SearchAndFilter
+            onLocationChange={setSelectedLocation}
+            onIndustryChange={setSelectedIndustry}
+            onSearchChange={setSearchQuery}
+          />
         </Suspense>
 
         <div className="mt-12">
           <Suspense fallback={<CompanyListSkeleton />}>
-            <CompanyList />
+            <CompanyList
+              selectedLocation={selectedLocation}
+              selectedIndustry={selectedIndustry}
+              searchQuery={searchQuery}
+            />
           </Suspense>
         </div>
       </div>
+
+      {/* Add Company Modal */}
+      {showAddCompany && (
+        <div className="fixed inset-0 overflow-hidden z-50">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity dialog-backdrop" />
+            <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+              <div className="relative w-screen max-w-md dialog-content">
+                <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
+                  <div className="flex-1 h-0 overflow-y-auto">
+                    <div className="py-6 px-4 sm:px-6">
+                      <div className="flex items-start justify-between">
+                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                          Add New Company
+                        </h2>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setShowAddCompany(false)}
+                        >
+                          <X className="h-6 w-6" />
+                        </Button>
+                      </div>
+                      <CompanyForm onSuccess={() => setShowAddCompany(false)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -12,6 +12,15 @@ interface CompanyCardProps {
 export function CompanyCard({ company }: CompanyCardProps) {
   const rating = company.average_rating || 0;
   const totalReviews = company.total_reviews || 0;
+  const ratingPercentage = (rating / 5) * 100;
+
+  // Get color based on rating
+  const getProgressColor = (rating: number) => {
+    if (rating >= 4) return 'bg-green-500';
+    if (rating >= 3) return 'bg-yellow-500';
+    if (rating >= 2) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
 
   return (
     <Link href={`/companies/${company.id}`}>
@@ -23,8 +32,25 @@ export function CompanyCard({ company }: CompanyCardProps) {
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{company.location}</p>
           </div>
           <div className="flex flex-col items-end">
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{rating.toFixed(1)}</div>
+            <div className="flex items-center">
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100 mr-1">{rating.toFixed(1)}</span>
+              <span className="text-yellow-400">★</span>
+            </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">{totalReviews} reviews</div>
+          </div>
+        </div>
+
+        {/* Rating Progress Bar */}
+        <div className="mt-4">
+          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-500 ${getProgressColor(rating)}`}
+              style={{ width: `${ratingPercentage}%` }}
+              role="progressbar"
+              aria-valuenow={rating}
+              aria-valuemin={0}
+              aria-valuemax={5}
+            />
           </div>
         </div>
         
@@ -33,14 +59,14 @@ export function CompanyCard({ company }: CompanyCardProps) {
         )}
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {company.benefits && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-              Benefits
+          {company.size && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+              {company.size}
             </span>
           )}
-          {company.company_values && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-              Values
+          {company.verification_status === 'verified' && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+              Verified
             </span>
           )}
         </div>

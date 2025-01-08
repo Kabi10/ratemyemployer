@@ -17,6 +17,8 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const { signIn, signUp, isLoading } = useAuth();
   const router = useRouter();
   const supabase = createClient();
@@ -28,6 +30,28 @@ export default function Auth() {
     if (!/[a-z]/.test(password)) return 'Password must contain a lowercase letter';
     if (!/[0-9]/.test(password)) return 'Password must contain a number';
     return null;
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+      setResetEmailSent(true);
+    } catch (error) {
+      console.error('Reset password error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to send reset email. Please try again.');
+    }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -93,6 +117,70 @@ export default function Auth() {
     setPassword(''); // Only clear password on manual mode switch
   };
 
+  if (resetEmailSent) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Check Your Email</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>We&apos;ve sent a password reset link to <strong>{email}</strong></p>
+          <p>Please check your email and click the link to reset your password.</p>
+          <p className="text-sm text-muted-foreground">
+            Can&apos;t find the email? Check your spam folder or{' '}
+            <Button
+              variant="link"
+              className="p-0 h-auto"
+              onClick={() => {
+                setResetEmailSent(false);
+                setIsForgotPassword(false);
+              }}
+            >
+              try again
+            </Button>
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isForgotPassword) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Reset Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="w-full"
+              onClick={() => setIsForgotPassword(false)}
+            >
+              Back to Sign In
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (emailSent) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -136,7 +224,19 @@ export default function Auth() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password">Password</Label>
+              {!isSignUp && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  onClick={() => setIsForgotPassword(true)}
+                >
+                  Forgot password?
+                </Button>
+              )}
+            </div>
             <div className="relative">
               <Input
                 id="password"
@@ -151,7 +251,6 @@ export default function Auth() {
                 }}
                 required
                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                // Auto focus on password field when switching to sign in mode
                 autoFocus={!isSignUp && email !== ''}
               />
               <Button
@@ -175,7 +274,7 @@ export default function Auth() {
             className="w-full"
             onClick={handleModeSwitch}
           >
-            {isSignUp ? 'Already have an account? Sign In' : "Don&apos;t have an account? Sign Up"}
+            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </Button>
         </form>
       </CardContent>

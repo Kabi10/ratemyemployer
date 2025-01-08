@@ -29,6 +29,24 @@ interface ReviewFormProps {
   onSuccess?: () => void;
 }
 
+const commonPositions = [
+  'Software Engineer',
+  'Product Manager',
+  'Data Scientist',
+  'UX Designer',
+  'Marketing Manager',
+  'Sales Representative',
+  'Customer Support',
+  'Human Resources',
+  'Financial Analyst',
+  'Project Manager',
+  'Business Analyst',
+  'Operations Manager',
+  'Account Manager',
+  'Quality Assurance',
+  'DevOps Engineer'
+];
+
 export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProps): JSX.Element {
   const { user } = useAuth();
   const router = useRouter();
@@ -36,15 +54,18 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
   const [error, setError] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [prosLength, setProsLength] = useState(0);
+  const [consLength, setConsLength] = useState(0);
 
   const defaultValues = {
     rating: initialData?.rating || 3,
     title: initialData?.title || '',
-    content: initialData?.content || '',
     position: initialData?.position || '',
     employment_status: (initialData?.employment_status || 'Full-time') as typeof employmentStatusEnum[number],
     is_current_employee: initialData?.is_current_employee || false,
-    status: initialData?.status || 'pending'
+    status: initialData?.status || 'pending',
+    pros: initialData?.pros || '',
+    cons: initialData?.cons || ''
   };
 
   const form = useForm<ReviewFormData>({
@@ -111,6 +132,11 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     try {
       const supabase = createClient();
 
+      // Generate title from pros/cons
+      const firstPro = data.pros.split('.')[0].trim();
+      const firstCon = data.cons.split('.')[0].trim();
+      const generatedTitle = `${firstPro.substring(0, 50)}... but ${firstCon.substring(0, 50)}...`;
+
       if (initialData?.id) {
         // Update existing review
         const { data: existingReview, error: checkError } = await supabase
@@ -130,12 +156,13 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
         const updateData = {
           rating: data.rating,
-          title: data.title,
-          content: data.content,
+          title: generatedTitle,
           position: data.position,
           employment_status: data.employment_status,
           is_current_employee: data.is_current_employee,
-          status: data.status
+          status: data.status,
+          pros: data.pros,
+          cons: data.cons
         };
 
         const { error: updateError } = await supabase
@@ -154,14 +181,15 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           .insert([
             {
               rating: data.rating,
-              title: data.title,
-              content: data.content,
+              title: generatedTitle,
               position: data.position,
               employment_status: data.employment_status,
               is_current_employee: data.is_current_employee,
               status: data.status,
               company_id,
-              user_id: user.id
+              user_id: user.id,
+              pros: data.pros,
+              cons: data.cons
             }
           ]);
 
@@ -193,26 +221,51 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
       {/* Rating */}
       <div>
         <div role="group" aria-label="Rating">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
-          <div className="flex items-center space-x-2">
-            {[1, 2, 3, 4, 5].map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={`p-2 rounded-full ${
-                  Number(rating) >= value
-                    ? 'text-yellow-400 hover:text-yellow-500'
-                    : 'text-gray-300 hover:text-gray-400'
-                }`}
-                onClick={() => {
-                  form.setValue('rating', value, { shouldValidate: true });
-                }}
-                aria-label={`Rate ${value} stars`}
-                aria-pressed={Number(rating) >= value}
-              >
-                ★
-              </button>
-            ))}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Overall Rating</label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`p-2 text-2xl transition-all duration-150 ${
+                    Number(rating) >= value
+                      ? 'text-yellow-400 hover:text-yellow-500 transform hover:scale-110'
+                      : 'text-gray-300 hover:text-yellow-400 transform hover:scale-110'
+                  }`}
+                  onClick={() => {
+                    form.setValue('rating', value, { shouldValidate: true });
+                  }}
+                  onMouseEnter={() => {
+                    const stars = document.querySelectorAll('.rating-star');
+                    stars.forEach((star, index) => {
+                      if (index < value) {
+                        star.classList.add('text-yellow-400');
+                      }
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    const stars = document.querySelectorAll('.rating-star');
+                    stars.forEach((star, index) => {
+                      if (index >= Number(rating)) {
+                        star.classList.remove('text-yellow-400');
+                      }
+                    });
+                  }}
+                  aria-label={`Rate ${value} stars`}
+                  aria-pressed={Number(rating) >= value}
+                >
+                  <span className="rating-star">★</span>
+                </button>
+              ))}
+            </div>
+            <span className="text-sm text-gray-500">
+              {rating === 1 && 'Poor'}
+              {rating === 2 && 'Fair'}
+              {rating === 3 && 'Good'}
+              {rating === 4 && 'Very Good'}
+              {rating === 5 && 'Excellent'}
+            </span>
           </div>
           <input 
             type="hidden" 
@@ -225,47 +278,82 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         </div>
       </div>
 
-      {/* Title */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
-        <Input
-          id="title"
-          {...form.register('title')}
-          placeholder="Brief summary of your experience"
-          className="w-full"
-          aria-invalid={form.formState.errors.title ? 'true' : 'false'}
-        />
-        {form.formState.errors.title && (
-          <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.title.message}</p>
-        )}
-      </div>
+      {/* Pros and Cons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Pros */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <label htmlFor="pros" className="block text-sm font-medium text-green-600 dark:text-green-400">
+              Pros
+            </label>
+            <span className={`text-xs ${prosLength > 500 ? 'text-red-500' : 'text-gray-500'}`}>
+              {prosLength}/500
+            </span>
+          </div>
+          <textarea
+            id="pros"
+            {...form.register('pros', {
+              onChange: (e) => setProsLength(e.target.value.length)
+            })}
+            rows={6}
+            className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+            placeholder="What did you like about working here? (Required)"
+            aria-invalid={form.formState.errors.pros ? 'true' : 'false'}
+          />
+          {form.formState.errors.pros && (
+            <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.pros.message}</p>
+          )}
+        </div>
 
-      {/* Review Content */}
-      <div>
-        <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Review</label>
-        <textarea
-          id="content"
-          {...form.register('content')}
-          rows={8}
-          className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Share your detailed experience working at this company. Consider including both positive aspects and areas for improvement..."
-          aria-invalid={form.formState.errors.content ? 'true' : 'false'}
-        />
-        {form.formState.errors.content && (
-          <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.content.message}</p>
-        )}
+        {/* Cons */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <label htmlFor="cons" className="block text-sm font-medium text-red-600 dark:text-red-400">
+              Cons
+            </label>
+            <span className={`text-xs ${consLength > 500 ? 'text-red-500' : 'text-gray-500'}`}>
+              {consLength}/500
+            </span>
+          </div>
+          <textarea
+            id="cons"
+            {...form.register('cons', {
+              onChange: (e) => setConsLength(e.target.value.length)
+            })}
+            rows={6}
+            className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+            placeholder="What could be improved? (Required)"
+            aria-invalid={form.formState.errors.cons ? 'true' : 'false'}
+          />
+          {form.formState.errors.cons && (
+            <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.cons.message}</p>
+          )}
+        </div>
       </div>
 
       {/* Position */}
       <div>
         <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
-        <Input
-          id="position"
-          {...form.register('position')}
-          placeholder="e.g., Software Engineer"
-          className="w-full"
-          aria-invalid={form.formState.errors.position ? 'true' : 'false'}
-        />
+        <div className="relative">
+          <Input
+            id="position"
+            list="position-suggestions"
+            {...form.register('position')}
+            placeholder="e.g., Software Engineer"
+            className="w-full pr-10"
+            aria-invalid={form.formState.errors.position ? 'true' : 'false'}
+          />
+          <datalist id="position-suggestions">
+            {commonPositions.map((position) => (
+              <option key={position} value={position} />
+            ))}
+          </datalist>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
         {form.formState.errors.position && (
           <p className="mt-1 text-sm text-red-600" role="alert">{form.formState.errors.position.message}</p>
         )}

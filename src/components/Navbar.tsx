@@ -15,7 +15,7 @@ export function Navbar(): JSX.Element {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-400">
-            RateMyEmployer
+            RME
           </Link>
           <div className="hidden md:flex items-center space-x-8">
             <Link

@@ -15,6 +15,33 @@ export default function AccountPage() {
   const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!user || !window.confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(reviewId);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('user_id', user.id); // Extra safety check
+
+      if (error) throw error;
+      
+      // Update local state
+      setReviews(reviews.filter(review => review.id !== reviewId));
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      setError('Failed to delete review. Please try again.');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -57,14 +84,14 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-12 page-transition">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Account</h1>
           
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Profile Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Email</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">{user.email}</p>
@@ -72,6 +99,10 @@ export default function AccountPage() {
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Member Since</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">{formatDateDisplay(user.created_at)}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">Reviews Written</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{reviews.length}</p>
               </div>
             </div>
           </div>
@@ -97,7 +128,20 @@ export default function AccountPage() {
                           {review.title || 'Untitled Review'}
                         </h4>
                       </div>
-                      <div className="text-yellow-400">{'★'.repeat(review.rating || 0)}</div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-yellow-400">{'★'.repeat(review.rating || 0)}</div>
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          disabled={isDeleting === review.id}
+                          className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors"
+                        >
+                          {isDeleting === review.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                          ) : (
+                            'Delete'
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <p className="text-gray-600 dark:text-gray-300 mt-2">{review.content}</p>
                     <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">

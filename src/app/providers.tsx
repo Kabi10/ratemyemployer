@@ -11,7 +11,12 @@ interface Props {
 export function Providers({ children }: Props) {
   return (
     <AuthProvider>
-      <ThemeProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
         <ToastProvider>
           {children}
         </ToastProvider>

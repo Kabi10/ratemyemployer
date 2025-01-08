@@ -4,8 +4,9 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 
 ## Features
 
-- Company reviews and ratings
-- Detailed company profiles with benefits and values
+- Company reviews with pros and cons
+- Visual rating indicators with color-coded progress bars
+- Detailed company profiles with size and verification status
 - Advanced search and filter capabilities
 - Secure user authentication
 - Responsive design with dark mode support
@@ -76,6 +77,13 @@ src/
 ├── types/          # TypeScript types
 └── __tests__/      # Test files
 ```
+
+## Key Components
+
+- `CompanyCard`: Displays company information with visual rating indicators
+- `ReviewForm`: Structured review submission with pros and cons
+- `ReviewList`: List of reviews with filtering and sorting
+- `CompanyProfile`: Detailed company information and statistics
 
 ## Contributing
 

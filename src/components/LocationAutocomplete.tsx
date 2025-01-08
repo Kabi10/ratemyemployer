@@ -23,6 +23,7 @@ export function LocationAutocomplete({
   });
 
   const [inputValue, setInputValue] = useState(value);
+  const [error, setError] = useState<string | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,20 +32,29 @@ export function LocationAutocomplete({
 
     const options = {
       types: ['(cities)'],
+      fields: ['formatted_address', 'geometry', 'name'],
     };
 
-    autocompleteRef.current = new google.maps.places.Autocomplete(
-      inputRef.current,
-      options
-    );
+    try {
+      autocompleteRef.current = new google.maps.places.Autocomplete(
+        inputRef.current,
+        options
+      );
 
-    autocompleteRef.current.addListener('place_changed', () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (place?.formatted_address) {
-        setInputValue(place.formatted_address);
-        onChange(place.formatted_address);
-      }
-    });
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place?.formatted_address) {
+          setInputValue(place.formatted_address);
+          onChange(place.formatted_address);
+          setError(null);
+        } else {
+          setError('Please select a location from the dropdown');
+        }
+      });
+    } catch (err) {
+      console.error('Error initializing Google Maps autocomplete:', err);
+      setError('Error loading location search');
+    }
 
     return () => {
       if (autocompleteRef.current) {
@@ -58,17 +68,26 @@ export function LocationAutocomplete({
   }, [value]);
 
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      value={inputValue}
-      onChange={(e) => {
-        setInputValue(e.target.value);
-        onChange(e.target.value);
-      }}
-      className={className}
-      placeholder={placeholder}
-      required={required}
-    />
+    <div>
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+          onChange(e.target.value);
+        }}
+        className={`${className} ${error ? 'border-red-500' : ''}`}
+        placeholder={placeholder}
+        required={required}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={error ? 'location-error' : undefined}
+      />
+      {error && (
+        <p id="location-error" className="mt-1 text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
