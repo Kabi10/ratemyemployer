@@ -30,6 +30,15 @@ export function Navbar(): JSX.Element {
             >
               Reviews
             </Link>
+            <Link href="/shame" className="hover:text-red-600 font-medium">
+              Wall of Shame
+            </Link>
+            <Link
+              href="/background-check"
+              className="text-lg text-gray-700 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400 transition-colors"
+            >
+              Background Check
+            </Link>
             {user ? (
               <div className="relative">
                 <button
@@ -119,6 +128,15 @@ export function Navbar(): JSX.Element {
             className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             Reviews
+          </Link>
+          <Link href="/shame" className="hover:text-red-600 font-medium">
+            Wall of Shame
+          </Link>
+          <Link
+            href="/background-check"
+            className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Background Check
           </Link>
           {user ? (
             <>

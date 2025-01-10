@@ -2,6 +2,7 @@ import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 import useSWR, { KeyedMutator } from 'swr';
 import { createClient } from '@/lib/supabaseClient';
 import { Company, Review } from '@/types';
+import { Database } from '@/types/supabase';
 
 interface UseCompanyOptions {
   withReviews?: boolean;
@@ -39,33 +40,21 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
     const { data, error } = await query
       .select(`
         *,
-        reviews!inner (
-          id,
-          title,
-          content,
-          rating,
-          pros,
-          cons,
-          position,
-          employment_status,
-          company_id,
-          created_at,
-          updated_at,
-          user_id,
-          likes,
-          status,
-          is_current_employee,
-          reviewer_email,
-          reviewer_name
-        )
+        reviews (*)
       `)
       .eq('id', id)
-      .single() as PostgrestSingleResponse<CompanyWithDetails>;
+      .single() as PostgrestSingleResponse<Database['public']['Tables']['companies']['Row'] & {
+        reviews: Database['public']['Tables']['reviews']['Row'][];
+      }>;
 
     if (error) throw error;
-    return data;
+    return data as unknown as CompanyWithDetails;
   } else {
-    const { data, error } = await query.select('*').eq('id', id).single() as PostgrestSingleResponse<Company>;
+    const { data, error } = await query
+      .select('*')
+      .eq('id', id)
+      .single() as PostgrestSingleResponse<Database['public']['Tables']['companies']['Row']>;
+    
     if (error) throw error;
 
     if (options.withStats && data) {
@@ -87,10 +76,10 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
           totalReviews,
           averageRating,
         },
-      };
+      } as CompanyWithDetails;
     }
 
-    return data;
+    return data as unknown as CompanyWithDetails;
   }
 };
 
@@ -135,7 +124,7 @@ const companiesListFetcher = async (
     withReviews
       ? `
         *,
-        reviews (
+        reviews:reviews (
           *
         )
       `
@@ -164,7 +153,7 @@ const companiesListFetcher = async (
         const { data: reviewStats } = await supabase
           .from('reviews')
           .select('rating')
-          .eq('company_id', company.id);
+          .eq('company_id', company.id || 0);
 
         const totalReviews = reviewStats?.length || 0;
         const averageRating = totalReviews && reviewStats

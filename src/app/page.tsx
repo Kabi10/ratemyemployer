@@ -378,6 +378,15 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <div className="flex gap-4 justify-center mt-8">
+        <Link
+          href="/background-check"
+          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
+        >
+          Try Background Check
+        </Link>
+      </div>
     </div>
   );
 }
