@@ -30,6 +30,8 @@
     "test:all": "npm run test:setup && npm run test:fix && npm run test"
   },
   "dependencies": {
+    "@firebase/app-types": "^0.9.3",
+    "@firebase/auth": "^1.8.1",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@hookform/resolvers": "^3.3.4",
@@ -51,6 +53,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.0.4",
     "dotenv": "^16.4.7",
+    "firebase": "^11.1.0",
     "framer-motion": "^11.16.4",
     "lucide-react": "^0.321.0",
     "next": "^14.2.22",
@@ -72,6 +75,7 @@
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/cheerio": "^0.22.35",
+    "@types/firebase": "^2.4.32",
     "@types/node": "^20.17.12",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

@@ -13,7 +13,7 @@ export default function BackgroundCheck() {
       height: window.innerHeight
     });
 
-    // Debounced resize handler
+    // Debounced resize handler with touch device detection
     let timeoutId: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(timeoutId);
@@ -32,8 +32,9 @@ export default function BackgroundCheck() {
     };
   }, []);
 
-  // Pre-calculate random positions for better performance
-  const particles = Array.from({ length: 8 }).map(() => ({
+  // Reduce particle count on mobile
+  const particleCount = dimensions.width < 768 ? 4 : 8;
+  const particles = Array.from({ length: particleCount }).map(() => ({
     initialX: Math.random() * dimensions.width,
     initialY: Math.random() * dimensions.height,
     scale: Math.random() * 0.3 + 0.2,
@@ -47,11 +48,11 @@ export default function BackgroundCheck() {
         {particles.map((particle, i) => (
           <motion.div
             key={i}
-            className="absolute w-[100px] h-[100px] rounded-full bg-white/5"
+            className="absolute w-[50px] md:w-[100px] h-[50px] md:h-[100px] rounded-full bg-white/5"
             initial={{ x: particle.initialX, y: particle.initialY, scale: particle.scale }}
             animate={{
-              x: [particle.initialX, particle.initialX + 100, particle.initialX],
-              y: [particle.initialY, particle.initialY + 100, particle.initialY],
+              x: [particle.initialX, particle.initialX + 50, particle.initialX],
+              y: [particle.initialY, particle.initialY + 50, particle.initialY],
             }}
             transition={{
               duration: particle.duration,
@@ -59,15 +60,13 @@ export default function BackgroundCheck() {
               ease: "linear",
               times: [0, 0.5, 1]
             }}
-            style={{
-              willChange: 'transform',
-            }}
+            style={{ willChange: 'transform' }}
           />
         ))}
       </div>
 
       {/* Main content */}
-      <div className="container mx-auto px-4 py-16 relative z-10">
+      <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -75,12 +74,12 @@ export default function BackgroundCheck() {
           className="max-w-4xl mx-auto"
         >
           {/* Glass panel */}
-          <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 md:p-12 shadow-2xl border border-white/20">
+          <div className="backdrop-blur-xl bg-white/10 rounded-2xl md:rounded-3xl p-6 md:p-12 shadow-2xl border border-white/20">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-4xl md:text-5xl font-bold text-white text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-pink-200"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-white text-center mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-pink-200"
             >
               Background Check
             </motion.h1>
@@ -89,7 +88,7 @@ export default function BackgroundCheck() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-lg md:text-xl text-gray-300 text-center mb-12 max-w-2xl mx-auto"
+              className="text-base sm:text-lg md:text-xl text-gray-300 text-center mb-8 md:mb-12 max-w-2xl mx-auto px-2"
             >
               Discover the truth about companies before making your next career move. 
               Our advanced background check reveals workplace culture, employee experiences, 
@@ -107,14 +106,17 @@ export default function BackgroundCheck() {
                 <input
                   type="text"
                   placeholder="Enter company name..."
-                  className="w-full px-6 py-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-lg
-                           text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-400/50
-                           transition-all duration-300 shadow-lg"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 
+                           backdrop-blur-lg text-white placeholder-gray-400 outline-none focus:ring-2 
+                           focus:ring-blue-400/50 transition-all duration-300 shadow-lg text-base sm:text-lg"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2 rounded-xl
-                                 bg-gradient-to-r from-blue-500/80 to-purple-500/80 text-white font-medium
-                                 hover:from-blue-500 hover:to-purple-500 transition-all duration-300
-                                 backdrop-blur-lg shadow-lg hover:shadow-xl hover:scale-105">
+                <button 
+                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-1.5 sm:py-2 
+                           rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500/80 to-purple-500/80 
+                           text-white font-medium text-sm sm:text-base hover:from-blue-500 hover:to-purple-500 
+                           transition-all duration-300 backdrop-blur-lg shadow-lg hover:shadow-xl 
+                           hover:scale-105 active:scale-95 touch-manipulation"
+                >
                   Search
                 </button>
               </div>
@@ -125,7 +127,7 @@ export default function BackgroundCheck() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="grid md:grid-cols-3 gap-6 text-center"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-center"
             >
               {[
                 {
@@ -143,13 +145,16 @@ export default function BackgroundCheck() {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="backdrop-blur-lg bg-white/5 rounded-2xl p-6 border border-white/10
-                           hover:bg-white/10 transition-all duration-300 group hover:scale-105"
+                  className="backdrop-blur-lg bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10
+                           hover:bg-white/10 transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98]
+                           touch-manipulation cursor-pointer"
                 >
-                  <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-blue-200 transition-colors">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-blue-200 
+                               transition-colors"
+                  >
                     {feature.title}
                   </h3>
-                  <p className="text-gray-300 text-sm">
+                  <p className="text-gray-300 text-sm sm:text-base">
                     {feature.description}
                   </p>
                 </div>

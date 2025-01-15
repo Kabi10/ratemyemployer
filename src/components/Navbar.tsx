@@ -3,12 +3,19 @@
 import { ChevronDown, Menu, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFirebase } from '@/contexts/FirebaseContext';
+import { signOut } from '@/lib/firebase';
+import Image from 'next/image';
 
 export function Navbar(): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, loading } = useFirebase();
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowDropdown(false);
+  };
 
   return (
     <nav className="bg-white shadow-md dark:bg-gray-900 sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
@@ -30,7 +37,7 @@ export function Navbar(): JSX.Element {
             >
               Reviews
             </Link>
-            <Link href="/shame" className="hover:text-red-600 font-medium">
+            <Link href="/shame" className="text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400 transition-colors">
               Wall of Shame
             </Link>
             <Link
@@ -39,37 +46,33 @@ export function Navbar(): JSX.Element {
             >
               Background Check
             </Link>
-            {user ? (
+            {loading ? (
+              <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            ) : user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-3 px-5 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-200"
+                  className="flex items-center gap-3 px-5 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  <User className="w-6 h-6" />
-                  <span className="hidden sm:inline text-lg">{user.email}</span>
-                  <ChevronDown className="w-5 h-5" />
+                  {user.photoURL ? (
+                    <Image
+                      src={user.photoURL}
+                      alt={user.displayName || 'User'}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <User className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+                  )}
+                  <span className="hidden sm:inline text-lg text-gray-700 dark:text-gray-200">
+                    {user.displayName || user.email}
+                  </span>
+                  <ChevronDown className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                 </button>
 
                 {showDropdown && (
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-800">
-                    {isAdmin && (
-                      <>
-                        <Link
-                          href="/admin"
-                          className="block px-5 py-3 text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Admin Dashboard
-                        </Link>
-                        <Link
-                          href="/admin/analytics"
-                          className="block px-5 py-3 text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Analytics
-                        </Link>
-                      </>
-                    )}
                     <Link
                       href="/account"
                       className="block px-5 py-3 text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -79,10 +82,7 @@ export function Navbar(): JSX.Element {
                     </Link>
                     <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
                     <button
-                      onClick={() => {
-                        signOut();
-                        setShowDropdown(false);
-                      }}
+                      onClick={handleSignOut}
                       className="block w-full text-left px-5 py-3 text-base text-red-600 dark:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       Sign Out
@@ -91,20 +91,16 @@ export function Navbar(): JSX.Element {
                 )}
               </div>
             ) : (
-              <div className="flex gap-4">
-                <Link
-                  href="/auth/login"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-6 py-2.5 rounded-lg border-2 border-blue-600 dark:border-blue-400 hover:border-blue-700 dark:hover:border-blue-300 transition-colors text-lg font-medium"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/login?signup=true"
-                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-colors text-lg font-medium"
-                >
-                  Sign Up
-                </Link>
-              </div>
+              <Link
+                href="/auth/login"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
+                         text-white px-6 py-2.5 rounded-lg transition-all duration-200 
+                         text-lg font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02] 
+                         active:scale-[0.98] flex items-center gap-2"
+              >
+                <User className="w-5 h-5" />
+                <span>Sign In</span>
+              </Link>
             )}
           </div>
           <button 
@@ -129,7 +125,10 @@ export function Navbar(): JSX.Element {
           >
             Reviews
           </Link>
-          <Link href="/shame" className="hover:text-red-600 font-medium">
+          <Link
+            href="/shame"
+            className="block py-3 px-6 text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400"
+          >
             Wall of Shame
           </Link>
           <Link
@@ -140,14 +139,6 @@ export function Navbar(): JSX.Element {
           </Link>
           {user ? (
             <>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  Admin Dashboard
-                </Link>
-              )}
               <Link
                 href="/account"
                 className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -155,27 +146,21 @@ export function Navbar(): JSX.Element {
                 My Account
               </Link>
               <button
-                onClick={signOut}
+                onClick={handleSignOut}
                 className="block w-full text-left py-3 px-6 text-lg text-red-600 dark:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 Sign Out
               </button>
             </>
           ) : (
-            <div className="p-6 space-y-3">
-              <Link
-                href="/auth/login"
-                className="block text-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-6 py-3 rounded-lg border-2 border-blue-600 dark:border-blue-400 hover:border-blue-700 dark:hover:border-blue-300 transition-colors text-lg font-medium"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/login?signup=true"
-                className="block text-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors text-lg font-medium"
-              >
-                Sign Up
-              </Link>
-            </div>
+            <Link
+              href="/auth/login"
+              className="block mx-6 my-4 py-3 text-center bg-gradient-to-r from-blue-600 to-indigo-600 
+                       hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-colors 
+                       text-lg font-medium shadow-md"
+            >
+              Sign In
+            </Link>
           )}
         </div>
       )}
