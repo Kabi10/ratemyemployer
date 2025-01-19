@@ -3,11 +3,11 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { User, Lock, Mail, Github, Twitter } from 'lucide-react';
 import { signInWithGithub, signInWithTwitter, signInWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get('signup') === 'true';
@@ -349,5 +349,17 @@ export default function LoginPage() {
         </motion.p>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4">
+        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

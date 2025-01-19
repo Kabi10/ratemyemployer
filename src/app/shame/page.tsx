@@ -6,10 +6,6 @@ import { Company } from '@/types';
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-// Add route segment config
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 interface ShameCompany extends Company {
   total_violations: number;
   recent_violations: string[];
