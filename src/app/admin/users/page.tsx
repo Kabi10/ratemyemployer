@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@/components/ui/toast';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 
