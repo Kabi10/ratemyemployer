@@ -6,6 +6,10 @@ import { Company } from '@/types';
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
+// Add route segment config
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ShameCompany extends Company {
   total_violations: number;
   recent_violations: string[];
@@ -81,7 +85,7 @@ export default function WallOfShame() {
         setCompanies(shameCompanies);
       } catch (err) {
         console.error('Error fetching shame list:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load Wall of Shame');
+        setError(err instanceof Error ? `${err.name}: ${err.message}` : 'Failed to load Wall of Shame');
       } finally {
         setLoading(false);
       }
@@ -116,15 +120,22 @@ export default function WallOfShame() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black to-red-950 text-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-red-500 text-lg sm:text-xl mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-          >
-            Try Again
-          </button>
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Wall of Shame</h1>
+          <div className="bg-red-50 border border-red-200 p-4 rounded-md">
+            <p className="text-red-700">Error: {error}</p>
+            <button 
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchShameList();
+              }}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );

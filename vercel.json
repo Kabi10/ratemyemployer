@@ -4,5 +4,9 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "rewrites": [
+    { "source": "/shame", "destination": "/shame" },
+    { "source": "/shame/(.*)", "destination": "/shame/$1" }
+  ]
 } 
