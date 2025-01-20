@@ -1,4 +1,5 @@
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
+
 
 export interface AuthState {
   user: User | null;
@@ -14,7 +15,7 @@ export interface AuthError {
 export interface AuthResponse {
   data: {
     user: User | null;
-    session: any | null;
+    session: Session | null;
   } | null;
   error: AuthError | null;
-} 
+}

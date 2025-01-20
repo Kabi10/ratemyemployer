@@ -8,22 +8,49 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 - Visual rating indicators with color-coded progress bars
 - Detailed company profiles with size and verification status
 - Advanced search and filter capabilities
-- Secure user authentication
+- Secure user authentication with Firebase
 - Responsive design with dark mode support
-- Real-time updates
+- Real-time updates via Supabase
 - Data validation and sanitization
 - Role-based access control
+- Company news integration
+- Background checks
 
 ## Tech Stack
 
-- Next.js 13 (App Router)
+- Next.js 14 (App Router)
 - TypeScript
 - Tailwind CSS
-- Supabase (PostgreSQL + Auth)
-- Shadcn UI
+- Supabase (PostgreSQL + Real-time)
+- Firebase Authentication
+- Shadcn UI Components
+- Framer Motion
 - SWR for data fetching
 - Zod for validation
 - Vitest for testing
+- Playwright for E2E testing
+
+## Prerequisites
+
+- Node.js >= 18.17.0
+- npm or yarn
+- Supabase account
+- Firebase project
+- Google Maps API key (optional)
+
+## Environment Setup
+
+1. Clone the repository
+2. Copy `.env.example` to `.env.local` and fill in the values:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+Required environment variables:
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `NEXT_PUBLIC_FIREBASE_*`: Firebase configuration
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: (Optional) For location features
 
 ## Development
 
@@ -31,38 +58,20 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-
 # Run development server
 npm run dev
 
 # Run tests
 npm test
 
-# Build for production
-npm run build
-```
-
-## Testing
-
-We use Vitest for unit and integration tests, and Playwright for E2E testing.
-
-```bash
-# Run unit and integration tests
-npm test
-
 # Run E2E tests
 npm run test:e2e
 
-# Run tests with UI
-npm run test:e2e:ui
+# Build for production
+npm run build
 
-# Run tests in debug mode
-npm run test:e2e:debug
-
-# View test report
-npm run test:e2e:report
+# Analyze bundle
+ANALYZE=true npm run build
 ```
 
 ## Project Structure
@@ -78,21 +87,52 @@ src/
 └── __tests__/      # Test files
 ```
 
-## Key Components
+## Testing
 
-- `CompanyCard`: Displays company information with visual rating indicators
-- `ReviewForm`: Structured review submission with pros and cons
-- `ReviewList`: List of reviews with filtering and sorting
-- `CompanyProfile`: Detailed company information and statistics
+We use multiple testing strategies:
+- Unit/Integration tests with Vitest
+- End-to-end tests with Playwright
+- Type checking with TypeScript
+- Linting with ESLint
+
+```bash
+# Run all tests
+npm run test:all
+
+# Run specific test suites
+npm test
+npm run test:e2e
+npm run test:e2e:ui
+```
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Security
+
+For security concerns, please refer to our [Security Policy](SECURITY.md).
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Deployment
+
+The application is configured for deployment on Vercel with the following features:
+- Standalone output
+- Compressed responses
+- Security headers
+- Bundle analysis support
+
+## Performance Optimization
+
+- Image optimization with next/image
+- Remote patterns for allowed image domains
+- Webpack caching enabled
+- Bundle analysis available
+- TypeScript and ESLint checking enabled
+
+## Support
+
+For support, please open an issue in the repository. 

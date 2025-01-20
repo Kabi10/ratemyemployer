@@ -1,6 +1,9 @@
-import { vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+import { vi } from 'vitest';
+
 import type { Database } from '@/types/supabase';
+
 
 type ChainableMock = {
   select: ReturnType<typeof vi.fn>;
@@ -54,4 +57,4 @@ export const mockSupabaseClient = {
     getSession: vi.fn(() => Promise.resolve(mockResponse)),
     onAuthStateChange: vi.fn(() => ({ unsubscribe: vi.fn() })),
   },
-} as unknown as SupabaseClient<Database>; 
+} as unknown as SupabaseClient<Database>;

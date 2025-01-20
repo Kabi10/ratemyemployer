@@ -1,6 +1,9 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+
 import type { Database } from '@/types/supabase'
+
 
 export { createServerClient }
 
@@ -63,4 +66,4 @@ export const serverQuery = {
         .order('created_at', { ascending: false })
     }
   }
-} 
+}

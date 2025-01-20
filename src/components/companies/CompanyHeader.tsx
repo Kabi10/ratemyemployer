@@ -1,4 +1,8 @@
-import { Company } from '@/types';
+'use client'
+
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 export default function CompanyHeader({ company }: { company: Company }) {
   return (

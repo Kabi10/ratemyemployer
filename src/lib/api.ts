@@ -1,3 +1,5 @@
+
+
 // Create a centralized API handling
 export async function fetchData<T>(
   query: Promise<{ data: T | null; error: any }>

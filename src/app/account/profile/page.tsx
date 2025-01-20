@@ -1,8 +1,15 @@
-'use client';
+'use client'
+
 
 import { useEffect, useState } from 'react';
+
+import { supabase } from '@/lib/supabaseClient';
+import { withAuth } from '@/lib/auth/withAuth';
+
 import { useAuth } from '@/hooks/useAuth';
+
 import { formatDateDisplay } from '@/utils/date';
+
 
 interface Profile {
   id: string;
@@ -145,4 +152,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}

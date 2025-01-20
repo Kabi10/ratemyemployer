@@ -1,14 +1,18 @@
-'use client';
+'use client'
 
-import { Suspense, lazy, useState } from 'react';
-import { FloatingAddButton } from '@/components/FloatingAddButton';
-import { CompanyForm } from '@/components/CompanyForm';
+import { Suspense, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { X } from 'lucide-react';
+import { CompanyList } from '@/components/CompanyList';
+import { CompanyForm } from '@/components/CompanyForm';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-// Lazy load components
-const SearchAndFilter = lazy(() => import('@/components/SearchAndFilter'));
-const CompanyList = lazy(() => import('@/components/CompanyList'));
+// Lazy load SearchAndFilter with no SSR
+const SearchAndFilter = dynamic(() => import('@/components/SearchAndFilter'), {
+  ssr: false,
+  loading: () => <SearchSkeleton />
+});
 
 // Loading fallbacks
 function SearchSkeleton() {
@@ -55,13 +59,11 @@ export default function CompaniesPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<SearchSkeleton />}>
-          <SearchAndFilter
-            onLocationChange={setSelectedLocation}
-            onIndustryChange={setSelectedIndustry}
-            onSearchChange={setSearchQuery}
-          />
-        </Suspense>
+        <SearchAndFilter
+          onLocationChange={setSelectedLocation}
+          onIndustryChange={setSelectedIndustry}
+          onSearchChange={setSearchQuery}
+        />
 
         <div className="mt-12">
           <Suspense fallback={<CompanyListSkeleton />}>

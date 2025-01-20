@@ -1,10 +1,13 @@
-'use client';
+'use client'
 
-import { useRouter } from 'next/navigation';
+
 import { useEffect, useRef } from 'react';
+import { redirect } from 'next/navigation';
+
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+
 import { Role } from '@/types';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface WithAuthProps {
   requiredRole?: Role;
@@ -17,7 +20,7 @@ export function withAuth(
 ) {
   return function WithAuthComponent(props: any) {
     const { user, isLoading } = useAuth();
-    const router = useRouter();
+    const router = redirect();
     const roleRef = useRef(requiredRole);
 
     useEffect(() => {
@@ -46,4 +49,4 @@ export function withAuth(
 
     return <WrappedComponent {...props} />;
   };
-} 
+}

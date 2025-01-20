@@ -1,7 +1,14 @@
-'use client';
+'use client'
+
+
+import { useEffect, useState } from 'react';
 
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+
+import { AssessmentList } from '@/components/AssessmentList';
+
+
+
 
 export default function BackgroundCheck() {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
@@ -71,7 +78,7 @@ export default function BackgroundCheck() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-7xl mx-auto"
         >
           {/* Glass panel */}
           <div className="backdrop-blur-xl bg-white/10 rounded-2xl md:rounded-3xl p-6 md:p-12 shadow-2xl border border-white/20">
@@ -91,8 +98,8 @@ export default function BackgroundCheck() {
               className="text-base sm:text-lg md:text-xl text-gray-300 text-center mb-8 md:mb-12 max-w-2xl mx-auto px-2"
             >
               Discover the truth about companies before making your next career move. 
-              Our advanced background check reveals workplace culture, employee experiences, 
-              and potential red flags.
+              Our comprehensive assessment framework helps you evaluate potential employers 
+              across multiple critical factors.
             </motion.p>
 
             {/* Search box */}
@@ -100,7 +107,7 @@ export default function BackgroundCheck() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="max-w-2xl mx-auto mb-8"
+              className="max-w-2xl mx-auto mb-12"
             >
               <div className="relative group">
                 <input
@@ -122,47 +129,11 @@ export default function BackgroundCheck() {
               </div>
             </motion.div>
 
-            {/* Features */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-center"
-            >
-              {[
-                {
-                  title: "Company Culture",
-                  description: "Insights into workplace environment and values"
-                },
-                {
-                  title: "Employee Reviews",
-                  description: "Real experiences from current and former employees"
-                },
-                {
-                  title: "Red Flags",
-                  description: "Potential warning signs and controversies"
-                }
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="backdrop-blur-lg bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10
-                           hover:bg-white/10 transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98]
-                           touch-manipulation cursor-pointer"
-                >
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-blue-200 
-                               transition-colors"
-                  >
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-300 text-sm sm:text-base">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </motion.div>
+            {/* Assessment List */}
+            <AssessmentList />
           </div>
         </motion.div>
       </div>
     </div>
   );
-} 
+}

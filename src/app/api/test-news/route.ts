@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+
 interface FormattedNews {
   title: string;
   url: string;
@@ -9,8 +10,9 @@ interface FormattedNews {
   sentiment: number;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+function formatDate(timestamp: number | string): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -111,10 +113,13 @@ export async function GET(request: Request) {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
+    // Sort results by date (newest first) and limit to 10
+    const limitedResults = results.slice(0, 10);
+
     return NextResponse.json({ 
       success: true,
       company: testCompany,
-      results: results.slice(0, 10), // Top 10 most relevant results
+      results: limitedResults,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -125,4 +130,4 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
-} 
+}

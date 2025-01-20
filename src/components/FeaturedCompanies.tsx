@@ -1,7 +1,12 @@
-'use client';
+'use client'
+
+import { useCompanies } from '@/hooks/useCompany';
+
 
 import { CompanyCard } from '@/components/CompanyCard';
-import { useCompanies } from '@/hooks/useCompany';
+
+
+
 
 export function FeaturedCompanies() {
   const { companies, isLoading, error } = useCompanies({

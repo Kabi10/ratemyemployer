@@ -1,6 +1,10 @@
-/// <reference types="@types/google.maps" />
 import { useLoadScript } from '@react-google-maps/api';
+
 import { useEffect, useRef, useState } from 'react';
+
+
+/// <reference types="@types/google.maps" />
+
 
 interface LocationAutocompleteProps {
   value: string;

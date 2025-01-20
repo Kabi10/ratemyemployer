@@ -1,129 +1,229 @@
-import { Company } from '@/types';
+import axios, { AxiosError } from 'axios';
 
-interface NewsSource {
-  name: string;
-  url: string;
-  reliability: number;
-}
 
-interface NewsItem {
+import { createClient } from '@/lib/supabaseClient';
+
+const SERP_API_KEY = 'db313510e725130ead277b13cb64416fd4ed6f8551c7f00cbc9b9163d44e548f';
+
+export interface NewsArticle {
   title: string;
-  url: string;
-  source: NewsSource;
+  description: string | null;
+  url: string | null;
   publishedAt: string;
-  summary?: string;
-  sentiment?: number;
+  source: {
+    name: string;
+  };
 }
 
-export async function fetchCompanyNews(company: Company): Promise<NewsItem[]> {
-  const newsItems: NewsItem[] = [];
-  
-  try {
-    // Fetch from Hacker News
-    const hnResponse = await fetch(
-      `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(company.name)}&tags=story`
-    );
-    const hnData = await hnResponse.json();
-    
-    newsItems.push(
-      ...hnData.hits.map((hit: any) => ({
-        title: hit.title,
-        url: hit.url,
-        source: {
-          name: 'Hacker News',
-          url: `https://news.ycombinator.com/item?id=${hit.objectID}`,
-          reliability: 0.7
-        },
-        publishedAt: new Date(hit.created_at).toISOString()
-      }))
-    );
+interface SerpApiNewsResult {
+  position: number;
+  title: string;
+  link: string;
+  snippet: string;
+  source: {
+    name: string;
+    icon?: string;
+    authors?: string[];
+  };
+  date: string;
+  thumbnail?: string;
+  thumbnail_small?: string;
+  story_token?: string;
+}
 
-    // Fetch from Reddit
-    const subreddits = ['jobs', 'antiwork', 'cscareerquestions'];
-    for (const subreddit of subreddits) {
-      const redditResponse = await fetch(
-        `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(company.name)}&restrict_sr=1&sort=new`
-      );
-      const redditData = await redditResponse.json();
-      
-      newsItems.push(
-        ...redditData.data.children.map((post: any) => ({
-          title: post.data.title,
-          url: `https://reddit.com${post.data.permalink}`,
-          source: {
-            name: `Reddit r/${subreddit}`,
-            url: `https://reddit.com/r/${subreddit}`,
-            reliability: 0.5
-          },
-          publishedAt: new Date(post.data.created_utc * 1000).toISOString(),
-          summary: post.data.selftext.slice(0, 200) + '...'
-        }))
-      );
+interface DatabaseNewsArticle {
+  company_name: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  published_at: string;
+  source_name: string;
+  created_at: string;
+}
+
+interface SerpApiResponse {
+  news_results: SerpApiNewsResult[];
+}
+
+// This function is for initial data gathering only
+export async function fetchAndStoreCompanyNews(companies: string[], isPositive: boolean = false): Promise<boolean> {
+  try {
+    const companyQueries = companies.map(company => {
+      if (isPositive) {
+        return `("${company}") ("best places to work" OR "great workplace" OR "employee satisfaction" OR "workplace awards" OR "employee benefits" OR "workplace culture" OR "diversity award" OR "sustainability initiatives")`
+      }
+      return `("${company}") (layoffs OR "workplace violation" OR "OSHA fine" OR "discrimination lawsuit" OR "labor dispute")`
+    });
+    
+    const response = await axios.get<SerpApiResponse>('https://serpapi.com/search.json', {
+      params: {
+        engine: 'google_news',
+        q: companyQueries.join(' OR '),
+        api_key: SERP_API_KEY,
+        num: 100,
+        tbm: 'nws'
+      }
+    });
+
+    const allArticles = response.data.news_results || [];
+    const supabase = createClient();
+    
+    // Process and store articles for each company
+    for (const company of companies) {
+      const companyArticles = allArticles
+        .filter((article) => 
+          article.title.toLowerCase().includes(company.toLowerCase()) ||
+          article.snippet.toLowerCase().includes(company.toLowerCase())
+        )
+        .slice(0, 10);
+
+      if (companyArticles.length > 0) {
+        const newsArticles: DatabaseNewsArticle[] = companyArticles.map((article) => ({
+          company_name: company,
+          title: article.title,
+          description: article.snippet,
+          url: article.link,
+          published_at: article.date,
+          source_name: article.source.name,
+          created_at: new Date().toISOString()
+        }));
+
+        const { error } = await supabase.from('company_news').insert(newsArticles);
+        if (error) throw error;
+      }
     }
 
-    // Fetch from Wikipedia
-    const wikiResponse = await fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(company.name)}&prop=extracts&exintro=1&origin=*`
-    );
-    const wikiData = await wikiResponse.json();
-    const pages = wikiData.query.pages;
-    const pageId = Object.keys(pages)[0];
+    return true;
+  } catch (error) {
+    console.error('Error fetching and storing news:', error instanceof AxiosError ? error.response?.data : error);
+    return false;
+  }
+}
+
+// Use this function in your application to get news
+export async function fetchCompanyNews(companyName: string, filterNegative: boolean = false): Promise<NewsArticle[]> {
+  try {
+    const supabase = createClient();
     
-    if (pageId !== '-1') {
-      newsItems.push({
-        title: `${company.name} - Wikipedia Overview`,
-        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(company.name)}`,
-        source: {
-          name: 'Wikipedia',
-          url: 'https://www.wikipedia.org',
-          reliability: 0.8
-        },
-        publishedAt: new Date().toISOString(),
-        summary: pages[pageId].extract?.slice(0, 300) + '...'
+    let query = supabase
+      .from('company_news')
+      .select('*')
+      .eq('company_name', companyName)
+      .order('published_at', { ascending: false })
+      .limit(5);
+
+    if (filterNegative) {
+      // Filter out news containing negative keywords
+      const negativeKeywords = [
+        'lawsuit', 'discrimination', 'layoff', 'layoffs', 'violation', 
+        'fine', 'penalty', 'dispute', 'complaint', 'investigation'
+      ];
+      
+      negativeKeywords.forEach(keyword => {
+        query = query.not('title', 'ilike', `%${keyword}%`);
       });
     }
 
+    const { data: articles, error } = await query;
+
+    if (error || !articles) {
+      console.error('Error fetching news:', error);
+      return [];
+    }
+
+    const dbArticles = articles as DatabaseNewsArticle[];
+    const mappedArticles = dbArticles.map(article => ({
+      title: article.title,
+      description: article.description,
+      url: article.url,
+      publishedAt: article.published_at,
+      source: {
+        name: article.source_name
+      }
+    }));
+
+    return mappedArticles;
+
   } catch (error) {
     console.error('Error fetching news:', error);
+    return [];
   }
-
-  // Sort by date, most recent first
-  return newsItems.sort((a, b) => 
-    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
 }
 
-// Utility function to analyze sentiment (basic implementation)
-export function analyzeSentiment(text: string): number {
-  const positiveWords = ['good', 'great', 'excellent', 'amazing', 'positive', 'success'];
-  const negativeWords = ['bad', 'poor', 'terrible', 'awful', 'negative', 'fail'];
-  
-  const words = text.toLowerCase().split(/\W+/);
-  let score = 0;
-  
-  words.forEach(word => {
-    if (positiveWords.includes(word)) score += 1;
-    if (negativeWords.includes(word)) score -= 1;
-  });
-  
-  return score / words.length; // Normalize by text length
-}
+// Use this function to get news for multiple companies
+export async function fetchNewsForCompanies(companies: string[]): Promise<{ [company: string]: NewsArticle[] }> {
+  try {
+    const supabase = createClient();
+    const results: { [company: string]: NewsArticle[] } = {};
 
-// Cache management
-const newsCache = new Map<string, { items: NewsItem[], timestamp: number }>();
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+    for (const company of companies) {
+      const { data: articles } = await supabase
+        .from('company_news')
+        .select('*')
+        .eq('company_name', company)
+        .order('published_at', { ascending: false })
+        .limit(5);
 
-export function getCachedNews(companyId: string | number): NewsItem[] | null {
-  const cached = newsCache.get(companyId.toString());
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.items;
+      if (!articles) {
+        results[company] = [];
+        continue;
+      }
+
+      const dbArticles = articles as DatabaseNewsArticle[];
+      const mappedArticles = dbArticles.map(article => ({
+        title: article.title,
+        description: article.description,
+        url: article.url,
+        publishedAt: article.published_at,
+        source: {
+          name: article.source_name
+        }
+      }));
+
+      results[company] = mappedArticles;
+    }
+
+    return results;
+
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return {};
   }
-  return null;
 }
 
-export function cacheNews(companyId: string | number, items: NewsItem[]): void {
-  newsCache.set(companyId.toString(), {
-    items,
-    timestamp: Date.now()
-  });
-} 
+// Add news articles manually if needed
+export async function addCompanyNews(companyName: string, articles: Array<{
+  title: string;
+  description?: string;
+  url?: string;
+  publishedAt?: string;
+  sourceName?: string;
+}>): Promise<boolean> {
+  try {
+    const supabase = createClient();
+    
+    const newsArticles: DatabaseNewsArticle[] = articles.map(article => ({
+      company_name: companyName,
+      title: article.title,
+      description: article.description || null,
+      url: article.url || null,
+      published_at: article.publishedAt || new Date().toISOString(),
+      source_name: article.sourceName || 'Unknown Source',
+      created_at: new Date().toISOString()
+    }));
+
+    const { error } = await supabase
+      .from('company_news')
+      .insert(newsArticles);
+
+    if (error) {
+      console.error('Error adding news:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error adding news:', error);
+    return false;
+  }
+}

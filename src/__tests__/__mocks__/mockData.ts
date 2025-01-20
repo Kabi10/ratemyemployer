@@ -1,4 +1,7 @@
-import { Database } from '@/types/supabase';
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
+type Review = Database['public']['Tables']['reviews']['Row'];
 
 // User mock data
 export const mockUser = {
@@ -11,45 +14,38 @@ export const mockUser = {
 };
 
 // Review mock data
-export const mockReview: Database['public']['Tables']['reviews']['Row'] = {
+export const mockReview: Review = {
   id: 1,
-  title: 'Great Company to Work For',
-  content: 'This is a detailed review of the company...',
-  rating: 4,
-  created_at: new Date().toISOString(),
   company_id: 1,
-  user_id: mockUser.id,
-  pros: 'Good benefits, work-life balance',
-  cons: 'Limited growth opportunities',
+  user_id: 'test-user-id',
+  rating: 4,
+  title: 'Test Review',
+  content: 'This is a test review',
+  pros: 'Good benefits',
+  cons: 'Long hours',
   position: 'Software Engineer',
   employment_status: 'Full-time',
   is_current_employee: true,
-  reviewer_name: 'Test User',
-  reviewer_email: 'test@example.com',
-  status: 'approved'
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  status: 'approved',
+  likes: 0
 };
 
 // Company mock data
-export const mockCompany: Database['public']['Tables']['companies']['Row'] = {
+export const mockCompany: Company = {
   id: 1,
-  name: 'Tech Corp Inc',
-  description: 'Leading technology company...',
+  name: 'Test Company',
   industry: 'Technology',
-  location: 'San Francisco, CA',
-  website: 'https://techcorp.example.com',
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  logo_url: 'https://example.com/logo.png',
-  total_reviews: 25,
+  description: 'A test company',
+  location: 'Test Location',
+  website: 'https://test.com',
+  ceo: 'Test CEO',
   average_rating: 4.2,
-  verified: true,
-  benefits: 'Great health insurance, 401k matching',
-  ceo: 'John Doe',
-  company_values: 'Innovation, Integrity, Excellence',
-  created_by: mockUser.id,
+  total_reviews: 25,
   recommendation_rate: 85,
-  verification_date: new Date().toISOString(),
-  verification_status: 'verified'
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
 };
 
 // Mock likes data
@@ -189,4 +185,4 @@ export const createMockUser = (overrides = {}) => ({
   ...overrides,
   id: `test-user-${Date.now()}`,
   created_at: new Date().toISOString()
-}); 
+});

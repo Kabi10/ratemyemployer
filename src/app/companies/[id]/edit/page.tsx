@@ -1,13 +1,14 @@
-'use client';
-
-export const dynamic = 'force-dynamic';
+'use client'
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import type { Database } from '@/types/supabase';
-import { Company } from '@/types';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
+
+export const dynamic = 'force-dynamic';
 
 export default function EditCompany() {
   const params = useParams();
@@ -27,28 +28,31 @@ export default function EditCompany() {
   });
 
   useEffect(() => {
-    if (params.id && typeof params.id === 'string') {
-      fetchCompany(params.id);
+    const id = params?.id;
+    if (id && typeof id === 'string') {
+      fetchCompany(id);
     }
-  }, [params.id]);
+  }, [params?.id]);
 
   const fetchCompany = async (id: string) => {
     try {
       const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
 
       if (error) throw error;
-      setCompany(data);
-      setFormData({
-        name: data.name,
-        industry: data.industry,
-        description: data.description || '',
-        location: data.location,
-        website: data.website || '',
-        ceo: data.ceo || '',
-      });
+
+      if (data) {
+        setCompany(data);
+        setFormData({
+          name: data.name || '',
+          industry: data.industry || '',
+          description: data.description || '',
+          location: data.location || '',
+          website: data.website || '',
+          ceo: data.ceo || '',
+        });
+      }
     } catch (err) {
-      console.error('Error fetching company:', err);
-      setError('Failed to load company');
+      setError(err instanceof Error ? err.message : 'Failed to fetch company');
     } finally {
       setLoading(false);
     }
@@ -56,146 +60,147 @@ export default function EditCompany() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!params.id || typeof params.id !== 'string') return;
+    const id = params?.id;
+    if (!id || typeof id !== 'string') return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const { error } = await supabase.from('companies').update(formData).eq('id', params.id);
+      const { error } = await supabase
+        .from('companies')
+        .update(formData)
+        .eq('id', id);
 
       if (error) throw error;
-      router.push(`/companies/${params.id}`);
+
+      router.push(`/companies/${id}`);
     } catch (err) {
-      console.error('Error updating company:', err);
       setError(err instanceof Error ? err.message : 'Failed to update company');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
-  if (error || !company) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error || 'Company not found'}</p>
-        </div>
-      </div>
-    );
+  if (error) {
+    return <ErrorDisplay message={error} />;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit Company</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Company Name <span className="text-red-500">*</span>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Company Name
           </label>
           <input
             type="text"
+            id="name"
+            name="name"
             value={formData.name}
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             required
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Industry <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={formData.industry}
-            onChange={e => setFormData({ ...formData, industry: e.target.value })}
-            required
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-          >
-            <option value="">Select Industry</option>
-            <option value="Technology">Technology</option>
-            <option value="Finance">Finance</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Retail">Retail</option>
-            <option value="Manufacturing">Manufacturing</option>
-            <option value="Education">Education</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Hospitality">Hospitality</option>
-            <option value="Construction">Construction</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={e => setFormData({ ...formData, description: e.target.value })}
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Location <span className="text-red-500">*</span>
+          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Industry
           </label>
           <input
             type="text"
-            value={formData.location}
-            onChange={e => setFormData({ ...formData, location: e.target.value })}
+            id="industry"
+            name="industry"
+            value={formData.industry}
+            onChange={handleInputChange}
             required
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-            placeholder="Company headquarters location"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Website</label>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            rows={4}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Location
+          </label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleInputChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Website
+          </label>
           <input
             type="url"
+            id="website"
+            name="website"
             value={formData.website}
-            onChange={e => setFormData({ ...formData, website: e.target.value })}
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-            placeholder="https://example.com"
+            onChange={handleInputChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">CEO</label>
+          <label htmlFor="ceo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            CEO
+          </label>
           <input
             type="text"
+            id="ceo"
+            name="ceo"
             value={formData.ceo}
-            onChange={e => setFormData({ ...formData, ceo: e.target.value })}
-            className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-            placeholder="Company CEO name"
+            onChange={handleInputChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
           />
         </div>
 
-        {error && <ErrorDisplay message={error} className="mb-4" />}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
-        >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -1,8 +1,14 @@
-'use client';
+'use client'
+
 
 import { createContext, useContext, useEffect, useState } from 'react';
+
 import { User, onAuthStateChanged } from '@firebase/auth';
+
 import { auth } from '@/lib/firebase';
+
+
+
 
 interface FirebaseContextType {
   user: User | null;
@@ -36,4 +42,4 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useFirebase = () => useContext(FirebaseContext); 
+export const useFirebase = () => useContext(FirebaseContext);

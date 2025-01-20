@@ -1,8 +1,11 @@
-'use client';
+'use client'
 
 import { motion } from 'framer-motion';
 
-export default function TermsPage() {
+
+
+
+export default function TermsPage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-12">
@@ -110,9 +113,25 @@ export default function TermsPage() {
                 <li>Address: [Your Address]</li>
               </ul>
             </section>
+
+            <p>
+              We&apos;re committed to maintaining a fair and balanced platform.
+            </p>
+            <p>
+              By using &quot;RateMyEmployer&quot;, you agree to these terms.
+            </p>
+            <p>
+              We don&apos;t tolerate harassment or discrimination.
+            </p>
+            <p>
+              It&apos;s important to maintain professionalism.
+            </p>
+            <p>
+              Don&apos;t share confidential information.
+            </p>
           </div>
         </motion.div>
       </div>
     </div>
   );
-} 
+}

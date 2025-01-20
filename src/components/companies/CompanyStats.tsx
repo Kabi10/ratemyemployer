@@ -1,5 +1,7 @@
-import { Company } from '@/types';
+import type { Database } from '@/types/supabase';
 import { StatCard } from '@/components/ui/StatCard';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 export function CompanyStats({ company }: { company: Company }) {
   const rating = company.average_rating || 0;
@@ -19,7 +21,7 @@ export function CompanyStats({ company }: { company: Company }) {
       />
       <StatCard
         label="Recommendation Rate"
-        value={0}
+        value={company.recommendation_rate || 0}
         type="percentage"
       />
     </div>

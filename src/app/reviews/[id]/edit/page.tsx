@@ -1,10 +1,14 @@
-'use client';
+'use client'
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { withAuth } from '@/lib/auth/withAuth';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ReviewForm } from '@/components/ReviewForm';
-import { Review } from '@/types';
+import type { Database } from '@/types/supabase';
+
+type Review = Database['public']['Tables']['reviews']['Row'];
 
 export default function EditReview() {
   const params = useParams();
@@ -14,13 +18,13 @@ export default function EditReview() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchReview = useCallback(async () => {
-    if (!params.id) return;
+    if (!params?.id) return;
 
     try {
       const { data, error } = await supabase
         .from('reviews')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', params?.id)
         .single();
 
       if (error) throw error;
@@ -31,7 +35,7 @@ export default function EditReview() {
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [params?.id]);
 
   useEffect(() => {
     fetchReview();

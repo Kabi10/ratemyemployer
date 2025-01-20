@@ -1,14 +1,19 @@
-'use client';
+'use client'
+
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+
 import Link from 'next/link';
-import { Database } from '@/types/supabase';
+
+import { createClient } from '@/lib/supabaseClient';
+
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 
-type Review = Database['public']['Tables']['reviews']['Row'];
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+import { Database } from '@/types/supabase';
+
 type Company = Database['public']['Tables']['companies']['Row'];
 
 interface ReviewWithCompany {

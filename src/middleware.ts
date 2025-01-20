@@ -1,12 +1,17 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+
 /**
  * src/middleware.ts
  * Next.js middleware for route protection and authentication
  * Handles route protection and role-based access using Supabase user metadata
  */
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+
+
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();

@@ -1,5 +1,6 @@
 import type { Company, Review, Profile } from '@/types';
 
+
 export const mockCompany: Company = {
   id: 1,
   name: 'Test Company',
@@ -49,4 +50,4 @@ export const mockProfile: Profile = {
   is_verified: true,
   created_at: new Date().toISOString(),
   role: 'user'
-}; 
+};

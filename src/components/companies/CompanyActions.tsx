@@ -1,5 +1,13 @@
+'use client'
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { Database } from '@/types/supabase';
 import { Company } from '@/types';
+
 import Link from 'next/link';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 export default function CompanyActions({ company }: { company: Company }) {
   return (

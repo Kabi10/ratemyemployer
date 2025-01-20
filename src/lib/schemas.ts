@@ -1,5 +1,9 @@
-import * as z from 'zod';
 import { INDUSTRIES } from '@/types';
+import * as z from 'zod';
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
+type Review = Database['public']['Tables']['reviews']['Row'];
 
 // Enums
 export const employmentStatusEnum = ['Full-time', 'Part-time', 'Contract', 'Intern'] as const;
@@ -8,7 +12,7 @@ export const reviewStatusEnum = ['pending', 'approved', 'rejected'] as const;
 export const rateLimitTypeEnum = ['review', 'company', 'report'] as const;
 
 // Validation Messages
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   required: 'This field is required',
   email: 'Please enter a valid email address',
   url: 'Please enter a valid website URL',
@@ -17,59 +21,40 @@ const ERROR_MESSAGES = {
   rating: 'Rating must be between 1 and 5 stars',
   invalidEnum: (field: string, options: readonly string[]) => 
     `${field} must be one of: ${options.join(', ')}`,
-} as const;
+  name: 'Company name must be at least 2 characters',
+  website: 'Please enter a valid URL',
+  industry: 'Please select an industry',
+  location: 'Location must be at least 2 characters',
+  title: 'Title must be between 3 and 255 characters',
+  content: 'Review must be at least 10 characters',
+  position: 'Position must be between 2 and 255 characters'
+};
 
 // Review Schema
 export const reviewSchema = z.object({
-  title: z.string()
-    .max(100, ERROR_MESSAGES.max('Title', 100))
-    .trim()
-    .optional(),
   rating: z.number()
     .min(1, ERROR_MESSAGES.rating)
     .max(5, ERROR_MESSAGES.rating),
-  position: z.string()
-    .min(2, ERROR_MESSAGES.min('Position', 2))
-    .max(100, ERROR_MESSAGES.max('Position', 100))
-    .trim(),
+  title: z.string().min(3, ERROR_MESSAGES.title).max(255),
+  content: z.string().min(10, ERROR_MESSAGES.content),
+  pros: z.string().min(3).optional(),
+  cons: z.string().min(3).optional(),
+  position: z.string().min(2, ERROR_MESSAGES.position).max(255),
   employment_status: z.enum(employmentStatusEnum, {
     errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Employment status', employmentStatusEnum) })
   }),
-  is_current_employee: z.boolean().default(false),
-  status: z.enum(reviewStatusEnum).default('pending'),
-  pros: z.string()
-    .min(10, ERROR_MESSAGES.min('Pros', 10))
-    .max(500, ERROR_MESSAGES.max('Pros', 500))
-    .trim(),
-  cons: z.string()
-    .min(10, ERROR_MESSAGES.min('Cons', 10))
-    .max(500, ERROR_MESSAGES.max('Cons', 500))
-    .trim(),
-  reviewer_name: z.string().trim().optional(),
-  reviewer_email: z.string().email(ERROR_MESSAGES.email).optional()
+  is_current_employee: z.boolean(),
+  company_id: z.number()
 });
 
 // Company Schema
 export const companySchema = z.object({
-  name: z.string()
-    .min(2, ERROR_MESSAGES.min('Company name', 2))
-    .max(100, ERROR_MESSAGES.max('Company name', 100))
-    .trim(),
-  description: z.string()
-    .min(10, ERROR_MESSAGES.min('Description', 10))
-    .max(1000, ERROR_MESSAGES.max('Description', 1000))
-    .trim(),
-  industry: z.enum(INDUSTRIES as unknown as [string, ...string[]], {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Industry', INDUSTRIES) })
-  }),
-  location: z.string()
-    .min(2, ERROR_MESSAGES.min('Location', 2))
-    .max(100, ERROR_MESSAGES.max('Location', 100))
-    .trim(),
-  website: z.string()
-    .url(ERROR_MESSAGES.url)
-    .trim()
-    .optional(),
+  name: z.string().min(2, ERROR_MESSAGES.name),
+  website: z.string().url(ERROR_MESSAGES.website).optional().or(z.literal('')),
+  industry: z.string().min(2, ERROR_MESSAGES.industry),
+  location: z.string().min(2, ERROR_MESSAGES.location),
+  description: z.string().optional(),
+  ceo: z.string().optional(),
   size: z.enum(['Small', 'Medium', 'Large', 'Enterprise'], {
     errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Company size', ['Small', 'Medium', 'Large', 'Enterprise']) })
   })
@@ -105,4 +90,4 @@ export type CompanyFormData = z.infer<typeof companySchema>;
 export type EmploymentStatus = typeof employmentStatusEnum[number];
 export type VerificationStatus = typeof verificationStatusEnum[number];
 export type ReviewStatus = typeof reviewStatusEnum[number];
-export type RateLimitType = typeof rateLimitTypeEnum[number]; 
+export type RateLimitType = typeof rateLimitTypeEnum[number];

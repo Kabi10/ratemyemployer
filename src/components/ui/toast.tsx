@@ -1,4 +1,5 @@
-'use client';
+'use client'
+
 
 import React, { createContext, useContext, useState } from 'react';
 
@@ -63,4 +64,4 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       </div>
     </ToastContext.Provider>
   );
-} 
+}

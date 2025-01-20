@@ -1,6 +1,9 @@
-'use client';
+'use client'
 
 import { useAuth } from '@/contexts/AuthContext';
+
+
+
 
 export function LoginButton() {
   const { user, isLoading, error, signIn, signOut } = useAuth();

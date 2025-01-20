@@ -1,11 +1,16 @@
-'use client';
+'use client'
+
 
 import { useState, useEffect } from 'react';
+
+import { User as SupabaseUser } from '@supabase/supabase-js';
+
 import { createClient } from '@/lib/supabaseClient';
+
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useToast } from '@/components/ui/toast';
-import { User as SupabaseUser } from '@supabase/supabase-js';
-import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 type User = {
   id: string;
@@ -26,7 +31,7 @@ const mapSupabaseUser = (user: SupabaseUser): User => ({
 });
 
 export default function AdminUsers() {
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,10 +69,10 @@ export default function AdminUsers() {
           : u
       ));
 
-      showToast('User role updated successfully', 'success');
+      addToast('User role updated successfully', 'success');
     } catch (err) {
       console.error('Error updating user role:', err);
-      showToast('Failed to update user role', 'error');
+      addToast('Failed to update user role', 'error');
     }
   };
 

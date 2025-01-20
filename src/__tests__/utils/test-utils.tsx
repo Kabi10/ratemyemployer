@@ -1,11 +1,17 @@
+import { createContext } from 'react';
 import React from 'react';
+
+import type { User, Session } from '@supabase/supabase-js';
+
 import { render, RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider } from '@/components/ThemeProvider';
+
 import { vi } from 'vitest';
-import { createContext } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
+
 import { AuthProvider } from '@/contexts/AuthContext';
+
+
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

@@ -1,6 +1,9 @@
-import Image from 'next/image';
-import { signInWithGoogle } from '@/lib/firebase';
 import { useState } from 'react';
+
+
+import Image from 'next/image';
+
+import { signInWithGoogle } from '@/lib/firebase';
 
 interface GoogleSignInButtonProps {
   onSuccess?: (user: any) => void;
@@ -55,4 +58,4 @@ export function GoogleSignInButton({ onSuccess, onError, className = '' }: Googl
       <span className="text-base">Continue with Google</span>
     </button>
   );
-} 
+}

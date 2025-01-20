@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 
+
 async function checkDatabaseSchema() {
   // Check user metadata and roles
   const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();

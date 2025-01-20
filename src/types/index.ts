@@ -1,5 +1,7 @@
+import type { Database } from './supabase';
+
+
 // src/types/index.ts
-import { Database } from '@/types/supabase';
 
 type Tables = Database['public']['Tables'];
 type Enums = Database['public']['Enums'];
@@ -35,25 +37,9 @@ export type Role = 'user' | 'admin' | 'moderator';
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
 
 // Database-derived types
-export type Company = Omit<CompanyRow, 'id'> & {
-  id?: number;
-  size?: CompanySize;
-};
-
-export type Review = Omit<ReviewRow, 'id'> & {
-  id?: number;
-  company?: Company;
-  likes?: number;
-};
-
-export type Profile = {
-  id: string;
-  email: string;
-  username: string | null;
-  role: string | null;
-  is_verified: boolean | null;
-  created_at: string;
-};
+export type Company = Database['public']['Tables']['companies']['Row'];
+export type Review = Database['public']['Tables']['reviews']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 // Analytics types
 export type AdminStats = {

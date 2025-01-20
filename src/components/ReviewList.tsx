@@ -1,9 +1,15 @@
-'use client';
+'use client'
 
-import { StarIcon } from '@heroicons/react/20/solid';
-import { useCompany } from '@/hooks/useCompany';
+
+import { useEffect, useState } from 'react';
+import { StarIcon } from '@heroicons/react/24/solid';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { formatDateDisplay } from '@/utils/date';
+
 import type { Review } from '@/types';
+
+import { useCompany } from '@/hooks/useCompany';
 
 interface ReviewListProps {
   companyId: string | number;

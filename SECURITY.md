@@ -9,52 +9,87 @@ We release patches for security vulnerabilities. Which versions are eligible for
 | 1.0.x   | :white_check_mark: |
 | < 1.0   | :x:                |
 
-## Reporting a Vulnerability
-
-Please report (suspected) security vulnerabilities to **[security@ratemyemployer.com](mailto:security@ratemyemployer.com)**. You will receive a response from us within 48 hours. If the issue is confirmed, we will release a patch as soon as possible depending on complexity but historically within a few days.
-
 ## Security Measures
 
-### Data Protection
-- All user data is encrypted at rest
-- Sensitive data is never logged
-- Regular security audits
-- Strict access control policies
-
 ### Authentication
-- Secure password hashing
-- Two-factor authentication support
-- Session management
-- Rate limiting on auth endpoints
+- Firebase Authentication for user management
+- Secure session handling
+- Multi-factor authentication support
+- Secure password policies
 
-### API Security
-- Input validation
-- Output sanitization
-- Rate limiting
-- CORS policies
-- API key rotation
+### Data Protection
+- Supabase PostgreSQL with RLS (Row Level Security)
+- End-to-end data encryption
+- Secure API endpoints
+- Input sanitization and validation using Zod
 
-### Database
-- Row Level Security (RLS)
-- Prepared statements
-- Regular backups
-- Access logging
+### Infrastructure
+- Vercel deployment with security headers
+- CORS policy implementation
+- Rate limiting on API routes
+- DDoS protection
 
-## Best Practices
+### Code Security
+- TypeScript strict mode enabled
+- ESLint security rules
+- Automated security scanning in CI/CD
+- Regular dependency updates
+
+### Image Security
+- Strict remote patterns for allowed image domains
+- Image optimization and sanitization
+- Content security policy headers
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability within RateMyEmployer, please follow these steps:
+
+1. **Do Not** disclose the vulnerability publicly
+2. Send a detailed report to [security@ratemyemployer.com](mailto:security@ratemyemployer.com)
+3. Include:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested fix (if any)
+
+### What to Expect
+- Acknowledgment within 24 hours
+- Regular updates on progress
+- Credit for responsible disclosure
+- Notification when the vulnerability is fixed
+
+## Security Best Practices
 
 ### For Contributors
 1. Never commit sensitive information
 2. Use environment variables for secrets
-3. Keep dependencies updated
-4. Follow secure coding guidelines
-5. Run security checks before PRs
+3. Follow the principle of least privilege
+4. Keep dependencies updated
+5. Write secure code following OWASP guidelines
 
 ### For Users
 1. Use strong passwords
-2. Enable 2FA when available
-3. Keep your API keys secure
-4. Report suspicious activity
-5. Keep your account information updated
+2. Enable two-factor authentication
+3. Keep your access tokens secure
+4. Report suspicious activities
+5. Follow security guidelines in documentation
+
+## Compliance
+
+- GDPR compliance for EU users
+- CCPA compliance for California residents
+- Regular security audits
+- Data protection impact assessments
+
+## Contact
+
+For security-related inquiries, contact:
+- Security Team: [security@ratemyemployer.com](mailto:security@ratemyemployer.com)
+- Lead Security Engineer: [security-lead@ratemyemployer.com](mailto:security-lead@ratemyemployer.com)
+
+## Acknowledgments
+
+We appreciate the security research community's efforts in keeping RateMyEmployer secure. Responsible disclosure of vulnerabilities helps us maintain a secure platform for all users.
 
 ## Security Updates
 

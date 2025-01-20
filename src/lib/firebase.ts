@@ -1,4 +1,5 @@
 import { initializeApp } from '@firebase/app';
+
 import { 
   getAuth, 
   GoogleAuthProvider, 
@@ -175,4 +176,4 @@ export const signOut = async () => {
   }
 };
 
-export { auth }; 
+export { auth };

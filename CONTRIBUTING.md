@@ -1,12 +1,145 @@
-# Contributing to Rate My Employer
+# Contributing to RateMyEmployer
 
-We love your input! We want to make contributing to Rate My Employer as easy and transparent as possible, whether it's:
+Thank you for your interest in contributing to RateMyEmployer! This document provides guidelines and instructions for contributing to the project.
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
+## Development Setup
+
+### Prerequisites
+- Node.js >= 18.17.0
+- npm or yarn
+- Git
+- Supabase account
+- Firebase project
+- Google Maps API key (optional)
+
+### Environment Setup
+1. Fork the repository
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/ratemyemployer.git
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Copy environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+5. Configure your environment variables in `.env.local`
+
+## Development Workflow
+
+1. Create a feature branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Make your changes following our guidelines
+
+4. Run tests:
+   ```bash
+   npm run test:all
+   ```
+
+5. Build and analyze:
+   ```bash
+   ANALYZE=true npm run build
+   ```
+
+## Code Style
+
+- TypeScript strict mode is enabled
+- ESLint rules must pass
+- Prettier formatting is required
+- Follow the existing code structure
+
+### Component Guidelines
+- Use TypeScript for all new code
+- Implement proper error handling
+- Add appropriate loading states
+- Include unit tests
+- Document props and functions
+- Follow accessibility best practices
+
+## Testing Requirements
+
+All new code should include:
+- Unit tests (Vitest)
+- Integration tests where appropriate
+- E2E tests for critical paths (Playwright)
+- Type checking passes
+- ESLint validation passes
+
+## Pull Request Process
+
+1. Update documentation
+2. Add tests for new features
+3. Ensure all tests pass
+4. Update CHANGELOG.md
+5. Submit PR with detailed description
+
+### PR Description Template
+```markdown
+## Description
+[Describe your changes]
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] E2E tests added/updated
+- [ ] Manual testing performed
+
+## Checklist
+- [ ] My code follows the style guidelines
+- [ ] I have performed a self-review
+- [ ] I have updated the documentation
+- [ ] I have added tests
+- [ ] All tests pass
+```
+
+## Documentation
+
+- Update README.md for new features
+- Add JSDoc comments for functions
+- Update API documentation
+- Include usage examples
+- Document breaking changes
+
+## Version Control
+
+- Follow [Conventional Commits](https://www.conventionalcommits.org/)
+- Keep commits focused and atomic
+- Write clear commit messages
+- Rebase feature branches on main
+
+## Code Review
+
+- All code must be reviewed
+- Address review comments promptly
+- Request reviews from relevant team members
+- Be respectful and constructive
+
+## Getting Help
+
+- Check existing issues and documentation
+- Ask in pull request comments
+- Join our community discussions
+- Contact maintainers directly
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
 
 ## Development Process
 

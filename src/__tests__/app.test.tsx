@@ -1,32 +1,28 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
+
+import { describe, it, expect, vi } from 'vitest';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { CompanyCard } from '@/components/CompanyCard';
-import type { Company } from '@/types';
+import { Input } from '@/components/ui/input';
 
 // Mock company data
 const mockCompany: Company = {
   id: 1,
   name: 'Test Company',
   industry: 'Technology',
+  description: 'A test company',
+  location: 'Test Location',
   website: 'https://test.com',
-  logo_url: null,
-  created_at: new Date().toISOString(),
-  benefits: null,
-  company_values: null,
-  ceo: null,
-  verification_status: 'pending',
+  ceo: 'Test CEO',
   average_rating: 0,
   total_reviews: 0,
-  description: null,
   recommendation_rate: 0,
-  updated_at: new Date().toISOString(),
-  created_by: null,
-  verified: false,
-  verification_date: null,
-  location: 'Test Location',
-  size: undefined
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
 };
 
 describe('RateMyEmployer App', () => {
@@ -46,4 +42,4 @@ describe('RateMyEmployer App', () => {
       expect(screen.getByText(mockCompany.name)).toBeInTheDocument();
     });
   });
-}); 
+});

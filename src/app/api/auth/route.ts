@@ -1,6 +1,8 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+
+
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 // Helper function to create Supabase client
 const createClient = () => {
@@ -67,4 +69,4 @@ export async function GET() {
   }
 
   return NextResponse.json({ session })
-} 
+}

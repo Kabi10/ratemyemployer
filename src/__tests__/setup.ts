@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom';
+
 import { vi, beforeEach } from 'vitest';
+
 
 // Suppress React warnings
 const originalError = console.error;
@@ -47,4 +49,4 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // Clear mocks before each test
 beforeEach(() => {
   vi.clearAllMocks();
-}); 
+});

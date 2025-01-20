@@ -1,16 +1,18 @@
-'use client';
+'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { GoogleSignInButton } from '@/components/GoogleSignInButton';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { User, Lock, Mail, Github, Twitter } from 'lucide-react';
+
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 import { signInWithGithub, signInWithTwitter, signInWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isSignUp = searchParams.get('signup') === 'true';
+  const isSignUp = searchParams?.get('signup') === 'true';
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -352,7 +354,7 @@ function LoginContent() {
   );
 }
 
-export default function LoginPage() {
+export default function LoginPage(): JSX.Element {
   return (
     <Suspense fallback={
       <div className="min-h-screen w-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4">

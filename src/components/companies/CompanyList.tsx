@@ -1,5 +1,10 @@
-import { Company } from '@/types';
+'use client'
+
+import type { Database } from '@/types/supabase';
+
 import { CompanyCard } from '../CompanyCard';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 export function CompanyList({ companies }: { companies: Company[] }) {
   return (

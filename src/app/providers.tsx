@@ -1,8 +1,15 @@
-'use client';
+'use client'
 
 import { ThemeProvider } from 'next-themes';
+
 import { AuthProvider } from '@/contexts/AuthContext';
+
 import { ToastProvider } from '@/components/Toast';
+
+
+
+
+
 
 interface Props {
   children: React.ReactNode;

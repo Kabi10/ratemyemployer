@@ -1,6 +1,15 @@
-'use client';
+'use client'
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { withAuth } from '@/lib/auth/withAuth';
+import { useCompany } from '@/hooks/useCompany';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { CompanyList } from '@/components/CompanyList';
+
 import { useCompanies } from '@/hooks/useCompany';
 
 function AdminCompaniesPage() {

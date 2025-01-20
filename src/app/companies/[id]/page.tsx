@@ -1,98 +1,128 @@
-// app/companies/[id]/page.tsx
-'use client';
+'use client'
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { ReviewForm } from '@/components/ReviewForm';
-import { ReviewList } from '@/components/ReviewList';
 import { useCompany } from '@/hooks/useCompany';
-import { XMarkIcon, StarIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { CompanyNews } from '@/components/CompanyNews';
+import { ReviewList } from '@/components/ReviewList';
+import { ReviewForm } from '@/components/ReviewForm';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { Button } from '@/components/ui/button';
+
+// app/companies/[id]/page.tsx
 
 export default function CompanyPage() {
-  const { id } = useParams();
-  const { company, isLoading, error } = useCompany(id as string);
+  const params = useParams();
+  const companyId = params?.id;
+  const { company, isLoading, error } = useCompany(companyId as string);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 animate-pulse">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-8"></div>
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          ))}
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  if (error || !company) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-red-500">Error loading company details</p>
-      </div>
-    );
+  if (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return <ErrorDisplay message={errorMessage} />;
+  }
+
+  if (!company) {
+    return <ErrorDisplay message="Company not found" />;
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
-            {company.verification_status === 'verified' && (
-              <div className="flex items-center space-x-1 text-blue-500">
-                <CheckBadgeIcon className="h-6 w-6" />
-                <span className="text-sm font-medium">Verified</span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {company.name}
+              </h1>
+              <div className="flex items-center text-gray-600 dark:text-gray-400 space-x-4">
+                <span>{company.industry}</span>
+                {company.location && (
+                  <>
+                    <span>•</span>
+                    <span>{company.location}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <Button
+              onClick={() => setShowReviewForm(!showReviewForm)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {showReviewForm ? 'Cancel Review' : 'Write a Review'}
+            </Button>
+          </div>
+
+          {company.description && (
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              {company.description}
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                Rating
+              </h3>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {company.rating?.toFixed(1) || 'N/A'}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                Based on {company.review_count || 0} reviews
+              </p>
+            </div>
+
+            {company.website && (
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  Website
+                </h3>
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {company.website}
+                </a>
               </div>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
-              {company.average_rating ? company.average_rating.toFixed(1) : 'N/A'}
-            </span>
-            <StarIcon className="h-6 w-6 text-yellow-400" />
-          </div>
-        </div>
-        <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600 dark:text-gray-300">Industry: {company.industry}</p>
-              <p className="text-gray-600 dark:text-gray-300">Location: {company.location}</p>
-            </div>
-            <div className="text-right">
-              <button
-                onClick={() => setShowReviewForm(true)}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Write a Review
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Review Form Modal */}
         {showReviewForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-              <button
-                onClick={() => setShowReviewForm(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Write a Review for {company.name}</h2>
-                <ReviewForm companyId={company.id} onSuccess={() => setShowReviewForm(false)} />
-              </div>
-            </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6">Write a Review</h2>
+            <ReviewForm
+              companyId={company.id}
+              onSuccess={() => setShowReviewForm(false)}
+            />
           </div>
         )}
 
-        <div className="space-y-8">
-          <h2 className="text-2xl font-bold">Reviews</h2>
-          <ReviewList companyId={company.id} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+              {company.id && <ReviewList companyId={company.id} />}
+            </div>
+          </div>
+
+          <div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-bold mb-6">Recent News</h2>
+              <CompanyNews companyName={company.name} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

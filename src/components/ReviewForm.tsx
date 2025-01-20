@@ -1,24 +1,44 @@
+'use client'
+
+
+import { useState, useEffect } from 'react';
+
+import { useRouter } from 'next/navigation';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { useForm } from 'react-hook-form';
+
+
+import { createClient } from '@/lib/supabaseClient';
+import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
+
+import { useAuth } from '@/contexts/AuthContext';
+
+import type { Database } from '@/types/supabase';
+
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { LoadingSpinner } from './LoadingSpinner';
+
+
 /**
  * src/components/ReviewForm.tsx
  * Review form component for creating and editing reviews
  */
 
-'use client';
-
 // External imports
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+
+
+
 
 // Internal imports
-import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/lib/supabaseClient';
-import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
-import type { Database } from '@/types/supabase';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { LoadingSpinner } from './LoadingSpinner';
+
+
+
+
+
+
 
 type Company = Database['public']['Tables']['companies']['Row'];
 type Review = Database['public']['Tables']['reviews']['Row'];

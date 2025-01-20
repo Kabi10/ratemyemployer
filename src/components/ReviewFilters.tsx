@@ -1,5 +1,8 @@
+'use client'
+
+
+
 // components/ReviewFilters.tsx
-'use client';
 
 type SortType = 'newest' | 'oldest' | 'highest' | 'lowest';
 
@@ -9,21 +12,34 @@ interface Filters {
   dateRange: string;
 }
 
+type FilterValue = number | string;
+
 interface ReviewFiltersProps {
   currentFilters: Filters;
   currentSort: SortType;
 }
 
+interface FilterChangeEvent extends CustomEvent {
+  detail: {
+    key: keyof Filters;
+    value: FilterValue;
+  };
+}
+
+interface SortChangeEvent extends CustomEvent {
+  detail: SortType;
+}
+
 export default function ReviewFilters({ currentFilters, currentSort }: ReviewFiltersProps) {
-  const dispatchFilterChange = (key: keyof Filters, value: any) => {
-    const event = new CustomEvent('filterChange', {
+  const dispatchFilterChange = (key: keyof Filters, value: FilterValue) => {
+    const event = new CustomEvent<FilterChangeEvent['detail']>('filterChange', {
       detail: { key, value },
     });
     window.dispatchEvent(event);
   };
 
   const dispatchSortChange = (sort: SortType) => {
-    const event = new CustomEvent('sortChange', {
+    const event = new CustomEvent<SortType>('sortChange', {
       detail: sort,
     });
     window.dispatchEvent(event);
@@ -95,5 +111,4 @@ export default function ReviewFilters({ currentFilters, currentSort }: ReviewFil
   );
 }
 
-// Make sure to export the types if they're needed elsewhere
-export type { ReviewFiltersProps, Filters, SortType };
+export type { ReviewFiltersProps, Filters, SortType, FilterChangeEvent, SortChangeEvent };

@@ -1,12 +1,14 @@
-'use client';
-
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
-import { Navbar } from '@/components/Navbar';
-import { FirebaseProvider } from '@/contexts/FirebaseContext';
+
+import { Inter } from 'next/font/google';
+import type { Metadata } from 'next';
+
 import { AuthProvider } from '@/contexts/AuthContext';
+import { FirebaseProvider } from '@/contexts/FirebaseContext';
+
+import { Navbar } from '@/components/Navbar';
 import { ToastProvider } from '@/components/ui/toast';
+
 
 const inter = Inter({ subsets: ['latin'] });
 

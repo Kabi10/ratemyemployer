@@ -1,8 +1,10 @@
-'use client';
+'use client'
 
+
+import { JSX } from 'react';
 import { motion } from 'framer-motion';
 
-export default function AboutPage() {
+export default function AboutPage(): JSX.Element {
   const teamMembers = [
     {
       name: 'John Doe',
@@ -17,7 +19,7 @@ export default function AboutPage() {
     // Add more team members as needed
   ];
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
     return name
       .split(' ')
       .map(part => part[0])
@@ -49,10 +51,10 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Our Mission</h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                At RateMyEmployer, we believe in the power of transparency to create better workplaces. Our platform provides a space for employees to share their experiences, helping others make informed decisions about their careers while encouraging employers to build better work environments.
+                At RateMyEmployer, we believe in fostering transparency in the workplace. Our platform empowers employees to share their experiences, helping others make informed career decisions while encouraging companies to maintain high standards of workplace quality.
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-300">
-                We're committed to maintaining a fair and balanced platform where both employees and employers can engage in meaningful dialogue about workplace conditions, culture, and practices.
+                We&apos;re committed to maintaining a fair and balanced platform where both employees and employers can engage in meaningful dialogue about workplace conditions, culture, and practices.
               </p>
             </div>
           </section>
@@ -87,7 +89,7 @@ export default function AboutPage() {
               >
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Privacy</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  We protect our users' identities while enabling honest discourse.
+                  We protect our users&apos; identities while enabling honest discourse.
                 </p>
               </motion.div>
 
@@ -135,7 +137,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Get in Touch</h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                Have questions or suggestions? We'd love to hear from you!
+                Have questions or suggestions? We&apos;d love to hear from you!
               </p>
               <ul className="text-gray-600 dark:text-gray-300">
                 <li className="mb-2">Email: contact@ratemyemployer.com</li>
@@ -148,4 +150,4 @@ export default function AboutPage() {
       </div>
     </div>
   );
-} 
+}

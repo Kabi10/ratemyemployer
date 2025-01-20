@@ -1,46 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export interface Company {
-  id: number;
-  name: string;
-  description: string | null;
-  industry: string | null;
-  location: string | null;
-  website: string | null;
-  size: string | null;
-  founded_year: number | null;
-  ceo: string | null;
-  company_values: string | null;
-  benefits: string | null;
-  work_life_balance: string | null;
-  career_growth: string | null;
-  interview_process: string | null;
-  created_at: string | null;
-  created_by: string | null;
-  average_rating: number | null;
-  total_reviews: number | null;
-}
-
-export interface Review {
-  id: number;
-  company_id: number;
-  user_id: string;
-  rating: number;
-  title: string | null;
-  content: string | null;
-  pros: string | null;
-  cons: string | null;
-  employment_status: string | null;
-  job_title: string | null;
-  department: string | null;
-  location: string | null;
-  is_current_employee: boolean | null;
-  created_at: string | null;
-  company: Company | null;
-}
+export type Company = Database['public']['Tables']['companies']['Row'];
+export type Review = Database['public']['Tables']['reviews']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export interface ReviewLike {
   id: number;

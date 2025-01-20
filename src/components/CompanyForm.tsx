@@ -1,18 +1,20 @@
-'use client';
+'use client'
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { companySchema, type CompanyFormData } from '@/lib/schemas';
-import { Company, INDUSTRIES } from '@/types';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ErrorDisplay } from "@/components/ErrorDisplay";
-import { LocationAutocomplete } from '@/components/LocationAutocomplete';
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 interface CompanyFormProps {
   initialData?: Company;
@@ -37,12 +39,10 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     resolver: zodResolver(companySchema),
     defaultValues: {
       name: initialData?.name || '',
-      industry: initialData?.industry || INDUSTRIES[0],
+      industry: initialData?.industry || '',
       location: initialData?.location || '',
       website: initialData?.website || '',
       description: initialData?.description || '',
-      size: initialData?.size || 'Small',
-      logo_url: initialData?.logo_url || '',
     },
   });
 
@@ -156,17 +156,6 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
           className="w-full p-3 border rounded-lg"
         />
         {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Company Size</label>
-        <select {...register('size')} className="w-full p-3 border rounded-lg">
-          <option value="Small">Small</option>
-          <option value="Medium">Medium</option>
-          <option value="Large">Large</option>
-          <option value="Enterprise">Enterprise</option>
-        </select>
-        {errors.size && <p className="mt-1 text-sm text-red-600">{errors.size.message}</p>}
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>

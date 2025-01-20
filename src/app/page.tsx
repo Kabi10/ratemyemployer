@@ -1,22 +1,38 @@
-// app/page.tsx
-'use client';
+'use client'
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { createClient } from '@/lib/supabaseClient';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { X } from 'lucide-react';
-import { Company } from '@/types';
+import { useRouter } from 'next/navigation';
+import type { Database } from '@/types/supabase';
+
+type Company = Database['public']['Tables']['companies']['Row'];
+
+const INDUSTRIES = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Manufacturing',
+  'Retail',
+  'Services',
+  'Other'
+] as const;
+
 import Link from 'next/link';
-import { ReviewForm } from '@/components/ReviewForm';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { X } from 'lucide-react';
+import * as z from 'zod';
+
+import { createClient } from '@/lib/supabaseClient';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
-import { INDUSTRIES } from '@/types';
+import { ReviewForm } from '@/components/ReviewForm';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// app/page.tsx
 
 const companySchema = z.object({
   name: z.string().min(2, 'Company name must be at least 2 characters'),

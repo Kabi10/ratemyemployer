@@ -1,11 +1,16 @@
 'use client';
 
-import { ChevronDown, Menu, User, X } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
-import { useFirebase } from '@/contexts/FirebaseContext';
-import { signOut } from '@/lib/firebase';
+
 import Image from 'next/image';
+
+import Link from 'next/link';
+
+import { ChevronDown, Menu, User, X } from 'lucide-react';
+
+import { signOut } from '@/lib/firebase';
+
+import { useFirebase } from '@/contexts/FirebaseContext';
 
 export function Navbar(): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,8 +42,17 @@ export function Navbar(): JSX.Element {
             >
               Reviews
             </Link>
-            <Link href="/shame" className="text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400 transition-colors">
+            <Link 
+              href="/shame" 
+              className="text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400 transition-colors"
+            >
               Wall of Shame
+            </Link>
+            <Link 
+              href="/fame" 
+              className="text-lg text-gray-700 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400 transition-colors"
+            >
+              Wall of Fame
             </Link>
             <Link
               href="/background-check"
@@ -130,6 +144,12 @@ export function Navbar(): JSX.Element {
             className="block py-3 px-6 text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400"
           >
             Wall of Shame
+          </Link>
+          <Link
+            href="/fame"
+            className="block py-3 px-6 text-lg text-gray-700 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400"
+          >
+            Wall of Fame
           </Link>
           <Link
             href="/background-check"

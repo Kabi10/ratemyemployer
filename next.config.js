@@ -7,35 +7,45 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['stvmsmqnrwiifwthlppy.supabase.co', 'your-image-domain.com', 'ui-avatars.com', 'logo.clearbit.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'stvmsmqnrwiifwthlppy.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'logo.clearbit.com',
+      }
+    ],
   },
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
-    // Disable webpack caching completely
-    config.cache = false
-    
-    // Handle punycode deprecation
+    // Enable webpack caching for faster builds
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,
         punycode: false
       }
     }
-
     return config
   },
   output: 'standalone',
   poweredByHeader: false,
   compress: true,
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
+    // Temporarily disable type checking for build
     ignoreBuildErrors: true,
   },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
+    // Temporarily disable ESLint for build
     ignoreDuringBuilds: true,
   },
 }

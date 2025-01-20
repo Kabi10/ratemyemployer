@@ -1,8 +1,15 @@
-'use client';
+'use client'
 
 import { useEffect, useState } from 'react';
+
 import { usePathname } from 'next/navigation';
+
 import { BarChart2 } from 'lucide-react';
+
+
+
+
+
 
 interface PerformanceMetrics {
   loadTime: number | null;

@@ -1,4 +1,5 @@
-'use client';
+'use client'
+
 
 import { motion } from 'framer-motion';
 
@@ -120,9 +121,13 @@ export default function PrivacyPage() {
                 <li>Address: [Your Address]</li>
               </ul>
             </section>
+
+            <p>
+              We&apos;re committed to protecting your privacy.
+            </p>
           </div>
         </motion.div>
       </div>
     </div>
   );
-} 
+}

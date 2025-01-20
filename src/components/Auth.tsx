@@ -1,14 +1,36 @@
-'use client';
+'use client'
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { useRouter } from 'next/navigation';
+
+import { AuthError } from '@supabase/supabase-js';
+
+import { Eye, EyeOff } from 'lucide-react';
+
 import { createClient } from '@/lib/supabaseClient';
+
+import { useAuth } from '@/contexts/AuthContext';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+import { AuthError as CustomAuthError } from '@/types/auth';
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -66,47 +88,52 @@ export default function Auth() {
           return;
         }
 
-        // Try to sign up
         const { data, error } = await signUp(email, password);
         
-        console.log('Signup response:', { data, error }); // Debug log
+        console.log('Signup response:', { data, error });
         
         if (error) {
-          // Handle existing user case
           if (error.message === 'Email address already taken') {
             setError('An account with this email already exists. Please sign in instead.');
-            setIsSignUp(false); // Switch to sign in mode but keep the password
+            setIsSignUp(false);
             return;
           }
           setError(error.message);
           return;
         }
 
-        // Only show email confirmation for new signups
         if (data?.user && !data.user.email_confirmed_at) {
           setEmailSent(true);
         } else {
-          // If email is already confirmed (shouldn't happen in normal flow)
           router.push('/account');
         }
       } else {
         try {
           await signIn(email, password);
           router.push('/account');
-        } catch (error: any) {
+        } catch (error) {
           console.error('Sign in error:', error);
-          if (error?.message?.toLowerCase().includes('invalid login credentials')) {
-            setError('Invalid email or password. Please try again.');
-          } else if (error?.message?.toLowerCase().includes('email not confirmed')) {
-            setError('Please confirm your email address before signing in.');
+          if (error instanceof AuthError || (error as CustomAuthError).message) {
+            const authError = error as AuthError | CustomAuthError;
+            if (authError.message?.toLowerCase().includes('invalid login credentials')) {
+              setError('Invalid email or password. Please try again.');
+            } else if (authError.message?.toLowerCase().includes('email not confirmed')) {
+              setError('Please confirm your email address before signing in.');
+            } else {
+              setError(authError.message);
+            }
           } else {
-            setError(error instanceof Error ? error.message : 'Sign in failed. Please try again.');
+            setError('Sign in failed. Please try again.');
           }
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
-      setError(error instanceof Error ? error.message : 'Authentication failed. Please try again.');
+      if (error instanceof Error || (error as CustomAuthError).message) {
+        setError((error as Error | CustomAuthError).message);
+      } else {
+        setError('Authentication failed. Please try again.');
+      }
     }
   };
 

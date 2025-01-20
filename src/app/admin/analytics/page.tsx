@@ -1,9 +1,11 @@
-'use client';
+'use client'
 
+
+import { MonthlyReview } from '@/types';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import {
   LineChart,
   Line,
@@ -16,7 +18,6 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { MonthlyReview } from '@/types';
 
 interface Review {
   rating: number | null;

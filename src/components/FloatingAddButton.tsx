@@ -1,8 +1,15 @@
-'use client';
+'use client'
 
 import { useState } from 'react';
+
 import { XMarkIcon } from '@heroicons/react/24/outline';
+
 import { CompanyForm } from '@/components/CompanyForm';
+
+
+
+
+
 
 export function FloatingAddButton() {
   const [isOpen, setIsOpen] = useState(false);

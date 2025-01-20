@@ -1,10 +1,18 @@
-'use client';
+'use client'
 
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { Providers } from '@/app/providers';
-import ThemeToggle from '@/components/ThemeToggle';
+
+import { Footer } from '@/components/Footer';
+import { Navbar } from '@/components/Navbar';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
+
+import ThemeToggle from '@/components/ThemeToggle';
+
+
+
+
+
+
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
   return (

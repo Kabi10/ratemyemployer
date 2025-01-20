@@ -1,8 +1,13 @@
-'use client';
+'use client'
+
 
 import { useEffect, useState } from 'react';
+
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { createClient } from '@/lib/supabaseClient';
+
 import { withAuth } from '@/lib/auth/withAuth';
-import { supabase } from '@/lib/supabaseClient';
 
 interface DashboardStats {
   total_users: number;
@@ -32,29 +37,29 @@ function AdminPage() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const { count: userCount } = await supabase
+        const { count: userCount } = await createClient()
           .from('user_profiles')
           .select('*', { count: 'exact', head: true });
 
-        const { count: companyCount } = await supabase
+        const { count: companyCount } = await createClient()
           .from('companies')
           .select('*', { count: 'exact', head: true });
 
-        const { count: reviewCount } = await supabase
+        const { count: reviewCount } = await createClient()
           .from('reviews')
           .select('*', { count: 'exact', head: true });
 
-        const { data: ratings } = await supabase
+        const { data: ratings } = await createClient()
           .from('reviews')
           .select('rating')
           .not('rating', 'is', null) as { data: ReviewWithRating[] | null };
 
-        const { count: pendingReviewCount } = await supabase
+        const { count: pendingReviewCount } = await createClient()
           .from('reviews')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'pending');
 
-        const { count: pendingVerificationCount } = await supabase
+        const { count: pendingVerificationCount } = await createClient()
           .from('companies')
           .select('*', { count: 'exact', head: true })
           .eq('is_verified', false);

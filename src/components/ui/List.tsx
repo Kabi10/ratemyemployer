@@ -1,7 +1,10 @@
-'use client';
+'use client'
+
 
 import { ReactNode } from 'react';
+
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 
 interface ListProps<T> {
   items: T[];
@@ -115,4 +118,4 @@ export function List<T>({
       )}
     </div>
   );
-} 
+}

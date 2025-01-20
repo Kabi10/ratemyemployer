@@ -1,13 +1,20 @@
+'use client'
+
+import { withAuth } from '@/lib/auth/withAuth';
+
+import { useCompany } from '@/hooks/useCompany';
+
+import { ReviewForm } from './ReviewForm';
+
+
 /**
  * @file src/components/CreateReview.tsx
  * Component for creating new reviews
  */
 
-'use client';
 
-import { withAuth } from '@/lib/auth/withAuth';
-import { useCompany } from '@/hooks/useCompany';
-import { ReviewForm } from './ReviewForm';
+
+
 
 interface CreateReviewProps {
   companyId: string;

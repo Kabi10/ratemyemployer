@@ -1,6 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr';
+
 import type { Database } from '@/types/supabase';
+
 import { CompanyFormData, ReviewFormData } from './schemas';
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -129,4 +132,4 @@ export const dbQuery = {
         .eq('user_id', userId); // Ensure user can only update their own reviews
     }
   }
-}; 
+};

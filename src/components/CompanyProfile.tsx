@@ -1,5 +1,11 @@
+'use client'
+
+import { useState } from 'react';
+import type { Database } from '@/types/supabase';
+
 import { StatCard } from './ui/StatCard';
-import { Company } from '@/types';
+
+type Company = Database['public']['Tables']['companies']['Row'];
 
 function formatRating(rating: number | null): number {
   return rating ?? 0;

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 
+
 interface ErrorDisplayProps {
   message: string;
   className?: string;
@@ -13,4 +14,4 @@ export function ErrorDisplay({ message, className }: ErrorDisplayProps) {
       </div>
     </div>
   );
-} 
+}

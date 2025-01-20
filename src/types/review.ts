@@ -1,3 +1,5 @@
+
+
 export type EmploymentStatus = 'Full-time' | 'Part-time' | 'Contract' | 'Intern';
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
@@ -20,4 +22,4 @@ export interface Review {
   reviewer_name: string | null;
   user_id: string | null;
   likes: number | null;
-} 
+}

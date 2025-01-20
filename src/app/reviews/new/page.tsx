@@ -1,12 +1,19 @@
-'use client';
+'use client'
 
 import { Suspense } from 'react';
+
 import { useSearchParams } from 'next/navigation';
+
 import { ReviewForm } from '@/components/ReviewForm';
+
+
+
+
+
 
 function NewReviewForm() {
   const searchParams = useSearchParams();
-  const companyId = searchParams.get('companyId');
+  const companyId = searchParams?.get('companyId');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
