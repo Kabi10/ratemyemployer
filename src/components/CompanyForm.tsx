@@ -65,41 +65,65 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-    setLocationError(null);
-
     try {
+      setIsSubmitting(true);
+      setError(null);
+
       const supabase = createClient();
-      if (initialData?.id) {
-        const { error: submitError } = await supabase
-          .from('companies')
-          .update({
-            ...data,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', initialData.id);
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      // Detailed logging
+      console.log('Attempting to create company with data:', {
+        formData: data,
+        authState: {
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          },
+          session: session ? {
+            access_token: session.access_token ? 'exists' : 'missing',
+            user: session.user ? {
+              id: session.user.id,
+              email: session.user.email,
+              role: session.user.role
+            } : 'missing'
+          } : 'no session'
+        },
+        sessionError
+      });
 
-        if (submitError) throw submitError;
-      } else {
-        const { error: submitError } = await supabase
-          .from('companies')
-          .insert({
-            ...data,
-            created_by: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+      if (!session) {
+        setError('No active session found. Please log in again.');
+        return;
+      }
 
-        if (submitError) throw submitError;
+      // Log the exact data being sent to Supabase
+      const companyData = {
+        ...data,
+        created_by: user.id
+      };
+      console.log('Sending to Supabase:', companyData);
+
+      const { error: createError } = await supabase.from('companies').insert([companyData]);
+
+      if (createError) {
+        console.error('Error creating company:', {
+          message: createError.message,
+          details: createError.details,
+          hint: createError.hint,
+          code: createError.code
+        });
+        setError(createError.message);
+        return;
       }
 
       reset();
+      router.refresh();
       onSuccess?.();
-      router.push('/companies');
     } catch (err) {
-      console.error('Error submitting company:', err);
-      setError('Failed to submit company. Please try again.');
+      console.error('Error:', err);
+      setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
