@@ -186,9 +186,14 @@ export async function deleteCompany(id: number) {
 }
 
 export async function createReview(data: Partial<Review>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: new Error('User must be authenticated to create a review') };
+  }
+
   const { error } = await supabase
     .from('reviews')
-    .insert([data]);
+    .insert([{ ...data, user_id: user.id }]);
   return { error };
 }
 
