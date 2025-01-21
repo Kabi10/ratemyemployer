@@ -158,14 +158,21 @@ export async function deleteLike(id: number) {
 }
 
 export async function createCompany(data: Partial<Company>) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (!session?.user) {
     return { error: new Error('User must be authenticated to create a company') };
   }
 
   const { error } = await supabase
     .from('companies')
-    .insert([{ ...data, created_by: user.id }]);
+    .insert([{
+      ...data,
+      created_by: session.user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }]);
+
   return { error };
 }
 

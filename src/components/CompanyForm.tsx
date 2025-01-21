@@ -71,41 +71,21 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
 
       const supabase = createClient();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      // Detailed logging
-      console.log('Attempting to create company with data:', {
-        formData: data,
-        authState: {
-          user: {
-            id: user.id,
-            email: user.email,
-            role: user.role
-          },
-          session: session ? {
-            access_token: session.access_token ? 'exists' : 'missing',
-            user: session.user ? {
-              id: session.user.id,
-              email: session.user.email,
-              role: session.user.role
-            } : 'missing'
-          } : 'no session'
-        },
-        sessionError
-      });
 
-      if (!session) {
+      if (!session?.user) {
         setError('No active session found. Please log in again.');
         return;
       }
 
-      // Log the exact data being sent to Supabase
-      const companyData = {
-        ...data,
-        created_by: user.id
-      };
-      console.log('Sending to Supabase:', companyData);
-
-      const { error: createError } = await supabase.from('companies').insert([companyData]);
+      // Create the company using the database helper
+      const { error: createError } = await supabase
+        .from('companies')
+        .insert([{
+          ...data,
+          created_by: session.user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
 
       if (createError) {
         console.error('Error creating company:', {
