@@ -31,6 +31,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { ReviewForm } from '@/components/ReviewForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { createCompany } from '@/lib/database';
 
 // app/page.tsx
 
@@ -124,20 +125,15 @@ export default function Home() {
 
       console.log('Submitting data:', cleanData);
       
-      const supabase = createClient();
-      const { data: newCompany, error } = await supabase
-        .from('companies')
-        .insert([cleanData])
-        .select()
-        .single();
+      const { error } = await createCompany(cleanData);
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(error.message);
+        console.error('Error creating company:', error);
+        throw error;
       }
 
-      console.log('Created company:', newCompany);
-      setSearchResults([newCompany, ...searchResults]);
+      // Refresh the search results
+      await searchCompanies(cleanData.name);
       setShowAddCompany(false);
       reset();
     } catch (error) {
