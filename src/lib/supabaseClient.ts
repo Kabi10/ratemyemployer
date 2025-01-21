@@ -22,7 +22,16 @@ export const supabase = createBrowserClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+      debug: process.env.NODE_ENV === 'development',
+      cookieOptions: {
+        name: 'sb-auth-token',
+        lifetime: 60 * 60 * 24 * 7, // 1 week
+        domain: process.env.NODE_ENV === 'development' ? 'localhost' : 'ratemyemployer.life',
+        sameSite: 'lax',
+        path: '/'
+      }
     },
     db: {
       schema: 'public'

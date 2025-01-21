@@ -105,12 +105,12 @@ export default function Auth() {
         if (data?.user && !data.user.email_confirmed_at) {
           setEmailSent(true);
         } else {
-          router.push('/account');
+          router.push('/');
         }
       } else {
         try {
           await signIn(email, password);
-          router.push('/account');
+          router.push('/');
         } catch (error) {
           console.error('Sign in error:', error);
           if (error instanceof AuthError || (error as CustomAuthError).message) {

@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
-
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { supabase } from './supabaseClient';
 
 export type Company = Database['public']['Tables']['companies']['Row'];
 export type Review = Database['public']['Tables']['reviews']['Row'];
@@ -16,56 +12,6 @@ export interface ReviewLike {
   created_at: string;
   liked: boolean;
 }
-
-interface Database {
-  public: {
-    Tables: {
-      companies: {
-        Row: Company;
-        Insert: Partial<Company>;
-        Update: Partial<Company>;
-      };
-      reviews: {
-        Row: Omit<Review, 'company'>;
-        Insert: Partial<Omit<Review, 'company'>>;
-        Update: Partial<Omit<Review, 'company'>>;
-      };
-      review_likes: {
-        Row: ReviewLike;
-        Insert: Partial<ReviewLike>;
-        Update: Partial<ReviewLike>;
-      };
-      user_profiles: {
-        Row: {
-          id: string;
-          email: string | null;
-          name: string | null;
-          avatar_url: string | null;
-          created_at: string | null;
-        };
-        Insert: {
-          id: string;
-          email?: string | null;
-          name?: string | null;
-          avatar_url?: string | null;
-          created_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          email?: string | null;
-          name?: string | null;
-          avatar_url?: string | null;
-          created_at?: string | null;
-        };
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-  };
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 export async function getCompanies() {
   const { data, error } = await supabase
@@ -158,37 +104,125 @@ export async function deleteLike(id: number) {
 }
 
 export async function createCompany(data: Partial<Company>) {
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   
-  if (!session?.user) {
+  if (userError) {
+    console.error('Auth error:', userError);
+    return { error: new Error('Failed to check authentication status') };
+  }
+
+  if (!user) {
+    console.error('No authenticated user found');
     return { error: new Error('User must be authenticated to create a company') };
+  }
+
+  // First check if a company with the same name already exists
+  const { data: existingCompany } = await supabase
+    .from('companies')
+    .select('id')
+    .ilike('name', data.name || '')
+    .single();
+
+  if (existingCompany) {
+    return { error: new Error('A company with this name already exists') };
+  }
+
+  try {
+    const { data: newCompany, error } = await supabase
+      .from('companies')
+      .insert([{
+        ...data,
+        created_by: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating company:', error);
+      return { error: new Error(error.message) };
+    }
+
+    return { data: newCompany, error: null };
+  } catch (error) {
+    console.error('Error in createCompany:', error);
+    return { error: new Error('Failed to create company') };
+  }
+}
+
+export async function updateCompany(id: number, data: Partial<Company>) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error('Auth error:', userError);
+    return { error: new Error('Failed to check authentication status') };
+  }
+
+  if (!user) {
+    console.error('No authenticated user found');
+    return { error: new Error('User must be authenticated to update a company') };
+  }
+
+  // Check if user owns the company
+  const { data: existingCompany } = await supabase
+    .from('companies')
+    .select('created_by')
+    .eq('id', id)
+    .single();
+
+  if (!existingCompany) {
+    return { error: new Error('Company not found') };
+  }
+
+  if (existingCompany.created_by !== user.id) {
+    return { error: new Error('You do not have permission to update this company') };
   }
 
   const { error } = await supabase
     .from('companies')
-    .insert([{
+    .update({
       ...data,
-      created_by: session.user.id,
-      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }]);
-
-  return { error };
-}
-
-export async function updateCompany(id: number, data: Partial<Company>) {
-  const { error } = await supabase
-    .from('companies')
-    .update(data)
+    })
     .eq('id', id);
+
   return { error };
 }
 
 export async function deleteCompany(id: number) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error('Auth error:', userError);
+    return { error: new Error('Failed to check authentication status') };
+  }
+
+  if (!user) {
+    console.error('No authenticated user found');
+    return { error: new Error('User must be authenticated to delete a company') };
+  }
+
+  // Check if user owns the company
+  const { data: existingCompany } = await supabase
+    .from('companies')
+    .select('created_by')
+    .eq('id', id)
+    .single();
+
+  if (!existingCompany) {
+    return { error: new Error('Company not found') };
+  }
+
+  if (existingCompany.created_by !== user.id) {
+    return { error: new Error('You do not have permission to delete this company') };
+  }
+
   const { error } = await supabase
     .from('companies')
     .delete()
     .eq('id', id);
+
   return { error };
 }
 

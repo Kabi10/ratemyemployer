@@ -3,20 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Database } from '@/types/supabase';
-
-type Company = Database['public']['Tables']['companies']['Row'];
-
-const INDUSTRIES = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Manufacturing',
-  'Retail',
-  'Services',
-  'Other'
-] as const;
-
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -33,7 +20,20 @@ import { ReviewForm } from '@/components/ReviewForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createCompany } from '@/lib/database';
 
-// app/page.tsx
+type Company = Database['public']['Tables']['companies']['Row'];
+
+const INDUSTRIES = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Manufacturing',
+  'Retail',
+  'Services',
+  'Other'
+] as const;
+
+type Industry = typeof INDUSTRIES[number];
 
 const companySchema = z.object({
   name: z.string().min(2, 'Company name must be at least 2 characters'),
@@ -42,13 +42,15 @@ const companySchema = z.object({
     z.string().length(0),
     z.null(),
   ]).optional(),
-  industry: z.string().min(2, 'Industry must be at least 2 characters'),
+  industry: z.enum(INDUSTRIES),
   location: z.string().min(2, 'Location must be at least 2 characters'),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
 
 export default function Home() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [searchResults, setSearchResults] = useState<Company[]>([]);
@@ -70,7 +72,7 @@ export default function Home() {
     defaultValues: {
       name: '',
       website: '',
-      industry: '',
+      industry: undefined,
       location: '',
     }
   });
@@ -113,26 +115,36 @@ export default function Home() {
   }, [debouncedSearchQuery]);
 
   const onSubmit = async (data: CompanyFormData) => {
+    if (!user) {
+      setShowAddCompany(false);
+      router.push('/auth');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Clean the data before submission
       const cleanData = {
         name: data.name.trim(),
         website: data.website && data.website.length > 0 ? data.website : null,
-        industry: data.industry,
+        industry: data.industry as Industry,
         location: data.location,
       };
 
-      console.log('Submitting data:', cleanData);
+      console.log('Submitting data:', cleanData, 'User:', user);
       
-      const { error } = await createCompany(cleanData);
+      const { data: newCompany, error } = await createCompany(cleanData);
 
       if (error) {
         console.error('Error creating company:', error);
+        if (error.message.includes('authenticated')) {
+          // If it's an authentication error, redirect to login
+          setShowAddCompany(false);
+          router.push('/auth');
+          return;
+        }
         throw error;
       }
 
-      // Refresh the search results
       await searchCompanies(cleanData.name);
       setShowAddCompany(false);
       reset();
@@ -217,10 +229,23 @@ export default function Home() {
                 {!hasExactMatch && searchQuery.trim() && (
                   <div className="mt-6">
                     <Button
-                      onClick={() => setShowAddCompany(true)}
+                      onClick={() => {
+                        if (!user) {
+                          router.push('/auth');
+                          return;
+                        }
+                        setShowAddCompany(true);
+                      }}
                       className="w-full py-8 text-xl font-medium rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all duration-300"
+                      disabled={authLoading}
                     >
-                      Add &quot;{searchQuery.trim()}&quot; as a new company
+                      {authLoading ? (
+                        <LoadingSpinner />
+                      ) : user ? (
+                        `Add "${searchQuery.trim()}" as a new company`
+                      ) : (
+                        'Sign in to add a company'
+                      )}
                     </Button>
                   </div>
                 )}
@@ -231,10 +256,16 @@ export default function Home() {
               <div className="mt-12 text-center space-y-6">
                 <p className="text-xl text-gray-600 dark:text-gray-400">No companies found matching your search.</p>
                 <Button
-                  onClick={() => setShowAddCompany(true)}
+                  onClick={() => {
+                    if (!user) {
+                      router.push('/auth');
+                      return;
+                    }
+                    setShowAddCompany(true);
+                  }}
                   className="py-8 px-10 text-xl font-medium rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all duration-300"
                 >
-                  Add &quot;{searchQuery.trim()}&quot; as a new company
+                  {user ? `Add "${searchQuery.trim()}" as a new company` : 'Sign in to add a company'}
                 </Button>
               </div>
             )}
@@ -299,8 +330,8 @@ export default function Home() {
                             Industry
                           </label>
                           <Select
-                            onValueChange={(value) => setValue('industry', value)}
-                            defaultValue=""
+                            onValueChange={(value: Industry) => setValue('industry', value)}
+                            defaultValue={undefined}
                           >
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select an industry" />
