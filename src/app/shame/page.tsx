@@ -14,6 +14,12 @@ interface Company {
   average_rating: number;
   total_reviews: number;
   shame_score?: number;
+  recent_reviews?: {
+    title: string;
+    content: string;
+    rating: number;
+    created_at: string;
+  }[];
 }
 
 interface NewsArticle {
@@ -37,29 +43,44 @@ export default function WallOfShame() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        // Test with BZAM first
-        const testCompany = {
-          id: 1,
-          name: 'BZAM Management Inc.',
-          average_rating: 2.5,
-          total_reviews: 5,
-          shame_score: 75
-        };
+        // Fetch companies with their reviews
+        const { data, error } = await supabase
+          .from('companies')
+          .select(`
+            id,
+            name,
+            average_rating,
+            total_reviews,
+            reviews (
+              title,
+              content,
+              rating,
+              created_at
+            )
+          `)
+          .order('average_rating', { ascending: true })
+          .limit(10);
 
-        setCompanies([testCompany]);
+        if (error) throw error;
 
-        console.log('Fetching news for test company:', testCompany.name);
-        const success = await fetchAndStoreCompanyNews([testCompany.name], false);
-        
-        if (success) {
-          console.log('Successfully fetched news, retrieving from database...');
-          const newsResults = await fetchNewsForCompanies([testCompany.name]);
-          setCompanyNews(newsResults);
-        } else {
-          console.error('Failed to fetch news for test company');
-        }
+        // Calculate shame score and process reviews
+        const companiesWithScore = data.map(company => ({
+          ...company,
+          shame_score: calculateShameScore(company),
+          recent_reviews: company.reviews
+            ?.filter(review => review.rating <= 2) // Only show negative reviews
+            ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            ?.slice(0, 3) // Show only 3 most recent negative reviews
+        }));
+
+        // Sort by shame score and take top 5
+        const sortedCompanies = companiesWithScore
+          .sort((a, b) => (b.shame_score || 0) - (a.shame_score || 0))
+          .slice(0, 5);
+
+        setCompanies(sortedCompanies);
       } catch (err) {
-        console.error('Error in test fetch:', err);
+        console.error('Error fetching companies:', err);
         setError('Failed to load the Wall of Shame. Please try again later.');
       } finally {
         setLoading(false);
@@ -72,13 +93,22 @@ export default function WallOfShame() {
   function calculateShameScore(company: Company): number {
     if (!company.average_rating || !company.total_reviews) return 0;
 
-    // Base score from poor ratings
+    // Base score from poor ratings (0-100 scale)
     const ratingScore = (5 - company.average_rating) * 20;
 
     // Weight by number of reviews (more reviews = more reliable score)
     const reviewWeight = Math.min(company.total_reviews / 10, 1); // Cap at 10 reviews
 
-    return ratingScore * reviewWeight;
+    // Count recent negative reviews (last 3 months)
+    const recentNegativeReviews = company.reviews?.filter(review => {
+      const isRecent = new Date(review.created_at) > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      return isRecent && review.rating <= 2;
+    })?.length || 0;
+
+    // Add bonus points for recent negative reviews
+    const recentReviewBonus = recentNegativeReviews * 5;
+
+    return (ratingScore * reviewWeight) + recentReviewBonus;
   }
 
   if (loading) {
@@ -111,7 +141,7 @@ export default function WallOfShame() {
       <h1 className="text-3xl font-bold mb-4">Wall of Shame</h1>
       <p className="text-sm text-gray-500 mb-8">
         Companies are ranked based on their shame score, which considers average ratings, 
-        number of reviews, and recent negative news coverage.
+        number of reviews, and recent negative employee experiences.
       </p>
       <div className="space-y-8">
         {companies.map((company) => (
@@ -134,27 +164,21 @@ export default function WallOfShame() {
                   </div>
                 </div>
               </div>
-              {companyNews[company.name]?.length > 0 && (
+
+              {company.recent_reviews?.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-3">Recent Negative News</h3>
+                  <h3 className="text-lg font-semibold mb-3">Recent Employee Experiences</h3>
                   <div className="space-y-3">
-                    {companyNews[company.name].map((article, index) => (
+                    {company.recent_reviews.map((review, index) => (
                       <div key={index} className="border-l-4 border-red-500 pl-4 py-2">
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          {article.title}
-                        </a>
+                        <div className="font-medium">{review.title}</div>
                         <p className="mt-1 text-sm text-gray-600">
-                          {article.description}
+                          {review.content}
                         </p>
                         <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-                          <span>{article.source.name}</span>
+                          <span>Rating: {review.rating}/5</span>
                           <span>•</span>
-                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          <span>{new Date(review.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ))}
