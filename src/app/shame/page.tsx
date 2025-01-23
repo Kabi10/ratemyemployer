@@ -37,36 +37,29 @@ export default function WallOfShame() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .order('average_rating', { ascending: true })
-          .limit(10);
+        // Test with BZAM first
+        const testCompany = {
+          id: 1,
+          name: 'BZAM Management Inc.',
+          average_rating: 2.5,
+          total_reviews: 5,
+          shame_score: 75
+        };
 
-        if (error) throw error;
+        setCompanies([testCompany]);
 
-        // Calculate shame score for each company
-        const companiesWithScore = data.map(company => ({
-          ...company,
-          shame_score: calculateShameScore(company)
-        }));
-
-        // Sort by shame score
-        const sortedCompanies = companiesWithScore
-          .sort((a, b) => (b.shame_score || 0) - (a.shame_score || 0))
-          .slice(0, 5); // Only show top 5 worst companies
-
-        setCompanies(sortedCompanies);
-
-        // Fetch news using SerpAPI for all companies at once
-        const companyNames = sortedCompanies.map(c => c.name);
-        await fetchAndStoreCompanyNews(companyNames, false);
+        console.log('Fetching news for test company:', testCompany.name);
+        const success = await fetchAndStoreCompanyNews([testCompany.name], false);
         
-        // Get cached news from the database
-        const newsResults = await fetchNewsForCompanies(companyNames);
-        setCompanyNews(newsResults);
+        if (success) {
+          console.log('Successfully fetched news, retrieving from database...');
+          const newsResults = await fetchNewsForCompanies([testCompany.name]);
+          setCompanyNews(newsResults);
+        } else {
+          console.error('Failed to fetch news for test company');
+        }
       } catch (err) {
-        console.error('Error fetching companies:', err);
+        console.error('Error in test fetch:', err);
         setError('Failed to load the Wall of Shame. Please try again later.');
       } finally {
         setLoading(false);

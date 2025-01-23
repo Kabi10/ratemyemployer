@@ -3,7 +3,8 @@ import axios, { AxiosError } from 'axios';
 import { Database } from '@/types/supabase';
 import { createClient } from '@/lib/supabaseClient';
 
-const SERP_API_KEY = process.env.NEXT_PUBLIC_SERP_API_KEY;
+// Use the hardcoded key for now since env variable isn't working
+const SERP_API_KEY = 'db313510e725130ead277b13cb64416fd4ed6f8551c7f00cbc9b9163d44e548f';
 
 type CompanyNewsInsert = Database['public']['Tables']['company_news']['Insert'];
 type CompanyNewsRow = Database['public']['Tables']['company_news']['Row'];
@@ -64,31 +65,46 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
       return `"${company}" (${searchTerms.join(' OR ')})`;
     });
 
-    console.log('Fetching news with query:', companyQueries[0]); // Log first query for debugging
+    // Log the full request details for debugging
+    const requestParams = {
+      engine: 'google_news',
+      q: companyQueries.join(' OR '),
+      api_key: SERP_API_KEY,
+      num: 100,
+      tbm: 'nws',
+      tbs: 'qdr:y',
+      safe: 'active'
+    };
     
+    console.log('Making SerpAPI request with params:', {
+      ...requestParams,
+      api_key: '***' // Hide API key in logs
+    });
+
+    // Make the request with a timeout
     const response = await axios.get<SerpApiResponse>('https://serpapi.com/search.json', {
-      params: {
-        engine: 'google_news',
-        q: companyQueries.join(' OR '),
-        api_key: SERP_API_KEY,
-        num: 100,
-        tbm: 'nws',
-        tbs: 'qdr:y', // Last year's news
-        safe: 'active'
+      params: requestParams,
+      timeout: 10000, // 10 second timeout
+      headers: {
+        'Accept': 'application/json'
       }
     }).catch((error: AxiosError) => {
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error('SerpAPI error response:', {
           status: error.response.status,
-          data: error.response.data
+          data: error.response.data,
+          headers: error.response.headers
         });
       } else if (error.request) {
-        // The request was made but no response was received
-        console.error('No response received from SerpAPI:', error.request);
+        console.error('No response received from SerpAPI. Request details:', {
+          method: error.config?.method,
+          url: error.config?.url,
+          params: {
+            ...error.config?.params,
+            api_key: '***'
+          }
+        });
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error('Error setting up SerpAPI request:', error.message);
       }
       throw error;
