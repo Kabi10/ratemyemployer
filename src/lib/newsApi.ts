@@ -1,9 +1,18 @@
 import axios, { AxiosError } from 'axios';
 
-
+import { Database } from '@/types/supabase';
 import { createClient } from '@/lib/supabaseClient';
 
 const SERP_API_KEY = 'db313510e725130ead277b13cb64416fd4ed6f8551c7f00cbc9b9163d44e548f';
+
+const NEWS_API_KEY = process.env.NEXT_PUBLIC_NEWS_API_KEY;
+const GNEWS_API_KEY = process.env.NEXT_PUBLIC_GNEWS_API_KEY;
+
+// Cache duration in milliseconds
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+type CompanyNewsInsert = Database['public']['Tables']['company_news']['Insert'];
+type CompanyNewsRow = Database['public']['Tables']['company_news']['Row'];
 
 export interface NewsArticle {
   title: string;
@@ -45,14 +54,59 @@ interface SerpApiResponse {
   news_results: SerpApiNewsResult[];
 }
 
+interface GNewsArticle {
+  title: string;
+  description: string;
+  url: string;
+  image?: string;
+  publishedAt: string;
+  source: {
+    name: string;
+  };
+}
+
+interface NewsAPIArticle {
+  title: string;
+  description: string | null;
+  url: string;
+  urlToImage?: string;
+  publishedAt: string;
+  source: {
+    name: string;
+  };
+}
+
+interface NewsItem {
+  company_name: string;
+  title: string;
+  description: string | null;
+  url: string;
+  source: string;
+  published_at: string;
+  image_url: string | null;
+}
+
+const supabase = createClient();
+
+function isNewsStale(lastFetchedDate: string | null): boolean {
+  if (!lastFetchedDate) return true;
+  const lastFetched = new Date(lastFetchedDate).getTime();
+  const now = new Date().getTime();
+  return now - lastFetched > CACHE_DURATION;
+}
+
 // This function is for initial data gathering only
 export async function fetchAndStoreCompanyNews(companies: string[], isPositive: boolean = false): Promise<boolean> {
   try {
     const companyQueries = companies.map(company => {
-      if (isPositive) {
-        return `("${company}") ("best places to work" OR "great workplace" OR "employee satisfaction" OR "workplace awards" OR "employee benefits" OR "workplace culture" OR "diversity award" OR "sustainability initiatives")`
-      }
-      return `("${company}") (layoffs OR "workplace violation" OR "OSHA fine" OR "discrimination lawsuit" OR "labor dispute")`
+      const searchTerms = isPositive 
+        ? ['best places to work', 'great workplace', 'employee satisfaction', 'workplace awards']
+        : ['layoffs', 'bankruptcy', 'workplace violation', 'OSHA violation', 'discrimination lawsuit', 
+           'labor dispute', 'strike', 'unfair labor practice', 'employee complaints', 'toxic workplace',
+           'investigation', 'scandal', 'misconduct', 'fined', 'sued'];
+      
+      // Create a more targeted search query
+      return `"${company}" (${searchTerms.join(' OR ')})`;
     });
     
     const response = await axios.get<SerpApiResponse>('https://serpapi.com/search.json', {
@@ -61,23 +115,31 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
         q: companyQueries.join(' OR '),
         api_key: SERP_API_KEY,
         num: 100,
-        tbm: 'nws'
+        tbm: 'nws',
+        tbs: 'qdr:y', // Last year's news
+        safe: 'active'
       }
     });
 
     const allArticles = response.data.news_results || [];
-    const supabase = createClient();
+    console.log(`Found ${allArticles.length} total articles for ${companies.length} companies`);
     
     // Process and store articles for each company
     for (const company of companies) {
       const companyArticles = allArticles
-        .filter((article) => 
-          article.title.toLowerCase().includes(company.toLowerCase()) ||
-          article.snippet.toLowerCase().includes(company.toLowerCase())
-        )
+        .filter((article) => {
+          const content = (article.title + ' ' + article.snippet).toLowerCase();
+          const companyName = company.toLowerCase();
+          // Ensure the article is actually about this company
+          return content.includes(companyName) && 
+                 // Verify it's not just a passing mention
+                 (content.indexOf(companyName) < 100 || 
+                  content.split(companyName).length > 2);
+        })
         .slice(0, 10);
 
       if (companyArticles.length > 0) {
+        console.log(`Found ${companyArticles.length} articles for ${company}`);
         const newsArticles: DatabaseNewsArticle[] = companyArticles.map((article) => ({
           company_name: company,
           title: article.title,
@@ -101,51 +163,65 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
 }
 
 // Use this function in your application to get news
-export async function fetchCompanyNews(companyName: string, filterNegative: boolean = false): Promise<NewsArticle[]> {
+export async function fetchCompanyNews(companyName: string): Promise<NewsItem[]> {
+  if (!GNEWS_API_KEY) {
+    console.error('GNews API key not found');
+    return [];
+  }
+
   try {
-    const supabase = createClient();
-    
-    let query = supabase
-      .from('company_news')
-      .select('*')
-      .eq('company_name', companyName)
-      .order('published_at', { ascending: false })
-      .limit(5);
+    // Simplified search query to get more results
+    const keywords = encodeURIComponent(`${companyName} company`);
+    const response = await fetch(
+      `https://gnews.io/api/v4/search?q=${keywords}&lang=en&country=us,ca&sortby=publishedAt&max=10&apikey=${GNEWS_API_KEY}`
+    );
+    const data = await response.json();
 
-    if (filterNegative) {
-      // Filter out news containing negative keywords
-      const negativeKeywords = [
-        'lawsuit', 'discrimination', 'layoff', 'layoffs', 'violation', 
-        'fine', 'penalty', 'dispute', 'complaint', 'investigation'
-      ];
-      
-      negativeKeywords.forEach(keyword => {
-        query = query.not('title', 'ilike', `%${keyword}%`);
-      });
-    }
-
-    const { data: articles, error } = await query;
-
-    if (error || !articles) {
-      console.error('Error fetching news:', error);
+    if (!data.articles || !Array.isArray(data.articles)) {
+      console.log('No articles found for', companyName);
       return [];
     }
 
-    const dbArticles = articles as DatabaseNewsArticle[];
-    const mappedArticles = dbArticles.map(article => ({
+    const newsItems = data.articles.map((article: GNewsArticle): NewsItem => ({
+      company_name: companyName,
       title: article.title,
       description: article.description,
       url: article.url,
-      publishedAt: article.published_at,
-      source: {
-        name: article.source_name
-      }
+      source: article.source.name,
+      published_at: article.publishedAt,
+      image_url: article.image || null
     }));
 
-    return mappedArticles;
+    // Cache the news items
+    if (newsItems.length > 0) {
+      const newsToInsert: CompanyNewsInsert[] = newsItems.map(item => ({
+        company_name: item.company_name,
+        title: item.title,
+        description: item.description,
+        url: item.url,
+        source_name: item.source,
+        published_at: item.published_at
+      }));
 
+      const { error } = await supabase
+        .from('company_news')
+        .insert(newsToInsert);
+
+      if (error) {
+        console.error('Error caching news:', error);
+      }
+    }
+
+    // Log the response for debugging
+    console.log('GNews response:', {
+      query: keywords,
+      articleCount: newsItems.length,
+      totalArticles: data.totalArticles
+    });
+
+    return newsItems;
   } catch (error) {
-    console.error('Error fetching news:', error);
+    console.error('GNews API error:', error);
     return [];
   }
 }

@@ -62,16 +62,12 @@ interface MetricsHistoryEntry {
 // Enhanced utility functions
 const runCommand = (command: string, silent = false): string => {
   try {
-    console.log(chalk.gray(`Running command: ${command}`));
-    const output = execSync(command, { 
+    return execSync(command, { 
       encoding: 'utf8',
       stdio: silent ? 'pipe' : 'inherit'
     });
-    return output;
-  } catch (error: any) {
-    if (error.stdout) console.error(chalk.red('Command output:'), error.stdout);
-    if (error.stderr) console.error(chalk.red('Command error:'), error.stderr);
-    throw new Error(`Command failed: ${command}\n${error.message}`);
+  } catch (error) {
+    throw new Error(`Command failed: ${command}\n${error}`);
   }
 };
 
@@ -351,52 +347,33 @@ const analyzeCodeQuality = async (): Promise<Partial<ProjectMetrics['codeQuality
 
   try {
     // Run ESLint
-    console.log(chalk.gray('Running ESLint...'));
-    try {
-      const eslintOutput = runCommand('npx eslint . --format json', true);
-      const eslintResults = JSON.parse(eslintOutput) as Array<{ severity: number }>;
-      results.eslintErrors = eslintResults.filter(result => result.severity === 2).length;
-      results.eslintWarnings = eslintResults.filter(result => result.severity === 1).length;
-      console.log(chalk.gray(`Found ${results.eslintErrors} errors and ${results.eslintWarnings} warnings`));
-    } catch (error) {
-      console.error(chalk.red('Error running ESLint:'), error);
-    }
+    const eslintOutput = runCommand('npx eslint . --format json', true);
+    const eslintResults = JSON.parse(eslintOutput) as Array<{ severity: number }>;
+    results.eslintErrors = eslintResults.filter(result => result.severity === 2).length;
+    results.eslintWarnings = eslintResults.filter(result => result.severity === 1).length;
 
     // Run test coverage with Vitest
-    console.log(chalk.gray('Running test coverage...'));
+    const coverageOutput = runCommand('npm run coverage', true);
     try {
-      const coverageOutput = runCommand('npm run coverage', true);
-      try {
-        const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-        results.testCoverage = coverage.total.statements.pct;
-        console.log(chalk.gray(`Test coverage: ${results.testCoverage}%`));
-      } catch (e) {
-        console.log(chalk.yellow('Warning: Could not read coverage data. Run tests with coverage first.'));
-      }
-    } catch (error) {
-      console.error(chalk.red('Error running test coverage:'), error);
+      const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+      results.testCoverage = coverage.total.statements.pct;
+    } catch (e) {
+      console.log(chalk.yellow('Warning: Could not read coverage data. Run tests with coverage first.'));
     }
 
     // Analyze code complexity
-    console.log(chalk.gray('Analyzing code complexity...'));
-    try {
-      const files = glob.sync('src/**/*.{ts,tsx}');
-      console.log(chalk.gray(`Found ${files.length} files to analyze`));
-      files.forEach(file => {
-        const content = fs.readFileSync(file, 'utf8');
-        const complexity = analyzeComplexity(content);
-        results.complexity.high += complexity.high;
-        results.complexity.medium += complexity.medium;
-        results.complexity.low += complexity.low;
-      });
-      console.log(chalk.gray(`Complexity analysis: ${results.complexity.high} high, ${results.complexity.medium} medium, ${results.complexity.low} low`));
-    } catch (error) {
-      console.error(chalk.red('Error analyzing code complexity:'), error);
-    }
+    const files = glob.sync('src/**/*.{ts,tsx}');
+    files.forEach(file => {
+      const content = fs.readFileSync(file, 'utf8');
+      const complexity = analyzeComplexity(content);
+      results.complexity.high += complexity.high;
+      results.complexity.medium += complexity.medium;
+      results.complexity.low += complexity.low;
+    });
 
     return results;
   } catch (error) {
-    console.error(chalk.red('Fatal error in code quality analysis:'), error);
+    console.error('Error analyzing code quality:', error);
     return results;
   }
 };

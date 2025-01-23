@@ -37,4 +37,39 @@ COMMENT ON TABLE public.reviews IS 'Table storing company reviews with proper us
 COMMENT ON COLUMN public.reviews.user_id IS 'Reference to auth.users for review ownership';
 COMMENT ON COLUMN public.reviews.company_name IS 'Denormalized company name for easier querying';
 COMMENT ON COLUMN public.reviews.reviewer_email IS 'Optional reviewer email for non-authenticated reviews';
-COMMENT ON COLUMN public.reviews.reviewer_name IS 'Optional reviewer name for display'; 
+COMMENT ON COLUMN public.reviews.reviewer_name IS 'Optional reviewer name for display';
+
+-- Enable Row Level Security
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Allow public read access to approved reviews"
+ON public.reviews
+FOR SELECT
+TO public
+USING (status = 'approved');
+
+CREATE POLICY "Allow users to read their own reviews"
+ON public.reviews
+FOR SELECT
+TO authenticated
+USING (user_id = auth.uid());
+
+CREATE POLICY "Allow users to create reviews"
+ON public.reviews
+FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Allow users to update their own reviews"
+ON public.reviews
+FOR UPDATE
+TO authenticated
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Allow users to delete their own reviews"
+ON public.reviews
+FOR DELETE
+TO authenticated
+USING (user_id = auth.uid()); 

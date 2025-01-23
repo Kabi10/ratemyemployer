@@ -1,3 +1,13 @@
+-- Drop existing RLS policies on reviews table if they exist
+DO $$ 
+BEGIN
+    EXECUTE (
+        SELECT string_agg('DROP POLICY IF EXISTS "' || policyname || '" ON reviews;', E'\n')
+        FROM pg_catalog.pg_policies 
+        WHERE tablename = 'reviews'
+    );
+END $$;
+
 -- Add policy to allow authenticated users to insert reviews
 CREATE POLICY "Allow authenticated users to INSERT reviews" 
 ON "public"."reviews" 

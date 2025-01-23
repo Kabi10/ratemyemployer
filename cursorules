@@ -71,16 +71,18 @@ Welcome, AI Agent! Your mission is to **recreate and enhance** the **RateMyEmplo
 
 Maintain a clear and scalable directory structure:
 
+```
 src/
-├── app/ # Next.js 13 app router
-├── components/ # Reusable React components
-├── lib/ # Utilities and helpers
-├── hooks/ # Custom React hooks
-├── types/ # TypeScript definitions
-├── pages/ # Next.js pages
-├── styles/ # Global and component-specific styles
-├── public/ # Static assets
-└── tests/ # Test suites
+├── app/          # Next.js 13 app router
+├── components/   # Reusable React components
+├── lib/          # Utilities and helpers
+├── hooks/        # Custom React hooks
+├── types/        # TypeScript definitions
+├── pages/        # Next.js pages
+├── styles/       # Global and component-specific styles
+├── public/       # Static assets
+└── __tests__/    # Test suites
+```
 
 ### 2. File Naming Conventions
 
@@ -153,6 +155,7 @@ src/
 
 Organize tests within `src/__tests__/`:
 
+```
 src/__tests__/
 ├── components/     # Component tests
 ├── hooks/         # Hook tests
@@ -284,44 +287,12 @@ src/__tests__/
               vercel-token: ${{ secrets.VERCEL_TOKEN }}
               vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
               vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+              working-directory: .
     ```
-
-### 2. Deployment to Vercel
-
-- **Project Settings:**
-  - Connect the repository to Vercel.
-  - Ensure environment variables are correctly set in Vercel Dashboard.
-
-- **Build Configuration:**
-  - Specify the Node.js version in `package.json`:
-    ```json
-    {
-      "engines": {
-        "node": ">=18.17.0"
-      }
-    }
-    ```
-  - Use LTS versions (18.x or 20.x) for optimal compatibility.
-
-### 3. Post-Deployment
-
-- **Smoke Tests:**
-  - Run automated smoke tests to verify deployment success.
-- **Monitoring:**
-  - Monitor application performance and error logs post-deployment.
-
----
-
-## Security Measures
-
-### 1. Authentication and Authorization
-
-- **Supabase Auth:**
-  - Implement secure authentication flows.
-  - Protect routes using middleware to ensure only authorized access.
-
-- **Row-Level Security (RLS):**
-  - Define RLS policies in Supabase to control data access at the database level.
+  
+- **Deployment Configuration:**
+  - Configure Vercel with necessary environment variables.
+  - Ensure proper build settings and output directories.
 
 ### 2. Data Protection
 
@@ -340,6 +311,54 @@ src/__tests__/
   - Run `npm audit` regularly to identify and fix vulnerabilities.
 - **Update Dependencies:**
   - Keep all dependencies up-to-date to mitigate security risks.
+
+---
+
+## Security Measures
+
+### 1. Authentication and Authorization
+
+- **Supabase Auth:**
+  - Use Supabase Auth for managing user authentication.
+  - Implement role-based access controls where necessary.
+
+- **Protected Routes:**
+  - Use middleware to protect sensitive routes and ensure only authorized access.
+
+### 2. Row-Level Security (RLS)
+
+- **Policy Definitions:**
+  - Define RLS policies in Supabase to control data access at the database level.
+  - Example Policy:
+    ```sql
+    CREATE POLICY "Users can insert their own reviews"
+    ON public.reviews
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+    ```
+
+### 3. Input and Data Validation
+
+- **Zod Schemas:**
+  - Use Zod for robust input validation to ensure data integrity.
+
+- **Sanitization Libraries:**
+  - Utilize libraries to sanitize user input and prevent injection attacks.
+
+### 4. Environment Variable Security
+
+- **Protected Storage:**
+  - Store sensitive environment variables in secure storage solutions like Vercel secrets.
+  - Ensure `.env.local` is included in `.gitignore` to prevent accidental commits.
+
+### 5. Regular Security Audits
+
+- **Code Reviews:**
+  - Conduct regular security-focused code reviews to identify and mitigate vulnerabilities.
+
+- **Automated Scanning:**
+  - Integrate security scanning tools into the CI/CD pipeline to continuously monitor for issues.
 
 ---
 
@@ -423,11 +442,140 @@ src/__tests__/
 
 ---
 
-## Conclusion
+## Specific Page Enhancements
 
-By adhering to these rules and guidelines, you will enhance the RateMyEmployer project, ensuring it is robust, secure, and maintainable. Strive for excellence in every aspect of development, from code quality to user experience. Together, we can build an outstanding platform that serves its users effectively.
+### 1. Wall of Shame/Fame Pages
+
+- **Enhancements:**
+  - **Wall of Shame:** Implement advanced filtering and sorting options based on various metrics like shame score, recent violations, and company ratings.
+  - **Wall of Fame:** Highlight top-performing companies with high ratings and positive reviews.
+  - **Analytics Dashboard:** Provide administrators with insights and analytics on company performances.
+
+- **User Experience:**
+  - **Responsive Design:** Ensure both pages are fully responsive across all devices.
+  - **Interactive Elements:** Add interactive charts and graphs to visualize data effectively.
+
+### 2. Background Check Page
+
+- **Enhancements:**
+  - **Detailed Reports:** Provide comprehensive background check reports with sections on company history, employee feedback, and compliance records.
+  - **Search Functionality:** Implement robust search and filtering options to allow users to find specific companies or criteria.
+  - **Integration with External APIs:** Integrate with third-party services for up-to-date background information.
+
+- **User Experience:**
+  - **Intuitive Interface:** Design a user-friendly interface that makes accessing and interpreting background information straightforward.
+  - **Downloadable Reports:** Allow users to download background check reports in PDF or other formats.
 
 ---
 
-*Happy Coding! 🚀*
+## Core Features Implementation
 
+### 1. Company News Integration
+
+- **Data Collection:**
+  - Poll news APIs every 6 hours for company updates
+  - Validate news sources against whitelist of reliable publishers
+  - Store news with metadata: source, publish date, relevance score
+  - Implement deduplication logic for similar news items
+
+- **Display Rules:**
+  - Show most recent news first
+  - Group related news items
+  - Highlight major company events (acquisitions, leadership changes)
+  - Cache news data for 1 hour on client side
+
+- **Integration Requirements:**
+  - Use typed interfaces for news data
+  - Implement error boundaries for failed news fetches
+  - Add fallback UI for when news is unavailable
+  - Track news click-through rates
+
+### 2. Review System
+
+- **Review Structure:**
+  - Required fields: overall rating, pros, cons, position held
+  - Optional fields: salary info, interview experience
+  - Support for anonymous reviews with email verification
+  - Allow photo/document attachments for verification
+
+- **Moderation Process:**
+  - Auto-flag reviews containing prohibited content
+  - Require manual approval for flagged reviews
+  - Implement 24-hour editing window for reviewers
+  - Store review edit history
+
+- **Scoring System:**
+  - Calculate company score using weighted averages
+  - Weight recent reviews more heavily
+  - Factor in review helpfulness votes
+  - Adjust for review volume
+
+- **Dispute Handling:**
+  - Allow company responses to reviews
+  - Implement review dispute workflow
+  - Require evidence for factual disputes
+  - Archive rather than delete disputed content
+
+### 3. Assessment System
+
+- **Assessment Criteria:**
+  - Company culture evaluation
+  - Management effectiveness
+  - Career growth opportunities
+  - Work-life balance metrics
+  - Compensation fairness
+
+- **Scoring Methodology:**
+  - Use standardized rubrics for each criterion
+  - Calculate composite scores with confidence intervals
+  - Adjust for industry benchmarks
+  - Factor in company size and age
+
+- **Validation Process:**
+  - Cross-reference with public data
+  - Verify assessment submitter credentials
+  - Implement peer review system
+  - Regular assessment audits
+
+- **Update Requirements:**
+  - Reassess scores quarterly
+  - Allow company challenges to assessments
+  - Archive outdated assessments
+  - Track assessment trends over time
+
+### 4. Search and Filter System
+
+- **Search Algorithm:**
+  - Implement fuzzy matching for company names
+  - Include phonetic matching for misspellings
+  - Search across multiple fields (name, industry, location)
+  - Support boolean operators in search
+
+- **Filter Requirements:**
+  - Industry classification filters
+  - Company size ranges
+  - Rating range filters
+  - Location-based filtering
+  - Review date ranges
+
+- **Result Ranking:**
+  - Prioritize exact matches
+  - Factor in review recency
+  - Consider company profile completeness
+  - Boost verified companies
+
+- **Performance Requirements:**
+  - Search results in under 200ms
+  - Implement result pagination
+  - Cache frequent searches
+  - Background load detailed results
+
+---
+
+## Conclusion
+
+By adhering to these rules and guidelines, you will successfully recreate and enhance the RateMyEmployer project, ensuring it is robust, secure, and maintainable. Special attention has been given to the **Wall of Shame/Fame** and **Background Check** pages to improve their functionality and user experience. Strive for excellence in every aspect of development, from code quality to user satisfaction. Together, we can build an outstanding platform that serves its users effectively.
+
+---
+
+*Happy Coding! 🚀* 
