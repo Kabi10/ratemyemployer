@@ -63,6 +63,8 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
       // Create a more targeted search query
       return `"${company}" (${searchTerms.join(' OR ')})`;
     });
+
+    console.log('Fetching news with query:', companyQueries[0]); // Log first query for debugging
     
     const response = await axios.get<SerpApiResponse>('https://serpapi.com/search.json', {
       params: {
@@ -74,7 +76,28 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
         tbs: 'qdr:y', // Last year's news
         safe: 'active'
       }
+    }).catch((error: AxiosError) => {
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('SerpAPI error response:', {
+          status: error.response.status,
+          data: error.response.data
+        });
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received from SerpAPI:', error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error setting up SerpAPI request:', error.message);
+      }
+      throw error;
     });
+
+    if (!response || !response.data) {
+      console.error('No response data from SerpAPI');
+      return false;
+    }
 
     const allArticles = response.data.news_results || [];
     console.log(`Found ${allArticles.length} total articles for ${companies.length} companies`);
@@ -105,20 +128,43 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
           created_at: new Date().toISOString()
         }));
 
-        // Delete existing news for this company before inserting new ones
-        await supabase
-          .from('company_news')
-          .delete()
-          .eq('company_name', company);
+        try {
+          // Delete existing news for this company before inserting new ones
+          const { error: deleteError } = await supabase
+            .from('company_news')
+            .delete()
+            .eq('company_name', company);
 
-        const { error } = await supabase.from('company_news').insert(newsArticles);
-        if (error) throw error;
+          if (deleteError) {
+            console.error('Error deleting old news for', company, ':', deleteError);
+            continue;
+          }
+
+          const { error: insertError } = await supabase.from('company_news').insert(newsArticles);
+          if (insertError) {
+            console.error('Error inserting news for', company, ':', insertError);
+            continue;
+          }
+        } catch (dbError) {
+          console.error('Database operation failed for', company, ':', dbError);
+          continue;
+        }
+      } else {
+        console.log(`No relevant articles found for ${company}`);
       }
     }
 
     return true;
   } catch (error) {
-    console.error('Error fetching and storing news:', error instanceof AxiosError ? error.response?.data : error);
+    if (error instanceof AxiosError) {
+      console.error('SerpAPI request failed:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+    } else {
+      console.error('Unexpected error:', error);
+    }
     return false;
   }
 }
