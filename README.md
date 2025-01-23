@@ -135,4 +135,32 @@ The application is configured for deployment on Vercel with the following featur
 
 ## Support
 
-For support, please open an issue in the repository. 
+For support, please open an issue in the repository.
+
+## Automated News Fetching
+
+The Wall of Shame feature includes automated news fetching via GitHub Actions. The system:
+
+- Runs twice daily (6 AM and 6 PM UTC)
+- Fetches news for the 10 companies with lowest ratings
+- Uses SerpAPI to gather relevant news articles
+- Stores results in the database for quick access
+
+### Required Repository Secrets
+
+To enable the news fetching workflow, add these secrets to your GitHub repository:
+
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
+- `SERP_API_KEY`: Your SerpAPI key
+
+### Manual Trigger
+
+You can manually trigger the news fetch workflow:
+
+1. Go to the "Actions" tab in your repository
+2. Select "Fetch Company News" workflow
+3. Click "Run workflow"
+4. Select the branch and click "Run workflow"
+
+This is useful for testing or forcing an immediate news update. 
