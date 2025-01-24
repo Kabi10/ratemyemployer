@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS public.company_news (
     published_at TIMESTAMP WITH TIME ZONE,
     image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT unique_company_news UNIQUE (company_name, title)
 );
 
 -- Create indexes for better performance

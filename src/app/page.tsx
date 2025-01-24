@@ -215,6 +215,10 @@ export default function Home() {
                         variant="default"
                         size="lg"
                         onClick={() => {
+                          if (!user) {
+                            router.push('/auth');
+                            return;
+                          }
                           setSelectedCompany(company);
                           setShowAddReview(true);
                         }}
@@ -273,7 +277,54 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Slide-over panel for adding a new company */}
+      {/* Add Review Modal */}
+      {showAddReview && selectedCompany && (
+        <div className="fixed inset-0 overflow-hidden z-50">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+              onClick={() => setShowAddReview(false)}
+            />
+            <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex animate-slide-in-right">
+              <div className="relative w-screen max-w-2xl">
+                <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
+                  <div className="flex-1 h-0 overflow-y-auto">
+                    <div className="py-6 px-4 sm:px-6">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                            Write a Review
+                          </h2>
+                          <p className="mt-1 text-sm text-gray-500">
+                            for {selectedCompany.name}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setShowAddReview(false)}
+                        >
+                          <X className="h-6 w-6" />
+                        </Button>
+                      </div>
+                      <div className="mt-6">
+                        <ReviewForm
+                          companyId={selectedCompany.id}
+                          onSuccess={() => {
+                            setShowAddReview(false);
+                            router.refresh();
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Company Modal */}
       {showAddCompany && (
         <div className="fixed inset-0 overflow-hidden z-50">
           <div className="absolute inset-0 overflow-hidden">
@@ -367,52 +418,6 @@ export default function Home() {
                           {isSubmitting ? <LoadingSpinner /> : 'Add Company'}
                         </Button>
                       </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Slide-over panel for adding a review */}
-      {showAddReview && selectedCompany && (
-        <div className="fixed inset-0 overflow-hidden z-50">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex">
-              <div className="relative w-screen max-w-md">
-                <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
-                  <div className="flex-1 h-0 overflow-y-auto">
-                    <div className="py-6 px-4 sm:px-6">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                            Write a Review
-                          </h2>
-                          <p className="mt-1 text-sm text-gray-500">{selectedCompany.name}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setShowAddReview(false);
-                            setSelectedCompany(null);
-                          }}
-                        >
-                          <X className="h-6 w-6" />
-                        </Button>
-                      </div>
-                      <div className="mt-6">
-                        <ReviewForm
-                          companyId={selectedCompany.id}
-                          onSuccess={() => {
-                            setShowAddReview(false);
-                            setSelectedCompany(null);
-                          }}
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>

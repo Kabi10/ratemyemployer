@@ -100,7 +100,7 @@ export const dbQuery = {
   },
   reviews: {
     create: async (data: ReviewFormData, userId: string) => {
-      const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
+      const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons, company_id } = data;
       return supabase
         .from('reviews')
         .insert({
@@ -115,6 +115,7 @@ export const dbQuery = {
           pros,
           cons,
           user_id: userId,
+          company_id,
           created_at: new Date().toISOString(),
           status: 'pending'
         })
