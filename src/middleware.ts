@@ -69,16 +69,16 @@ export async function middleware(req: NextRequest) {
   const isAdminPath = adminPaths.some(path => req.nextUrl.pathname.startsWith(path));
 
   // Check authentication for protected routes
-  if (!session) {
-    if (isProtectedPath || isAdminPath) {
+  if (isProtectedPath || isAdminPath) {
+    if (!session) {
       const redirectUrl = new URL('/auth/login', req.url);
       redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
       return NextResponse.redirect(redirectUrl);
     }
-  } 
-  // Check admin role in user metadata for admin routes
-  else if (isAdminPath && session.user.user_metadata?.role !== 'admin') {
-    return NextResponse.redirect(new URL('/', req.url));
+    // Check admin role for admin routes
+    if (isAdminPath && session.user.user_metadata?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
   }
 
   return res;

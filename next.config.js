@@ -48,6 +48,7 @@ const nextConfig = {
     // Temporarily disable ESLint for build
     ignoreDuringBuilds: true,
   },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
 }
 
 export default withBundleAnalyzer(nextConfig) 

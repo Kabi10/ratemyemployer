@@ -1,0 +1,6 @@
+---
+description: creating new files
+globs: *
+---
+
+-Before creating a new file, make sure there isnt a duplicate file that already does what you intend to.

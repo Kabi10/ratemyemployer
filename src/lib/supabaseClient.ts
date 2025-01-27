@@ -15,28 +15,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create a singleton instance with proper configuration
-export const supabase = createBrowserClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce',
-      debug: process.env.NODE_ENV === 'development',
-      cookieOptions: {
-        name: 'sb-auth-token',
-        lifetime: 60 * 60 * 24 * 7, // 1 week
-        domain: process.env.NODE_ENV === 'development' ? 'localhost' : 'ratemyemployer.life',
-        sameSite: 'lax',
-        path: '/'
-      }
-    },
-    db: {
-      schema: 'public'
-    }
-  }
+export const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 // Use the singleton instance instead of creating new ones
@@ -81,6 +62,7 @@ export const dbQuery = {
         .single();
     },
     update: async (id: string | number, data: Partial<CompanyFormData>) => {
+      const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
       const { description, industry, location, name, logo_url, verification_status, verified, website } = data;
       return supabase
         .from('companies')
@@ -95,32 +77,18 @@ export const dbQuery = {
           website,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', numericId);
     }
   },
   reviews: {
     create: async (data: ReviewFormData, userId: string) => {
-      const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons, company_id } = data;
+      const { content, ...rest } = data;
       return supabase
         .from('reviews')
         .insert({
-          content,
-          employment_status,
-          is_current_employee,
-          position,
-          rating,
-          reviewer_email,
-          reviewer_name,
-          title,
-          pros,
-          cons,
-          user_id: userId,
-          company_id,
-          created_at: new Date().toISOString(),
-          status: 'pending'
-        })
-        .select()
-        .single();
+          review_content: content,
+          ...rest
+        });
     },
     update: async (id: string | number, data: Partial<ReviewFormData>, userId: string) => {
       const { content, employment_status, is_current_employee, position, rating, reviewer_email, reviewer_name, title, pros, cons } = data;
@@ -140,6 +108,20 @@ export const dbQuery = {
         })
         .eq('id', id)
         .eq('user_id', userId); // Ensure user can only update their own reviews
+    }
+  },
+  profiles: {
+    select: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error('Error selecting profiles');
+      }
+
+      return data;
     }
   }
 };

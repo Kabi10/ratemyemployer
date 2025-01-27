@@ -11,7 +11,13 @@ import type { Database } from '@/types/supabase';
 type Review = Database['public']['Tables']['reviews']['Row'];
 
 export default function EditReview() {
-  const params = useParams();
+  const params = useParams() as { id: string };
+  const id = parseInt(params.id);
+  
+  if (isNaN(id)) {
+    return <div>Invalid review ID</div>;
+  }
+
   const router = useRouter();
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);

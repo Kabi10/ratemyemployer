@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { GridIcon, ListIcon } from 'lucide-react';
+import type { Company } from '@/types/database';
+import useSWR from 'swr';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 
@@ -42,14 +44,26 @@ interface CompanyListProps {
   selectedLocation: string;
   selectedIndustry: string;
   searchQuery: string;
+  fallbackData: Company[];
 }
 
-export function CompanyList({ selectedLocation, selectedIndustry, searchQuery }: CompanyListProps) {
+const fetchCompanies = async () => {
+  return [];
+};
+
+export const CompanyList = ({
+  selectedLocation,
+  selectedIndustry,
+  searchQuery,
+  fallbackData
+}: CompanyListProps) => {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS[0]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const { companies, totalCount, loading, error } = useCompanies({
+  const companies = fallbackData;
+  
+  const { totalCount } = useCompanies({
     limit: ITEMS_PER_PAGE,
     offset: (page - 1) * ITEMS_PER_PAGE,
     location: selectedLocation !== 'all' ? selectedLocation : '',
@@ -116,11 +130,6 @@ export function CompanyList({ selectedLocation, selectedIndustry, searchQuery }:
         items={companies}
         renderItem={(company) => <CompanyCard company={company} />}
         keyExtractor={keyExtractor}
-        isLoading={loading}
-        error={error}
-        onRetry={handleRetry}
-        emptyMessage="No companies found"
-        loadingItemCount={ITEMS_PER_PAGE}
         gridCols={viewMode === 'grid' ? { default: 1, md: 2, lg: 3 } : { default: 1 }}
         pagination={{
           page,
@@ -130,4 +139,4 @@ export function CompanyList({ selectedLocation, selectedIndustry, searchQuery }:
       />
     </div>
   );
-}
+};

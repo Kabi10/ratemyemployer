@@ -1,15 +1,17 @@
-import { INDUSTRIES } from '@/types';
-import * as z from 'zod';
-import type { Database } from '@/types/supabase';
+import { z } from 'zod';
+import type { CompanySize, EmploymentStatus, ReviewStatus } from '@/types/database';
 
-type Company = Database['public']['Tables']['companies']['Row'];
-type Review = Database['public']['Tables']['reviews']['Row'];
+// URL validation regex
+const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
 
 // Enums
-export const employmentStatusEnum = ['Full-time', 'Part-time', 'Contract', 'Intern'] as const;
-export const verificationStatusEnum = ['pending', 'verified', 'rejected'] as const;
-export const reviewStatusEnum = ['pending', 'approved', 'rejected'] as const;
-export const rateLimitTypeEnum = ['review', 'company', 'report'] as const;
+export const employmentStatusEnum = z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']) satisfies z.ZodType<EmploymentStatus>;
+export const reviewStatusEnum = z.enum(['pending', 'approved', 'rejected']) satisfies z.ZodType<ReviewStatus>;
+export const companySizeEnum = z.enum(['Small', 'Medium', 'Large', 'Enterprise', 'Startup']) satisfies z.ZodType<CompanySize>;
+export const rateLimitTypeEnum = z.enum(['ip', 'user']);
+
+// URL validation regex (matches our database constraint)
+const urlRegex = /^https?:\/\/([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
 
 // Validation Messages
 export const ERROR_MESSAGES = {
@@ -21,51 +23,80 @@ export const ERROR_MESSAGES = {
   rating: 'Rating must be between 1 and 5 stars',
   invalidEnum: (field: string, options: readonly string[]) => 
     `${field} must be one of: ${options.join(', ')}`,
-  name: 'Company name must be at least 2 characters',
+  name: 'Company name must be between 2 and 100 characters',
   website: 'Please enter a valid URL',
   industry: 'Please select an industry',
-  location: 'Location must be at least 2 characters',
+  location: 'Location must be between 2 and 150 characters',
   title: 'Title must be between 3 and 255 characters',
   content: 'Review must be at least 10 characters',
   position: 'Position must be between 2 and 255 characters'
 };
 
-// Review Schema
-export const reviewSchema = z.object({
-  rating: z.number()
-    .min(1, ERROR_MESSAGES.rating)
-    .max(5, ERROR_MESSAGES.rating),
-  title: z.string().min(3, ERROR_MESSAGES.title).max(255),
-  content: z.string().min(10, ERROR_MESSAGES.content),
-  pros: z.string().min(3).optional(),
-  cons: z.string().min(3).optional(),
-  position: z.string().min(2, ERROR_MESSAGES.position).max(255),
-  employment_status: z.enum(employmentStatusEnum, {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Employment status', employmentStatusEnum) })
-  }),
-  is_current_employee: z.boolean(),
-  company_id: z.number()
+// Company schema
+export const companySchema = z.object({
+  name: z.string()
+    .min(2, 'Company name must be between 2 and 100 characters')
+    .max(100, 'Company name must be less than 100 characters')
+    .transform(val => val.trim()),
+  industry: z.enum(["Technology", "Healthcare", "Education", "Finance", "Manufacturing", "Retail", "Other"]),
+  location: z.string()
+    .min(1, 'Location is required')
+    .max(100, 'Location must be less than 100 characters'),
+  website: z.string()
+    .max(255, 'Website URL must be less than 255 characters')
+    .regex(URL_REGEX, 'Invalid website URL')
+    .optional()
+    .nullable(),
+  size: companySizeEnum.optional().nullable(),
+  ceo: z.string()
+    .max(100, 'CEO name must be less than 100 characters')
+    .optional()
+    .nullable(),
+  benefits: z.string()
+    .max(1000, 'Benefits description must be less than 1000 characters')
+    .optional()
+    .nullable(),
+  company_values: z.string()
+    .max(1000, 'Company values must be less than 1000 characters')
+    .optional()
+    .nullable(),
+  logo_url: z.string()
+    .regex(URL_REGEX, 'Invalid logo URL')
+    .max(255, 'Logo URL must be less than 255 characters')
+    .optional()
+    .nullable(),
 });
 
-// Company Schema
-export const companySchema = z.object({
-  name: z.string().min(2, ERROR_MESSAGES.name),
-  website: z.string().url(ERROR_MESSAGES.website).optional().or(z.literal('')),
-  industry: z.string().min(2, ERROR_MESSAGES.industry),
-  location: z.string().min(2, ERROR_MESSAGES.location),
-  description: z.string().optional(),
-  ceo: z.string().optional(),
-  size: z.enum(['Small', 'Medium', 'Large', 'Enterprise'], {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Company size', ['Small', 'Medium', 'Large', 'Enterprise']) })
-  })
-    .optional(),
-  logo_url: z.string()
-    .url(ERROR_MESSAGES.url)
-    .trim()
-    .optional(),
-  verification_status: z.enum(verificationStatusEnum).optional(),
-  verified: z.boolean().optional(),
-  verification_date: z.string().datetime().optional()
+// Review schema
+export const reviewSchema = z.object({
+  company_id: z.number().int().positive('Invalid company ID'),
+  rating: z.number()
+    .min(1, 'Rating must be between 1 and 5')
+    .max(5, 'Rating must be between 1 and 5'),
+  title: z.string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  pros: z.string()
+    .min(10, 'Pros must be at least 10 characters')
+    .max(1000, 'Pros must be less than 1000 characters'),
+  cons: z.string()
+    .min(10, 'Cons must be at least 10 characters')
+    .max(1000, 'Cons must be less than 1000 characters'),
+  position: z.string()
+    .min(1, 'Position is required')
+    .max(100, 'Position must be less than 100 characters'),
+  employment_status: employmentStatusEnum,
+  is_current_employee: z.boolean(),
+  status: reviewStatusEnum.default('pending'),
+  reviewer_name: z.string()
+    .max(100, 'Reviewer name must be less than 100 characters')
+    .optional()
+    .nullable(),
+  reviewer_email: z.string()
+    .email('Invalid email address')
+    .max(255, 'Email must be less than 255 characters')
+    .optional()
+    .nullable(),
 });
 
 // Validation Utilities
@@ -84,10 +115,6 @@ export const validateForm = async <T extends z.ZodSchema>(
   }
 };
 
-// Export types
-export type ReviewFormData = z.infer<typeof reviewSchema>;
+// Form data types
 export type CompanyFormData = z.infer<typeof companySchema>;
-export type EmploymentStatus = typeof employmentStatusEnum[number];
-export type VerificationStatus = typeof verificationStatusEnum[number];
-export type ReviewStatus = typeof reviewStatusEnum[number];
-export type RateLimitType = typeof rateLimitTypeEnum[number];
+export type ReviewFormData = z.infer<typeof reviewSchema>;

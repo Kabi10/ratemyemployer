@@ -1,151 +1,116 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabaseClient';
-import type { Database } from '@/types/supabase';
+import { getCompany, getCompanies } from '@/lib/database';
+import type { 
+  Company, 
+  CompanyWithReviews, 
+  GetCompaniesOptions, 
+  DatabaseResult, 
+  JoinedCompany,
+  CompanyId 
+} from '@/types/database';
+import { supabase } from '@/lib/supabaseClient';
 
-type Company = Database['public']['Tables']['companies']['Row'];
-type Review = Database['public']['Tables']['reviews']['Row'];
+export type UseCompanyOptions = {
+  withReviews?: boolean;
+  withStats?: boolean;
+};
 
-interface UseCompaniesOptions {
-  limit?: number;
-  offset?: number;
-  searchQuery?: string;
-  industry?: string;
-  location?: string;
-  orderBy?: {
-    column: string;
-    direction: 'asc' | 'desc';
-  };
-}
+export type UseCompanyResult = {
+  company: JoinedCompany | null;
+  loading: boolean;
+  error: string | null;
+};
 
-export function useCompany(id: string | null) {
-  const [company, setCompany] = useState<Company | null>(null);
+export type UseCompaniesResult = {
+  companies: JoinedCompany[];
+  totalCount: number;
+  loading: boolean;
+  error: string | null;
+};
+
+export const useCompany = (
+  id: CompanyId | string | null,
+  options: UseCompanyOptions = {}
+): UseCompanyResult => {
+  const [company, setCompany] = useState<JoinedCompany | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    const fetchCompany = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
-    async function fetchCompany() {
       try {
+        const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
         const { data, error } = await supabase
           .from('companies')
-          .select(`
-            *,
-            reviews:reviews(rating)
-          `)
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
+          .select('*, reviews(*)')
+          .eq('id', numericId);
         
-        // Calculate average rating if there are reviews
-        if (data && data.reviews && data.reviews.length > 0) {
-          const avgRating = data.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / data.reviews.length;
-          data.rating = Number(avgRating.toFixed(1));
+        if (error) {
+          setError(error.message || 'Failed to fetch company');
+          setCompany(null);
         } else {
-          data.rating = 0;
+          setCompany(data[0] as JoinedCompany);
+          setError(null);
         }
-        
-        setCompany(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch company');
+        setError('An unexpected error occurred');
+        setCompany(null);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchCompany();
-  }, [id]);
+  }, [id, options.withReviews, options.withStats]);
 
   return { company, loading, error };
-}
+};
 
-export function useCompanies(options: UseCompaniesOptions = {}) {
-  const [companies, setCompanies] = useState<Company[]>([]);
+export const useCompanies = (options: GetCompaniesOptions = {}): UseCompaniesResult => {
+  const [companies, setCompanies] = useState<JoinedCompany[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
-
-  const { 
-    limit = 10, 
-    offset = 0, 
-    searchQuery = '', 
-    industry = '', 
-    location = '',
-    orderBy = { column: 'name', direction: 'asc' }
-  } = options;
 
   useEffect(() => {
-    async function fetchCompanies() {
+    const fetchCompanies = async () => {
       try {
-        let query = supabase
+        const { data, error } = await supabase
           .from('companies')
-          .select(`
-            *,
-            reviews:reviews(rating),
-            review_count:reviews(count)
-          `, { count: 'exact' });
-
-        if (searchQuery) {
-          query = query.ilike('name', `%${searchQuery}%`);
+          .select('*, reviews(*)');
+        if (error) {
+          setError(error.message || 'Failed to fetch companies');
+          setCompanies([]);
+        } else {
+          setCompanies(data as JoinedCompany[]);
+          setTotalCount(data.length);
+          setError(null);
         }
-        if (industry) {
-          query = query.eq('industry', industry);
-        }
-        if (location) {
-          query = query.eq('location', location);
-        }
-
-        const { data, error, count } = await query
-          .range(offset, offset + limit - 1);
-
-        if (error) throw error;
-
-        // Calculate average rating for each company
-        const companiesWithRatings = data?.map(company => {
-          if (company.reviews && company.reviews.length > 0) {
-            const avgRating = company.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / company.reviews.length;
-            return {
-              ...company,
-              rating: Number(avgRating.toFixed(1)),
-              review_count: company.reviews.length
-            };
-          }
-          return {
-            ...company,
-            rating: 0,
-            review_count: 0
-          };
-        }) || [];
-
-        // Sort companies based on the orderBy parameter
-        const sortedCompanies = companiesWithRatings.sort((a, b) => {
-          const aValue = a[orderBy.column];
-          const bValue = b[orderBy.column];
-          
-          if (orderBy.direction === 'desc') {
-            return bValue - aValue;
-          }
-          return aValue - bValue;
-        });
-
-        setCompanies(sortedCompanies);
-        setTotalCount(count || 0);
       } catch (err) {
-        console.error('Error fetching companies:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch companies');
+        setError('An unexpected error occurred');
+        setCompanies([]);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchCompanies();
-  }, [limit, offset, searchQuery, industry, location, orderBy]);
+  }, [
+    options.page, 
+    options.limit, 
+    options.industry, 
+    options.location, 
+    options.search, 
+    options.orderBy, 
+    options.orderDirection,
+    options.withReviews,
+    options.withStats
+  ]);
 
   return { companies, totalCount, loading, error };
-}
+};

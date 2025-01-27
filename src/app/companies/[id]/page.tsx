@@ -13,9 +13,8 @@ import { Button } from '@/components/ui/button';
 // app/companies/[id]/page.tsx
 
 export default function CompanyPage() {
-  const params = useParams();
-  const companyId = params?.id;
-  const { company, isLoading, error } = useCompany(companyId as string);
+  const { id } = useParams() as { id: string };
+  const { company, isLoading, error } = useCompany(id);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   if (isLoading) {

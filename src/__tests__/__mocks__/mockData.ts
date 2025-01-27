@@ -14,7 +14,7 @@ export const mockUser = {
 };
 
 // Review mock data
-export const mockReview: Review = {
+export const mockReview: Database['public']['Tables']['reviews']['Row'] = {
   id: 1,
   company_id: 1,
   user_id: 'test-user-id',
@@ -29,7 +29,8 @@ export const mockReview: Review = {
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   status: 'approved',
-  likes: 0
+  likes: 0,
+  company_name: 'Tech Corp'
 };
 
 // Company mock data

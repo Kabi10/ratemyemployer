@@ -3,18 +3,18 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 
-import { AuthProvider } from '@/contexts/AuthContext';
 import { FirebaseProvider } from '@/contexts/FirebaseContext';
-
+import { Providers } from './providers';
 import { Navbar } from '@/components/Navbar';
-import { ToastProvider } from '@/components/ui/toast';
-
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'RateMyEmployer - Workplace Reviews & Transparency',
   description: 'Discover honest employee reviews, workplace insights, and company culture. Make informed career decisions with RateMyEmployer.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -23,15 +23,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <FirebaseProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <Navbar />
-              {children}
-            </ToastProvider>
-          </AuthProvider>
+          <Providers>
+            <Navbar />
+            {children}
+          </Providers>
         </FirebaseProvider>
       </body>
     </html>

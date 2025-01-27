@@ -1,15 +1,8 @@
 'use client'
 
 import { ThemeProvider } from 'next-themes';
-
 import { AuthProvider } from '@/contexts/AuthContext';
-
-import { ToastProvider } from '@/components/Toast';
-
-
-
-
-
+import { Toaster } from '@/components/ui/toaster';
 
 interface Props {
   children: React.ReactNode;
@@ -24,9 +17,8 @@ export function Providers({ children }: Props) {
         enableSystem
         disableTransitionOnChange
       >
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        {children}
+        <Toaster />
       </ThemeProvider>
     </AuthProvider>
   );

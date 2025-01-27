@@ -13,6 +13,7 @@ import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import type { Database } from '@/types/supabase';
+import { Select } from '@/components/ui/select';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 
@@ -121,13 +122,12 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
 
       <div>
         <label className="block text-sm font-medium mb-2">Industry</label>
-        <select {...register('industry')} className="w-full p-3 border rounded-lg">
-          {INDUSTRIES.map((industry) => (
-            <option key={industry} value={industry}>
-              {industry}
-            </option>
-          ))}
-        </select>
+        <Select
+          value={watch('industry')}
+          onValueChange={(value) => setValue('industry', value as CompanyIndustry)}
+        >
+          {/* options */}
+        </Select>
         {errors.industry && <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>}
       </div>
 

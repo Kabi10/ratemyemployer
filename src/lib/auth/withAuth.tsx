@@ -1,8 +1,8 @@
 'use client'
 
-
-import { useEffect, useRef } from 'react';
-import { redirect } from 'next/navigation';
+import * as React from 'react';
+import type { ComponentType } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -10,43 +10,26 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Role } from '@/types';
 
 interface WithAuthProps {
-  requiredRole?: Role;
+  requiredRole?: string;
   redirectTo?: string;
 }
 
-export function withAuth(
-  WrappedComponent: React.ComponentType<any>,
-  { requiredRole, redirectTo = '/auth/login' }: WithAuthProps = {}
+export function withAuth<P extends object>(
+  WrappedComponent: ComponentType<P>,
+  options: { requiredRole?: string } = {}
 ) {
-  return function WithAuthComponent(props: any) {
+  return function ProtectedRoute(props: P) {
+    const router = useRouter();
     const { user, isLoading } = useAuth();
-    const router = redirect();
-    const roleRef = useRef(requiredRole);
 
-    useEffect(() => {
+    React.useEffect(() => {
       if (!isLoading && !user) {
-        router.push(redirectTo);
-      } else if (roleRef.current && user?.role !== roleRef.current) {
-        router.push('/unauthorized');
+        router.push('/login');
       }
-    }, [isLoading, user, router, redirectTo]);
+    }, [user, isLoading, router]);
 
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner size="lg" />
-        </div>
-      );
-    }
-
-    if (!user) {
-      return null;
-    }
-
-    if (requiredRole && user.role !== requiredRole) {
-      return null;
-    }
-
-    return <WrappedComponent {...props} />;
+    if (isLoading) return <LoadingSpinner />;
+    
+    return user ? <WrappedComponent {...props} /> : null;
   };
 }

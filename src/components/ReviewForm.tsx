@@ -1,26 +1,17 @@
 'use client'
 
-
 import { useState, useEffect } from 'react';
-
 import { useRouter } from 'next/navigation';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import { useForm } from 'react-hook-form';
-
-
-import { createClient, dbQuery, handleSupabaseError } from '@/lib/supabaseClient';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createClient } from '@/lib/supabaseClient';
 import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
-
 import { useAuth } from '@/contexts/AuthContext';
-
-import type { Database } from '@/types/supabase';
-
+import type { CompanyId, JoinedCompany, ReviewInsert } from '@/types/database';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LoadingSpinner } from './LoadingSpinner';
-
+import { LoadingSpinner } from './ui/loading-spinner';
+import { useToast } from './ui/use-toast';
 
 /**
  * src/components/ReviewForm.tsx
@@ -29,26 +20,13 @@ import { LoadingSpinner } from './LoadingSpinner';
 
 // External imports
 
-
-
-
 // Internal imports
 
-
-
-
-
-
-
-type Company = Database['public']['Tables']['companies']['Row'];
-type Review = Database['public']['Tables']['reviews']['Row'];
-type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
-type ReviewStatus = Database['public']['Enums']['review_status'];
-
 interface ReviewFormProps {
-  companyId?: string | number;
-  initialData?: Review;
+  companyId: number;
   onSuccess?: () => void;
+  onSubmit?: (data: ReviewFormData) => Promise<void>;
+  initialData?: Partial<Review>;
 }
 
 const commonPositions = [
@@ -69,34 +47,55 @@ const commonPositions = [
   'DevOps Engineer'
 ];
 
-export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProps): JSX.Element {
+const employmentOptions = [
+  { value: 'FULL_TIME', label: 'Full Time' },
+  { value: 'PART_TIME', label: 'Part Time' },
+  { value: 'CONTRACT', label: 'Contract' },
+  { value: 'INTERN', label: 'Intern' }
+];
+
+export const ReviewForm = ({
+  initialData,
+  companyId,
+  onSubmit,
+  onSuccess
+}: ReviewFormProps) => {
   const { user } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<JoinedCompany | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [prosLength, setProsLength] = useState(0);
-  const [consLength, setConsLength] = useState(0);
+  const supabase = createClient();
 
-  const defaultValues = {
-    rating: initialData?.rating || 3,
-    title: initialData?.title || '',
-    position: initialData?.position || '',
-    employment_status: (initialData?.employment_status || 'Full-time') as typeof employmentStatusEnum[number],
-    is_current_employee: initialData?.is_current_employee || false,
-    status: initialData?.status || 'pending',
-    pros: initialData?.pros || '',
-    cons: initialData?.cons || ''
-  };
-
-  const form = useForm<ReviewFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch
+  } = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
-    defaultValues,
+    defaultValues: {
+      company_id: companyId,
+      title: '',
+      rating: 0,
+      pros: '',
+      cons: '',
+      position: '',
+      status: 'pending' as const,
+      employment_status: 'FULL_TIME' as const,
+      is_current_employee: false,
+      content: '',
+      ...initialData
+    }
   });
 
-  const rating = form.watch('rating');
-  const position = form.watch('position');
+  const rating = watch('rating');
+  const position = watch('position');
+  const pros = watch('pros');
+  const cons = watch('cons');
 
   useEffect(() => {
     let isMounted = true;
@@ -108,27 +107,24 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
       }
 
       try {
-        const supabase = createClient();
-        const numericId = typeof companyId === 'string' ? parseInt(companyId, 10) : companyId;
-        
-        const { data: companyData, error } = await supabase
+        const { data: company, error } = await supabase
           .from('companies')
-          .select()
-          .eq('id', numericId)
-          .limit(1)
-          .then(({ data, error }) => ({
-            data: data?.[0] as Company | null,
-            error
-          }));
+          .select('*, reviews(*)')
+          .eq('id', companyId)
+          .single();
 
         if (error) throw error;
 
-        if (isMounted && companyData) {
-          setSelectedCompany(companyData);
+        if (isMounted && company) {
+          setSelectedCompany(company as JoinedCompany);
         }
       } catch (err) {
         console.error('Error fetching company:', err);
-        setError(handleSupabaseError(err));
+        toast({
+          title: "Error",
+          description: "Failed to load company data. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -141,74 +137,35 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     return () => {
       isMounted = false;
     };
-  }, [companyId]);
+  }, [companyId, toast]);
 
-  const onSubmit = async (data: ReviewFormData) => {
-    console.log('Form submission started', { data });
-    
+  const handleFormSubmit = async (data: ReviewFormData) => {
     if (!user) {
-      console.log('No user found, redirecting to login');
       router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
-    const numericCompanyId = typeof companyId === 'string' ? parseInt(companyId, 10) : companyId;
-    if (!numericCompanyId) {
-      console.error('No company ID found');
-      setError('Please select a company');
+    if (!companyId) {
+      toast({
+        title: "Error",
+        description: "Company ID is required",
+        variant: "destructive",
+      });
       return;
     }
-
-    if (!data.pros || !data.cons) {
-      setError('Please provide both pros and cons');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
 
     try {
-      console.log('Creating review for company:', numericCompanyId, 'with data:', data);
-
-      // Generate title from pros/cons
-      const firstPro = data.pros.split('.')[0].trim();
-      const firstCon = data.cons.split('.')[0].trim();
-      const generatedTitle = `${firstPro.substring(0, 50)}... but ${firstCon.substring(0, 50)}...`;
-
-      // Generate content from pros and cons
-      const content = `Pros:\n${data.pros}\n\nCons:\n${data.cons}`;
-
-      const reviewFormData: ReviewFormData = {
-        ...data,
-        title: generatedTitle,
-        content,
-        company_id: numericCompanyId
-      };
-
-      console.log('Submitting review with data:', reviewFormData);
-
-      try {
-        const { error: createError } = await dbQuery.reviews.create(reviewFormData, user.id);
-        console.log('Review creation response:', { error: createError });
-
-        if (createError) {
-          console.error('Error creating review:', createError);
-          throw createError;
-        }
-
-        console.log('Review created successfully');
-        
-        // Redirect to company page after successful submission
-        router.push(`/companies/${numericCompanyId}`);
-        router.refresh();
-        onSuccess?.();
-      } catch (dbError) {
-        console.error('Database error:', dbError);
-        throw dbError;
-      }
-    } catch (err) {
-      console.error('Error submitting review:', err);
-      setError(handleSupabaseError(err));
+      setIsSubmitting(true);
+      await onSubmit?.(data);
+      reset();
+      onSuccess?.();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Submission failed';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -223,13 +180,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Company Name */}
       {selectedCompany && (
         <div className="mb-6">
@@ -254,7 +205,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
                 <button
                   key={value}
                   type="button"
-                  onClick={() => form.setValue('rating', value)}
+                  onClick={() => setValue('rating', value)}
                   className={`p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors
                     ${rating >= value ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
                   aria-label={`Rate ${value} out of 5 stars`}
@@ -267,9 +218,50 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
               ))}
             </div>
             <span className="text-sm text-gray-600 dark:text-gray-400" aria-live="polite">
-              {rating} out of 5 stars
+              {rating || 0} out of 5 stars
             </span>
           </div>
+          {errors.rating && (
+            <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Title */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="title-label">
+          Review Title <span className="text-red-500">*</span>
+        </label>
+        <Input
+          {...register('title')}
+          type="text"
+          placeholder="Summarize your experience in a title"
+          className="w-full"
+          aria-labelledby="title-label"
+        />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+        )}
+      </div>
+
+      {/* Content */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="content-label">
+          Review Content <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          {...register('content')}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          rows={4}
+          placeholder="Share your overall experience working at this company"
+          maxLength={2000}
+          aria-labelledby="content-label"
+        />
+        {errors.content && (
+          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+        )}
+        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {2000 - (watch('content')?.length || 0)} characters remaining
         </div>
       </div>
 
@@ -278,21 +270,22 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="position-label">
           Position <span className="text-red-500">*</span>
         </label>
-        <div className="relative">
-          <Input
-            {...form.register('position')}
-            type="text"
-            placeholder="e.g. Software Engineer"
-            list="common-positions"
-            className="w-full"
-            aria-labelledby="position-label"
-          />
-          <datalist id="common-positions">
-            {commonPositions.map((pos) => (
-              <option key={pos} value={pos} />
-            ))}
-          </datalist>
-        </div>
+        <Input
+          {...register('position')}
+          type="text"
+          list="positions"
+          placeholder="Your job title"
+          className="w-full"
+          aria-labelledby="position-label"
+        />
+        <datalist id="positions">
+          {commonPositions.map((pos) => (
+            <option key={pos} value={pos} />
+          ))}
+        </datalist>
+        {errors.position && (
+          <p className="mt-1 text-sm text-red-600">{errors.position.message}</p>
+        )}
       </div>
 
       {/* Employment Status */}
@@ -301,27 +294,33 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
           Employment Status <span className="text-red-500">*</span>
         </label>
         <select
-          {...form.register('employment_status')}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+          {...register('employment_status')}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           aria-labelledby="employment-status-label"
         >
-          {employmentStatusEnum.map((status) => (
-            <option key={status} value={status}>
-              {status}
+          {employmentOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
+        {errors.employment_status && (
+          <p className="mt-1 text-sm text-red-600">{errors.employment_status.message}</p>
+        )}
       </div>
 
       {/* Current Employee */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center">
         <input
+          {...register('is_current_employee')}
           type="checkbox"
-          {...form.register('is_current_employee')}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          id="current-employee"
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+          id="is-current-employee"
         />
-        <label className="text-sm text-gray-700 dark:text-gray-300" htmlFor="current-employee">
+        <label
+          htmlFor="is-current-employee"
+          className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+        >
           I currently work here
         </label>
       </div>
@@ -329,54 +328,56 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
       {/* Pros */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="pros-label">
-          Pros <span className="text-red-500">*</span>
-          <span className="text-xs text-gray-500 ml-2">({prosLength}/1000)</span>
+          Pros
         </label>
         <textarea
-          {...form.register('pros')}
-          onChange={(e) => setProsLength(e.target.value.length)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-          rows={4}
-          placeholder="What do you like about working here?"
+          {...register('pros')}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          rows={3}
+          placeholder="What did you like about working here?"
           maxLength={1000}
           aria-labelledby="pros-label"
         />
+        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {1000 - (pros?.length || 0)} characters remaining
+        </div>
       </div>
 
       {/* Cons */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cons-label">
-          Cons <span className="text-red-500">*</span>
-          <span className="text-xs text-gray-500 ml-2">({consLength}/1000)</span>
+          Cons
         </label>
         <textarea
-          {...form.register('cons')}
-          onChange={(e) => setConsLength(e.target.value.length)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-          rows={4}
-          placeholder="What do you dislike about working here?"
+          {...register('cons')}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          rows={3}
+          placeholder="What could be improved?"
           maxLength={1000}
           aria-labelledby="cons-label"
         />
+        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {1000 - (cons?.length || 0)} characters remaining
+        </div>
       </div>
 
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        variant="default"
-        size="lg"
-        className="w-full"
-        aria-label={isSubmitting ? "Submitting review..." : "Submit review"}
-      >
-        {isSubmitting ? (
-          <>
-            <LoadingSpinner size="sm" className="mr-2" aria-hidden="true" />
-            Submitting...
-          </>
-        ) : (
-          'Submit Review'
-        )}
-      </Button>
+      {/* Submit Button */}
+      <div className="flex justify-end space-x-4">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          {isSubmitting ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Submitting...
+            </>
+          ) : (
+            'Submit Review'
+          )}
+        </Button>
+      </div>
     </form>
   );
-}
+};

@@ -5,18 +5,30 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { StarIcon, CheckBadgeIcon, MapPinIcon, UsersIcon, BuildingOfficeIcon } from '@heroicons/react/24/solid';
 import { Card } from './ui/card';
-import type { Database } from '@/types/supabase';
-
-type Company = Database['public']['Tables']['companies']['Row'];
+import { BriefcaseIcon } from '@heroicons/react/24/outline';
+import type { JoinedCompany, CompanyWithReviews } from '@/types/database';
+import { Badge } from './ui/badge';
 
 interface CompanyCardProps {
-  company: Company;
+  company: Company & {
+    metadata?: {
+      benefits?: string[]
+      values?: string[]
+      ceo?: string
+    }
+  };
+  showActions?: boolean;
+  className?: string;
 }
 
-export function CompanyCard({ company }: CompanyCardProps) {
-  const rating = company.rating || 0;
-  const totalReviews = company.review_count || 0;
+export const CompanyCard = ({ company, showActions = true, className }: CompanyCardProps) => {
+  const rating = company.average_rating || 0;
+  const totalReviews = company.total_reviews || 0;
   const ratingPercentage = (rating / 5) * 100;
+
+  const benefits = company.metadata?.benefits || [];
+  const companyValues = company.metadata?.values || [];
+  const ceo = company.metadata?.ceo || '';
 
   // Get color based on rating
   const getProgressColor = (rating: number) => {
@@ -28,7 +40,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
 
   return (
     <Link href={`/companies/${company.id}`}>
-      <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+      <Card className={`p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 ${className || ''}`}>
         <div className="flex items-start gap-4">
           {/* Company Logo */}
           <div className="relative w-16 h-16 flex-shrink-0">
@@ -46,13 +58,13 @@ export function CompanyCard({ company }: CompanyCardProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{company.name}</h3>
-                  {company.is_verified && (
+                  {company.verified && (
                     <CheckBadgeIcon className="w-5 h-5 text-blue-500" title="Verified Company" />
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mt-1">
                   <BuildingOfficeIcon className="w-4 h-4" />
-                  <span>{company.industry}</span>
+                  <span>{company.industry || 'Industry not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                   <MapPinIcon className="w-4 h-4" />
@@ -83,49 +95,71 @@ export function CompanyCard({ company }: CompanyCardProps) {
               </div>
             </div>
             
-            {company.description && (
-              <p className="mt-4 text-gray-700 dark:text-gray-300 line-clamp-2">{company.description}</p>
+            {company.company_values && (
+              <p className="mt-4 text-gray-700 dark:text-gray-300 line-clamp-2">{company.company_values}</p>
             )}
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {company.size && (
+              {company.ceo && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                   <UsersIcon className="w-4 h-4" />
-                  {company.size}
+                  CEO: {company.ceo}
                 </span>
               )}
-              {company.founded && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                  Founded {company.founded}
-                </span>
-              )}
-              {company.benefits_count > 0 && (
+              {company.benefits && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                  {company.benefits_count} Benefits
+                  Has Benefits
                 </span>
               )}
             </div>
 
-            {/* Key Metrics */}
-            {(company.work_life_rating || company.career_growth_rating || company.salary_rating) && (
+            {/* Key Metrics from Reviews */}
+            {company.reviews && company.reviews.length > 0 && (
               <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
-                {company.work_life_rating && (
-                  <div className="text-center">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{company.work_life_rating.toFixed(1)}</div>
-                    <div className="text-gray-500 dark:text-gray-400">Work-Life</div>
+                <div className="text-center">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100">
+                    {(company.reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / company.reviews.length).toFixed(1)}
                   </div>
-                )}
-                {company.career_growth_rating && (
-                  <div className="text-center">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{company.career_growth_rating.toFixed(1)}</div>
-                    <div className="text-gray-500 dark:text-gray-400">Growth</div>
+                  <div className="text-gray-500 dark:text-gray-400">Average Rating</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100">
+                    {company.reviews.length}
                   </div>
-                )}
-                {company.salary_rating && (
-                  <div className="text-center">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{company.salary_rating.toFixed(1)}</div>
-                    <div className="text-gray-500 dark:text-gray-400">Salary</div>
+                  <div className="text-gray-500 dark:text-gray-400">Total Reviews</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100">
+                    {((company.reviews.filter(r => r.rating && r.rating >= 4).length / company.reviews.length) * 100).toFixed(0)}%
                   </div>
+                  <div className="text-gray-500 dark:text-gray-400">Recommend</div>
+                </div>
+              </div>
+            )}
+
+            {company.size && (
+              <Badge variant="outline" className="text-sm">
+                {company.size.replace(/([A-Z])/g, ' $1').trim()}
+              </Badge>
+            )}
+
+            {showActions && (
+              <div className="mt-4 flex space-x-4">
+                <Link
+                  href={`/reviews/new?companyId=${company.id}`}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
+                >
+                  Write a Review
+                </Link>
+                {company.website && (
+                  <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
+                  >
+                    Visit Website
+                  </a>
                 )}
               </div>
             )}
@@ -134,4 +168,4 @@ export function CompanyCard({ company }: CompanyCardProps) {
       </Card>
     </Link>
   );
-}
+};

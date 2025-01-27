@@ -225,3 +225,16 @@ export async function fetchNewsForCompanies(companies: string[]): Promise<{ [com
     return {};
   }
 }
+
+export const fetchCompanyNews = async (companyName: string) => {
+  try {
+    const response = await fetch(
+      `https://newsapi.org/v2/everything?q=${encodeURIComponent(companyName)}&apiKey=${process.env.NEWS_API_KEY}`
+    );
+    const data = await response.json();
+    return data.articles || [];
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return [];
+  }
+};

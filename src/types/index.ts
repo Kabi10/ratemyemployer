@@ -10,24 +10,18 @@ export type CompanyRow = Tables['companies']['Row'];
 export type ReviewRow = Tables['reviews']['Row'];
 export type UserProfileRow = Tables['user_profiles']['Row'];
 
-export type EmploymentStatus = Enums['employment_status'];
-export type ReviewStatus = Enums['review_status'];
+export type EmploymentStatus = typeof EMPLOYMENT_STATUSES[number];
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 export type VerificationStatus = Enums['verification_status'];
 
 // Constants
 export const INDUSTRIES = [
   'Technology',
-  'Finance',
   'Healthcare',
-  'Retail',
-  'Manufacturing',
   'Education',
-  'Construction',
-  'Entertainment',
-  'Transportation',
-  'Energy',
-  'Real Estate',
-  'Agriculture',
+  'Finance',
+  'Manufacturing',
+  'Retail',
   'Other'
 ] as const;
 
@@ -70,7 +64,12 @@ export const isValidIndustry = (industry: string | null): industry is Industry =
   return industry !== null && INDUSTRIES.includes(industry as Industry);
 };
 
-export const EMPLOYMENT_STATUSES = ['Full-time', 'Part-time', 'Contract', 'Intern'] as const;
+export const EMPLOYMENT_STATUSES = [
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'INTERN'
+] as const;
 
 export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
   return EMPLOYMENT_STATUSES.includes(status as EmploymentStatus);

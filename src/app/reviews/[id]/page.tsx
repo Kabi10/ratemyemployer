@@ -60,9 +60,9 @@ export default function ReviewPage() {
           >
             {company?.name}
           </Link>
-          <div className="text-gray-600 dark:text-gray-400 mt-1">
-            Posted on {new Date(review.created_at).toLocaleDateString()}
-          </div>
+          {review.created_at && (
+            <span className="text-gray-600 dark:text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+          )}
         </div>
 
         <div className="flex items-center mb-6">

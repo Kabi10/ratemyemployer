@@ -6,7 +6,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import type { Database } from '@/types/supabase';
 
-type Company = Database['public']['Tables']['companies']['Row'];
+type Company = Database['public']['Tables']['companies']['Row'] & {
+  metadata?: {
+    ceo?: string;
+    // Add other metadata fields as needed
+  };
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +29,10 @@ export default function EditCompany() {
     description: '',
     location: '',
     website: '',
-    ceo: '',
+    metadata: {
+      ceo: '',
+      // other metadata fields
+    }
   });
 
   useEffect(() => {
@@ -48,7 +56,7 @@ export default function EditCompany() {
           description: data.description || '',
           location: data.location || '',
           website: data.website || '',
-          ceo: data.ceo || '',
+          metadata: data.metadata || { ceo: '' }
         });
       }
     } catch (err) {
@@ -85,6 +93,8 @@ export default function EditCompany() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  if (!params?.id) return <div>Invalid company ID</div>;
 
   if (loading) {
     return <div>Loading...</div>;
@@ -166,20 +176,6 @@ export default function EditCompany() {
             id="website"
             name="website"
             value={formData.website}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="ceo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            CEO
-          </label>
-          <input
-            type="text"
-            id="ceo"
-            name="ceo"
-            value={formData.ceo}
             onChange={handleInputChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600"
           />
