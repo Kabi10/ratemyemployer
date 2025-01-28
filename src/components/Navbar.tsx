@@ -1,20 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-
 import Image from 'next/image';
-
 import Link from 'next/link';
-
 import { ChevronDown, Menu, User, X } from 'lucide-react';
-
-import { signOut } from '@/lib/firebase';
-
-import { useFirebase } from '@/contexts/FirebaseContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Navbar(): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, loading } = useFirebase();
+  const { user, isLoading, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
   const handleSignOut = async () => {
@@ -60,7 +54,7 @@ export function Navbar(): JSX.Element {
             >
               Background Check
             </Link>
-            {loading ? (
+            {isLoading ? (
               <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
             ) : user ? (
               <div className="relative">
@@ -68,10 +62,10 @@ export function Navbar(): JSX.Element {
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center gap-3 px-5 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  {user.photoURL ? (
+                  {user.user_metadata?.avatar_url ? (
                     <Image
-                      src={user.photoURL}
-                      alt={user.displayName || 'User'}
+                      src={user.user_metadata.avatar_url}
+                      alt={user.user_metadata?.full_name || 'User'}
                       width={24}
                       height={24}
                       className="rounded-full"
@@ -80,7 +74,7 @@ export function Navbar(): JSX.Element {
                     <User className="w-6 h-6 text-gray-700 dark:text-gray-200" />
                   )}
                   <span className="hidden sm:inline text-lg text-gray-700 dark:text-gray-200">
-                    {user.displayName || user.email}
+                    {user.user_metadata?.full_name || user.email}
                   </span>
                   <ChevronDown className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                 </button>
@@ -106,7 +100,7 @@ export function Navbar(): JSX.Element {
               </div>
             ) : (
               <Link
-                href="/auth/login"
+                href="/auth/signin"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
                          text-white px-6 py-2.5 rounded-lg transition-all duration-200 
                          text-lg font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02] 
@@ -174,7 +168,7 @@ export function Navbar(): JSX.Element {
             </>
           ) : (
             <Link
-              href="/auth/login"
+              href="/auth/signin"
               className="block mx-6 my-4 py-3 text-center bg-gradient-to-r from-blue-600 to-indigo-600 
                        hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-colors 
                        text-lg font-medium shadow-md"

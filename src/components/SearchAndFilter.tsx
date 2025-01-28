@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,14 +18,11 @@ import {
 } from '@/components/ui/select';
 
 interface SearchAndFilterProps {
-  onSearch: (query: string) => void;
-  onIndustryChange: (industry: string) => void;
-  onLocationChange: (location: string) => void;
-  selectedIndustry: string;
-  selectedLocation: string;
-  onSizeChange?: (size: string) => void;
-  onRatingRangeChange?: (range: [number, number]) => void;
-  onVerifiedChange?: (verified: boolean) => void;
+  onSearch?: (query: string) => void;
+  onIndustryChange?: (industry: string) => void;
+  onLocationChange?: (location: string) => void;
+  selectedIndustry?: string;
+  selectedLocation?: string;
 }
 
 const COMPANY_SIZES = [
@@ -38,16 +36,18 @@ const COMPANY_SIZES = [
   '5000+'
 ];
 
-export default function SearchAndFilter({
-  onSearch,
-  onIndustryChange,
+const SearchAndFilter = ({ 
+  onSearch, 
+  onIndustryChange, 
   onLocationChange,
-  selectedIndustry,
-  selectedLocation
-}: SearchAndFilterProps) {
+  selectedIndustry = '',
+  selectedLocation = ''
+}: SearchAndFilterProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const [industries, setIndustries] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -57,15 +57,9 @@ export default function SearchAndFilter({
           .from('companies')
           .select('industry')
           .not('industry', 'is', null);
-
+        
         if (industryData) {
-          const uniqueIndustries = Array.from(
-            new Set(
-              industryData
-                .map(item => item.industry)
-                .filter((industry): industry is string => !!industry)
-            )
-          ).sort();
+          const uniqueIndustries = [...new Set(industryData.map(item => item.industry))];
           setIndustries(uniqueIndustries);
         }
 
@@ -74,15 +68,9 @@ export default function SearchAndFilter({
           .from('companies')
           .select('location')
           .not('location', 'is', null);
-
+        
         if (locationData) {
-          const uniqueLocations = Array.from(
-            new Set(
-              locationData
-                .map(item => item.location)
-                .filter((location): location is string => !!location)
-            )
-          ).sort();
+          const uniqueLocations = [...new Set(locationData.map(item => item.location))];
           setLocations(uniqueLocations);
         }
       } catch (error) {
@@ -93,61 +81,78 @@ export default function SearchAndFilter({
     fetchFilters();
   }, []);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
     setSearchQuery(query);
-    onSearch(query);
+    onSearch?.(query);
+  };
+
+  const handleIndustryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const industry = event.target.value;
+    onIndustryChange?.(industry);
+  };
+
+  const handleLocationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const location = event.target.value;
+    onLocationChange?.(location);
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <input
-          type="text"
-          placeholder="Search companies..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Industry
-          </label>
-          <select
-            value={selectedIndustry}
-            onChange={(e) => onIndustryChange(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-          >
-            <option value="">All Industries</option>
-            {industries.map((industry) => (
-              <option key={industry} value={industry}>
-                {industry}
-              </option>
-            ))}
-          </select>
+    <div className="w-full max-w-4xl mx-auto p-4">
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search Input */}
+        <div className="flex-1">
+          <Input
+            type="text"
+            placeholder="Search companies..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full"
+          />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Location
-          </label>
-          <select
-            value={selectedLocation}
-            onChange={(e) => onLocationChange(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+        {/* Industry Filter */}
+        <div className="w-full md:w-48">
+          <Select
+            value={selectedIndustry || "all"}
+            onValueChange={(value) => onIndustryChange?.(value === "all" ? "" : value)}
           >
-            <option value="">All Locations</option>
-            {locations.map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="All Industries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Industries</SelectItem>
+              {industries.map((industry) => (
+                <SelectItem key={industry} value={industry}>
+                  {industry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Location Filter */}
+        <div className="w-full md:w-48">
+          <Select
+            value={selectedLocation || "all"}
+            onValueChange={(value) => onLocationChange?.(value === "all" ? "" : value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {locations.map((location) => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default SearchAndFilter;

@@ -82,11 +82,12 @@ export const dbQuery = {
   },
   reviews: {
     create: async (data: ReviewFormData, userId: string) => {
-      const { content, ...rest } = data;
+      const { pros, cons, ...rest } = data;
       return supabase
         .from('reviews')
         .insert({
-          review_content: content,
+          pros: pros,
+          cons: cons,
           ...rest
         });
     },

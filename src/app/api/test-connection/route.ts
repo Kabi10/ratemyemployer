@@ -1,40 +1,21 @@
 import { NextResponse } from 'next/server';
-
-
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabaseServer';
 
 export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   try {
-    // Test queries
-    const [companiesResponse, reviewsResponse] = await Promise.all([
-      supabase.from('companies').select('*').limit(1),
-      supabase.from('reviews').select('*').limit(1),
-    ]);
+    const supabase = createClient();
+    const { data, error } = await supabase.from('companies').select('count').single();
 
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully connected to Supabase',
-      data: {
-        companies: companiesResponse.data,
-        reviews: reviewsResponse.data,
-        errors: {
-          companies: companiesResponse.error,
-          reviews: reviewsResponse.error,
-        },
-      },
-    });
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Connection successful', count: data.count });
   } catch (error) {
+    console.error('Error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to connect to Supabase',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Failed to connect to Supabase' },
       { status: 500 }
     );
   }

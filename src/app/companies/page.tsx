@@ -40,17 +40,11 @@ function CompanyListSkeleton() {
   );
 }
 
-const DEMO_COMPANIES = [
-  { id: 1, name: 'Tech Corp', industry: 'Technology', average_rating: 4.5 },
-  { id: 2, name: 'Health Plus', industry: 'Healthcare', average_rating: 4.2 }
-];
-
 export default function CompaniesPage() {
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCompany, setShowAddCompany] = useState(false);
-  const [companies] = useState(DEMO_COMPANIES);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 page-transition">
@@ -68,7 +62,9 @@ export default function CompaniesPage() {
         <SearchAndFilter
           onLocationChange={setSelectedLocation}
           onIndustryChange={setSelectedIndustry}
-          onSearchChange={setSearchQuery}
+          onSearch={setSearchQuery}
+          selectedLocation={selectedLocation}
+          selectedIndustry={selectedIndustry}
         />
 
         <div className="mt-12">
@@ -77,7 +73,6 @@ export default function CompaniesPage() {
               selectedLocation={selectedLocation}
               selectedIndustry={selectedIndustry}
               searchQuery={searchQuery}
-              fallbackData={DEMO_COMPANIES}
             />
           </Suspense>
         </div>

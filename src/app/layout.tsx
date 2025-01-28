@@ -1,9 +1,6 @@
 import './globals.css';
-
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
-
-import { FirebaseProvider } from '@/contexts/FirebaseContext';
 import { Providers } from './providers';
 import { Navbar } from '@/components/Navbar';
 
@@ -24,13 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
-        <FirebaseProvider>
-          <Providers>
-            <Navbar />
-            {children}
-          </Providers>
-        </FirebaseProvider>
+      <body className={inter.className}>
+        <Providers>
+          <Navbar />
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );

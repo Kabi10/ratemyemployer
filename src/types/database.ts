@@ -19,8 +19,6 @@ export interface Company {
 
 export interface Review {
   id: number;
-  title: string;
-  content: string | null;
   rating: number;
   pros: string;
   cons: string;
@@ -31,7 +29,6 @@ export interface Review {
   user_id: string | null;
   created_at: string;
   updated_at: string | null;
-  status: ReviewStatus;
 }
 
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];

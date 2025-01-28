@@ -1,20 +1,19 @@
 'use client'
 
-
 import { useEffect, useState } from 'react';
-
 import { motion } from 'framer-motion';
-
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
-
 import { supabase } from '@/lib/supabaseClient';
-
 import { Database } from '@/types/supabase';
+import type { Company, Review } from '@/types/database';
 
-type Company = Database['public']['Tables']['companies']['Row'];
+interface CompanyWithStats extends Company {
+  average_rating: number;
+  total_reviews: number;
+}
 
 export default function WallOfFame() {
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
@@ -25,32 +24,112 @@ export default function WallOfFame() {
 
   const fetchTopCompanies = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching companies with reviews...');
+      
+      // Fetch companies with their reviews
+      const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
-        .select('*')
-        .gt('average_rating', 4.0)
-        .order('average_rating', { ascending: false })
-        .limit(10);
+        .select(`
+          id,
+          name,
+          industry,
+          location,
+          website,
+          description,
+          logo_url,
+          reviews (
+            id,
+            title,
+            review_content,
+            rating,
+            pros,
+            cons,
+            position,
+            employment_status,
+            is_current_employee,
+            created_at
+          )
+        `);
 
-      if (error) throw error;
+      if (companiesError) {
+        console.error('Error fetching companies:', companiesError);
+        throw companiesError;
+      }
 
-      if (data) {
-        setCompanies(data);
-        fetchNewsForTopCompanies(data);
+      if (!companiesData) {
+        console.log('No companies found');
+        setCompanies([]);
+        return;
+      }
+
+      console.log('Raw companies data:', companiesData);
+
+      // Process companies and calculate ratings
+      const processedCompanies = companiesData
+        .map(company => {
+          const reviews = company.reviews || [];
+          const totalReviews = reviews.length;
+          
+          // Calculate average rating
+          const averageRating = totalReviews > 0
+            ? reviews.reduce((sum, review) => {
+                const rating = Number(review.rating);
+                if (isNaN(rating)) {
+                  console.warn(`Invalid rating for review in company ${company.name}:`, review);
+                  return sum;
+                }
+                return sum + rating;
+              }, 0) / totalReviews
+            : 0;
+
+          console.log(`Company ${company.name}:`, {
+            totalReviews,
+            averageRating,
+            reviews: reviews.map(r => ({ id: r.id, rating: r.rating }))
+          });
+
+          return {
+            ...company,
+            average_rating: averageRating,
+            total_reviews: totalReviews
+          };
+        })
+        // Filter for companies with reviews and high ratings
+        .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
+        // Sort by average rating
+        .sort((a, b) => b.average_rating - a.average_rating)
+        // Take top 10
+        .slice(0, 10);
+
+      console.log('Processed companies:', processedCompanies.map(c => ({
+        name: c.name,
+        avgRating: c.average_rating.toFixed(1),
+        totalReviews: c.total_reviews
+      })));
+
+      setCompanies(processedCompanies);
+      
+      if (processedCompanies.length > 0) {
+        fetchNewsForTopCompanies(processedCompanies);
       }
     } catch (err) {
+      console.error('Error in fetchTopCompanies:', err);
       setError('Failed to fetch top companies');
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchNewsForTopCompanies = async (companies: Company[]) => {
+  const fetchNewsForTopCompanies = async (companies: CompanyWithStats[]) => {
     const newsData: { [key: string]: NewsArticle[] } = {};
     for (const company of companies) {
-      const articles = await fetchCompanyNews(company.name, true);
-      newsData[company.name] = articles;
+      try {
+        const articles = await fetchCompanyNews(company.name);
+        newsData[company.name] = articles;
+      } catch (err) {
+        console.error(`Error fetching news for ${company.name}:`, err);
+        newsData[company.name] = [];
+      }
     }
     setCompanyNews(newsData);
   };
@@ -82,6 +161,24 @@ export default function WallOfFame() {
     );
   }
 
+  if (companies.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <div className="text-center py-8">
+              <h2 className="text-xl font-semibold text-blue-900 mb-2">No Top-Rated Companies Yet</h2>
+              <p className="text-blue-700">
+                Companies with an average rating above 4.0 stars will be featured here.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
       <div className="max-w-6xl mx-auto">
@@ -105,13 +202,23 @@ export default function WallOfFame() {
                   <h2 className="text-2xl font-semibold text-blue-900">{company.name}</h2>
                   <div className="flex items-center mt-2">
                     <span className="text-lg font-medium text-blue-600">
-                      Rating: {company.rating?.toFixed(1) || 'N/A'}
+                      Rating: {company.average_rating.toFixed(1)}
                     </span>
                     <span className="mx-2 text-blue-300">•</span>
                     <span className="text-blue-600">
-                      {company.review_count} reviews
+                      {company.total_reviews} reviews
                     </span>
                   </div>
+                  {company.industry && (
+                    <div className="mt-1 text-blue-600">
+                      Industry: {company.industry}
+                    </div>
+                  )}
+                  {company.location && (
+                    <div className="mt-1 text-blue-600">
+                      Location: {company.location}
+                    </div>
+                  )}
                 </div>
               </div>
 

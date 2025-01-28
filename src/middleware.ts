@@ -48,17 +48,15 @@ export async function middleware(req: NextRequest) {
 
   // Protected routes that require authentication
   const protectedPaths = [
-    '/reviews/new',
-    '/reviews/edit',
+    '/dashboard',
     '/profile',
-    '/account',
-    '/companies/new',
-    '/companies/edit'
+    '/settings',
+    '/admin',
+    '/api/protected',
   ];
 
   // Routes that require admin role
   const adminPaths = [
-    '/admin',
     '/admin/users',
     '/admin/reviews',
     '/admin/companies',

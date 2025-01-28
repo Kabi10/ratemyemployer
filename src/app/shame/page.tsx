@@ -7,12 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import { fetchAndStoreCompanyNews, fetchNewsForCompanies } from '@/lib/newsApi';
+import type { Company, Review } from '@/types/database';
 
-interface Company {
-  id: number;
-  name: string;
-  average_rating: number;
-  total_reviews: number;
+interface CompanyWithShameData extends Company {
+  reviews?: Review[];
   shame_score?: number;
   score_breakdown?: {
     base_score: number;
@@ -20,12 +18,6 @@ interface Company {
     recent_negative_count: number;
     recent_bonus: number;
   };
-  recent_reviews?: {
-    title: string;
-    content: string;
-    rating: number;
-    created_at: string;
-  }[];
 }
 
 interface NewsArticle {
@@ -39,56 +31,158 @@ interface NewsArticle {
 }
 
 export default function WallOfShame() {
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyWithShameData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+
+  const formatEmploymentStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'FULL_TIME': 'Full-time',
+      'PART_TIME': 'Part-time',
+      'CONTRACT': 'Contract',
+      'INTERN': 'Intern'
+    };
+    return statusMap[status] || status;
+  };
 
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchCompanies() {
       try {
+        console.log('Fetching companies...');
+        
+        // First, let's check what reviews we have
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*');
+
+        if (reviewsError) {
+          console.error('Error fetching reviews:', reviewsError);
+          throw new Error(reviewsError.message);
+        }
+
+        console.log('All reviews:', reviewsData?.map(r => ({
+          id: r.id,
+          company_id: r.company_id,
+          rating: r.rating,
+          created_at: r.created_at
+        })));
+        
         // Fetch companies with their reviews
-        const { data, error } = await supabase
+        const { data: companiesData, error: companiesError } = await supabase
           .from('companies')
           .select(`
             id,
             name,
-            average_rating,
-            total_reviews,
+            industry,
+            location,
+            description,
+            logo_url,
             reviews (
-              title,
-              content,
+              id,
               rating,
+              pros,
+              cons,
+              position,
+              employment_status,
+              is_current_employee,
               created_at
             )
-          `)
-          .order('average_rating', { ascending: true })
-          .limit(10);
+          `);
 
-        if (error) throw error;
+        if (companiesError) {
+          console.error('Error fetching companies:', companiesError);
+          throw new Error(companiesError.message);
+        }
 
-        // Calculate shame score and process reviews
-        const companiesWithScore = data.map(company => ({
-          ...company,
-          shame_score: calculateShameScore(company),
-          recent_reviews: company.reviews
-            ?.filter(review => review.rating <= 2) // Only show negative reviews
-            ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            ?.slice(0, 3) // Show only 3 most recent negative reviews
-        }));
+        if (!companiesData || companiesData.length === 0) {
+          console.log('No companies found');
+          setCompanies([]);
+          return;
+        }
+
+        console.log('Raw companies data:', companiesData.map(c => ({
+          id: c.id,
+          name: c.name,
+          reviewCount: c.reviews?.length || 0
+        })));
+
+        // Process companies and calculate ratings
+        const processedCompanies = companiesData
+          .map(company => {
+            // Calculate average rating and total reviews
+            const reviews = company.reviews || [];
+            const totalReviews = reviews.length;
+            
+            // Log individual review ratings for this company
+            console.log(`Reviews for ${company.name}:`, reviews.map(r => ({
+              id: r.id,
+              rating: r.rating,
+              created_at: r.created_at
+            })));
+
+            const averageRating = totalReviews > 0
+              ? reviews.reduce((sum, review) => {
+                  const rating = Number(review.rating);
+                  if (isNaN(rating)) {
+                    console.warn(`Invalid rating for review ${review.id} in company ${company.name}`);
+                    return sum;
+                  }
+                  return sum + rating;
+                }, 0) / totalReviews
+              : 0;
+
+            console.log(`Company ${company.name}: ${totalReviews} reviews, avg rating ${averageRating.toFixed(1)}`);
+
+            return {
+              ...company,
+              average_rating: averageRating,
+              total_reviews: totalReviews
+            };
+          })
+          .filter(company => company.total_reviews > 0); // Only include companies with reviews
+
+        console.log('Processed companies:', processedCompanies.map(c => ({
+          name: c.name,
+          totalReviews: c.total_reviews,
+          avgRating: c.average_rating.toFixed(1)
+        })));
+
+        // Calculate shame score for companies with reviews
+        const companiesWithScore = processedCompanies.map(company => {
+          const shameScore = calculateShameScore(company);
+          console.log(`Calculated shame score for ${company.name}: ${shameScore}`);
+          
+          return {
+            ...company,
+            shame_score: shameScore,
+            recent_reviews: company.reviews
+              ?.filter(review => review.rating <= 2)
+              ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              ?.slice(0, 3)
+          };
+        });
 
         // Sort by shame score and take top 5
         const sortedCompanies = companiesWithScore
           .sort((a, b) => (b.shame_score || 0) - (a.shame_score || 0))
           .slice(0, 5);
 
+        console.log('Final top 5 companies:', sortedCompanies.map(c => ({ 
+          name: c.name, 
+          score: c.shame_score,
+          avgRating: c.average_rating.toFixed(1),
+          totalReviews: c.total_reviews,
+          recentBadReviews: c.recent_reviews?.length || 0
+        })));
+        
         setCompanies(sortedCompanies);
       } catch (err) {
-        console.error('Error fetching companies:', err);
-        setError('Failed to load the Wall of Shame. Please try again later.');
+        console.error('Error in fetchCompanies:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load the Wall of Shame. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -97,8 +191,11 @@ export default function WallOfShame() {
     fetchCompanies();
   }, []);
 
-  function calculateShameScore(company: Company): number {
-    if (!company.average_rating || !company.total_reviews) return 0;
+  function calculateShameScore(company: CompanyWithShameData): number {
+    if (!company.average_rating || !company.total_reviews) {
+      console.log(`Skipping shame score calculation for ${company.name} - missing rating or reviews`);
+      return 0;
+    }
 
     // Base score from poor ratings (0-100 scale)
     const ratingScore = (5 - company.average_rating) * 20;
@@ -115,6 +212,16 @@ export default function WallOfShame() {
     // Add bonus points for recent negative reviews
     const recentReviewBonus = recentNegativeReviews * 5;
 
+    const finalScore = (ratingScore * reviewWeight) + recentReviewBonus;
+
+    console.log(`Shame score breakdown for ${company.name}:`, {
+      ratingScore,
+      reviewWeight,
+      recentNegativeReviews,
+      recentReviewBonus,
+      finalScore
+    });
+
     // Store the breakdown for display
     company.score_breakdown = {
       base_score: ratingScore,
@@ -123,7 +230,7 @@ export default function WallOfShame() {
       recent_bonus: recentReviewBonus
     };
 
-    return (ratingScore * reviewWeight) + recentReviewBonus;
+    return finalScore;
   }
 
   if (loading) {
@@ -147,6 +254,105 @@ export default function WallOfShame() {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      </div>
+    );
+  }
+
+  if (companies.length === 0) {
+    return (
+      <div className="container mx-auto p-4 max-w-4xl">
+        <h1 className="text-3xl font-bold mb-4">Wall of Shame</h1>
+        
+        <Card className="w-full">
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <div className="mb-4">
+                <span role="img" aria-label="celebration" className="text-4xl">🎉</span>
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Good News!</h2>
+              <p className="text-gray-600">
+                Currently, all companies have positive ratings. There are no companies that qualify for the Wall of Shame.
+              </p>
+              <p className="text-sm text-gray-500 mt-4">
+                Companies appear here only when they have consistently poor ratings (2 stars or below) or recent negative reviews.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-8">
+          <div className="bg-gray-50 rounded-lg">
+            <button 
+              onClick={() => setIsExplanationOpen(!isExplanationOpen)}
+              className="w-full p-4 flex justify-between items-center text-left hover:bg-gray-100 transition-colors"
+            >
+              <h2 className="text-lg font-semibold">How Shame Scores Are Calculated</h2>
+              {isExplanationOpen ? (
+                <ChevronUpIcon className="h-5 w-5" />
+              ) : (
+                <ChevronDownIcon className="h-5 w-5" />
+              )}
+            </button>
+            
+            {isExplanationOpen && (
+              <div className="p-4 pt-0 space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium mb-1">1. Base Score (0-100)</h3>
+                    <p className="text-gray-600">
+                      <code className="bg-gray-100 px-1 rounded text-xs">
+                        (5 - Rating) × 20
+                      </code>
+                      <br />
+                      • 1★ = 80pts
+                      <br />
+                      • 2★ = 60pts
+                      <br />
+                      • 3★ = 40pts
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium mb-1">2. Review Weight</h3>
+                    <p className="text-gray-600">
+                      <code className="bg-gray-100 px-1 rounded text-xs">
+                        min(Reviews ÷ 10, 1)
+                      </code>
+                      <br />
+                      • 10+ reviews = 100%
+                      <br />
+                      • 5 reviews = 50%
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium mb-1">3. Recent Bad Reviews</h3>
+                    <p className="text-gray-600">
+                      <code className="bg-gray-100 px-1 rounded text-xs">
+                        Bad Reviews × 5
+                      </code>
+                      <br />
+                      • Last 90 days
+                      <br />
+                      • Rating ≤ 2 stars
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium mb-1">4. Final Score</h3>
+                    <p className="text-gray-600">
+                      <code className="bg-gray-100 px-1 rounded text-xs">
+                        (Base × Weight) + Bonus
+                      </code>
+                      <br />
+                      Higher score = worse rating
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -306,14 +512,13 @@ export default function WallOfShame() {
                   <div className="space-y-3">
                     {company.recent_reviews.map((review, index) => (
                       <div key={index} className="border-l-4 border-red-500 pl-4 py-2">
-                        <div className="font-medium">{review.title}</div>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {review.content}
-                        </p>
+                        <div className="font-medium">{review.position}</div>
                         <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
                           <span>Rating: {review.rating}/5</span>
                           <span>•</span>
                           <span>{new Date(review.created_at).toLocaleDateString()}</span>
+                          <span>•</span>
+                          <span>{formatEmploymentStatus(review.employment_status)}</span>
                         </div>
                       </div>
                     ))}

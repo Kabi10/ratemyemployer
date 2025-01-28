@@ -68,14 +68,19 @@ export function HomeClient() {
       const { data, error } = await supabase
         .from('companies')
         .select('*')
-        .ilike('name', `${trimmedQuery}%`)
+        .ilike('name', `%${trimmedQuery}%`)
         .order('name', { ascending: true })
-        .limit(5);
+        .limit(10);
 
-      if (error) throw error;
-      setSearchResults((data as unknown) as Company[] || []);
+      if (error) {
+        console.error('Error searching companies:', error);
+        setSearchResults([]);
+        return;
+      }
+      setSearchResults(data || []);
     } catch (error) {
       console.error('Error searching companies:', error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -96,17 +101,17 @@ export function HomeClient() {
       const { data, error } = await supabase
         .from('reviews')
         .select(`
-          id,
-          content,
-          rating,
-          company:companies(id,name),
-          created_at,
-          updated_at,
-          user_id
-        `);
+          *,
+          company:company_id(*)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-      if (error) throw error;
-      setReviews(data);
+      if (error) {
+        console.error('Error fetching reviews:', error);
+        return;
+      }
+      setReviews(data || []);
     };
     fetchReviews();
   }, []);

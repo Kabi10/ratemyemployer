@@ -18,7 +18,6 @@ interface ReviewWithCompany {
   content: string;
   pros: string | null;
   cons: string | null;
-  status: string;
   position: string;
   employment_status: string;
   created_at: string;
@@ -27,28 +26,10 @@ interface ReviewWithCompany {
 }
 
 function ReviewsList() {
-  const router = useRouter();
   const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
   const supabase = createClient();
-
-  useEffect(() => {
-    // Check auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Subscribe to auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     async function fetchReviews() {
@@ -58,17 +39,8 @@ function ReviewsList() {
         const { data, error } = await supabase
           .from('reviews')
           .select(`
-            id,
-            rating,
-            title,
-            content,
-            pros,
-            cons,
-            position,
-            employment_status,
-            created_at,
-            user_id,
-            company:companies (
+            *,
+            company:company_id (
               id,
               name
             )
@@ -101,16 +73,6 @@ function ReviewsList() {
     fetchReviews();
   }, []);
 
-  const handleWriteReview = () => {
-    if (!user) {
-      // Store the intended destination
-      localStorage.setItem('redirectAfterAuth', '/reviews/new');
-      router.push('/login');
-      return;
-    }
-    router.push('/reviews/new');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -125,28 +87,14 @@ function ReviewsList() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Recent Reviews</h1>
-        <button
-          onClick={handleWriteReview}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-        >
-          Write a Review
-        </button>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Company Reviews</h1>
       </div>
 
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 dark:text-gray-400 text-lg">No reviews available yet.</p>
-            <p className="mt-2">
-              <button
-                onClick={handleWriteReview}
-                className="text-blue-500 hover:text-blue-600"
-              >
-                Be the first to write a review!
-              </button>
-            </p>
           </div>
         ) : (
           reviews.map(review => (

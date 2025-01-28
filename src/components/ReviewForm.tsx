@@ -7,11 +7,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabaseClient';
 import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
 import { useAuth } from '@/contexts/AuthContext';
-import type { CompanyId, JoinedCompany, ReviewInsert } from '@/types/database';
+import type { CompanyId, JoinedCompany, ReviewInsert, Review } from '@/types/database';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { LoadingSpinner } from './ui/loading-spinner';
 import { useToast } from './ui/use-toast';
+import { PostgrestError } from '@supabase/supabase-js';
 
 /**
  * src/components/ReviewForm.tsx
@@ -26,7 +27,7 @@ interface ReviewFormProps {
   companyId: number;
   onSuccess?: () => void;
   onSubmit?: (data: ReviewFormData) => Promise<void>;
-  initialData?: Partial<Review>;
+  initialData?: Partial<ReviewFormData>;
 }
 
 const commonPositions = [
@@ -48,10 +49,10 @@ const commonPositions = [
 ];
 
 const employmentOptions = [
-  { value: 'FULL_TIME', label: 'Full Time' },
-  { value: 'PART_TIME', label: 'Part Time' },
-  { value: 'CONTRACT', label: 'Contract' },
-  { value: 'INTERN', label: 'Intern' }
+  { value: 'Full-time', label: 'Full Time' },
+  { value: 'Part-time', label: 'Part Time' },
+  { value: 'Contract', label: 'Contract' },
+  { value: 'Intern', label: 'Intern' }
 ];
 
 export const ReviewForm = ({
@@ -85,9 +86,10 @@ export const ReviewForm = ({
       cons: '',
       position: '',
       status: 'pending' as const,
-      employment_status: 'FULL_TIME' as const,
+      employment_status: 'Full-time' as const,
       is_current_employee: false,
-      content: '',
+      reviewer_name: '',
+      reviewer_email: '',
       ...initialData
     }
   });
@@ -140,12 +142,16 @@ export const ReviewForm = ({
   }, [companyId, toast]);
 
   const handleFormSubmit = async (data: ReviewFormData) => {
+    console.log('Form submission started', { data });  // Debug log
+    
     if (!user) {
+      console.log('No user found, redirecting to login');  // Debug log
       router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
     if (!companyId) {
+      console.log('No company ID found');  // Debug log
       toast({
         title: "Error",
         description: "Company ID is required",
@@ -156,11 +162,75 @@ export const ReviewForm = ({
 
     try {
       setIsSubmitting(true);
-      await onSubmit?.(data);
+      console.log('Attempting to submit review');  // Debug log
+
+      // If onSubmit prop is provided, use it
+      if (onSubmit) {
+        console.log('Using provided onSubmit handler');  // Debug log
+        await onSubmit(data);
+      } else {
+        console.log('Submitting directly to Supabase');  // Debug log
+        // Otherwise, submit directly to Supabase
+        const { data: supabaseData, error } = await supabase
+          .from('reviews')
+          .insert({
+            title: data.title,
+            rating: data.rating,
+            pros: data.pros,
+            cons: data.cons,
+            position: data.position,
+            employment_status: data.employment_status,
+            is_current_employee: data.is_current_employee,
+            reviewer_name: data.reviewer_name,
+            reviewer_email: data.reviewer_email,
+            company_id: companyId,
+            user_id: user.id,
+            status: 'pending'
+          })
+          .select('*');
+
+        console.log('Supabase insert response:', {
+          data: supabaseData,
+          error: error,
+          status: error?.code
+        });
+
+        if (error) {
+          console.error('Supabase error:', error);  // Debug log
+          throw error;
+        }
+
+        console.log('Review submitted successfully');  // Debug log
+        toast({
+          title: "Success",
+          description: "Your review has been submitted successfully and is pending approval.",
+        });
+      }
+
       reset();
       onSuccess?.();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Submission failed';
+      console.error('Full error object:', error);
+      
+      // Handle Supabase PostgrestError
+      if (error && typeof error === 'object' && 'code' in error) {
+        console.error('Supabase error details:', {
+          code: (error as PostgrestError).code,
+          details: (error as PostgrestError).details,
+          hint: (error as PostgrestError).hint,
+          message: (error as PostgrestError).message
+        });
+      }
+      // Handle generic errors
+      else if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
+      // Handle non-Error objects
+      else {
+        console.error('Unknown error type:', JSON.stringify(error));
+      }
+
+      const message = error instanceof Error ? error.message : 'Failed to submit review';
       toast({
         title: "Error",
         description: message,
@@ -180,7 +250,14 @@ export const ReviewForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form 
+      onSubmit={(e) => {
+        e.preventDefault();
+        console.log('Form onSubmit triggered');  // Debug log
+        handleSubmit(handleFormSubmit)(e);
+      }} 
+      className="space-y-6"
+    >
       {/* Company Name */}
       {selectedCompany && (
         <div className="mb-6">
@@ -242,27 +319,6 @@ export const ReviewForm = ({
         {errors.title && (
           <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
         )}
-      </div>
-
-      {/* Content */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="content-label">
-          Review Content <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          {...register('content')}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-          rows={4}
-          placeholder="Share your overall experience working at this company"
-          maxLength={2000}
-          aria-labelledby="content-label"
-        />
-        {errors.content && (
-          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
-        )}
-        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {2000 - (watch('content')?.length || 0)} characters remaining
-        </div>
       </div>
 
       {/* Position */}
@@ -328,16 +384,19 @@ export const ReviewForm = ({
       {/* Pros */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="pros-label">
-          Pros
+          Pros <span className="text-red-500">*</span>
         </label>
         <textarea
           {...register('pros')}
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           rows={3}
-          placeholder="What did you like about working here?"
+          placeholder="What did you like about working here? (minimum 10 characters)"
           maxLength={1000}
           aria-labelledby="pros-label"
         />
+        {errors.pros && (
+          <p className="mt-1 text-sm text-red-600">{errors.pros.message}</p>
+        )}
         <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {1000 - (pros?.length || 0)} characters remaining
         </div>
@@ -346,19 +405,48 @@ export const ReviewForm = ({
       {/* Cons */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cons-label">
-          Cons
+          Cons <span className="text-red-500">*</span>
         </label>
         <textarea
           {...register('cons')}
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           rows={3}
-          placeholder="What could be improved?"
+          placeholder="What could be improved? (minimum 10 characters)"
           maxLength={1000}
           aria-labelledby="cons-label"
         />
+        {errors.cons && (
+          <p className="mt-1 text-sm text-red-600">{errors.cons.message}</p>
+        )}
         <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {1000 - (cons?.length || 0)} characters remaining
         </div>
+      </div>
+
+      {/* Reviewer Name */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="reviewer-name-label">
+          Your Name (optional)
+        </label>
+        <Input
+          {...register('reviewer_name')}
+          type="text"
+          placeholder="Your name (optional)"
+          className="w-full"
+        />
+      </div>
+
+      {/* Reviewer Email */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="reviewer-email-label">
+          Your Email (optional)
+        </label>
+        <Input
+          {...register('reviewer_email')}
+          type="email"
+          placeholder="Your email (optional)"
+          className="w-full"
+        />
       </div>
 
       {/* Submit Button */}
@@ -366,7 +454,8 @@ export const ReviewForm = ({
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          variant="default"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
         >
           {isSubmitting ? (
             <>

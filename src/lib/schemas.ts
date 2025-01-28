@@ -76,12 +76,8 @@ export const reviewSchema = z.object({
   title: z.string()
     .min(1, 'Title is required')
     .max(100, 'Title must be less than 100 characters'),
-  pros: z.string()
-    .min(10, 'Pros must be at least 10 characters')
-    .max(1000, 'Pros must be less than 1000 characters'),
-  cons: z.string()
-    .min(10, 'Cons must be at least 10 characters')
-    .max(1000, 'Cons must be less than 1000 characters'),
+  pros: z.string().min(10),
+  cons: z.string().min(10),
   position: z.string()
     .min(1, 'Position is required')
     .max(100, 'Position must be less than 100 characters'),
