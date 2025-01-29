@@ -12,18 +12,23 @@ import type { Review } from '@/types/database';
 import { useCompany } from '@/hooks/useCompany';
 
 interface ReviewListProps {
-  reviews: Review[];
+  reviews?: Review[];
   loading?: boolean;
   error?: Error | null;
   emptyMessage?: string;
+  companyId: string;
 }
 
 export const ReviewList = ({
-  reviews,
+  reviews = [],
   loading = false,
   error = null,
-  emptyMessage = 'No reviews found'
+  emptyMessage = 'No reviews found',
+  companyId
 }: ReviewListProps) => {
+  const { session } = useAuth();
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -45,7 +50,7 @@ export const ReviewList = ({
     );
   }
 
-  if (!reviews.length) {
+  if (!reviews?.length) {
     return (
       <div className="text-gray-500 dark:text-gray-400 text-center p-4">
         {emptyMessage}
@@ -54,10 +59,19 @@ export const ReviewList = ({
   }
 
   return (
-    <List>
-      {reviews.map((review) => (
-        <ReviewCard key={review.id} review={review} />
-      ))}
-    </List>
+    <div className="reviews-section">
+      <h3>Reviews</h3>
+      {showReviewForm && (
+        <ReviewForm 
+          companyId={companyId}
+          onClose={() => setShowReviewForm(false)}
+        />
+      )}
+      <div className="reviews-list">
+        {reviews.map((review) => (
+          <ReviewCard key={review.id} review={review} />
+        ))}
+      </div>
+    </div>
   );
 };
