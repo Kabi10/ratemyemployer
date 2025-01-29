@@ -20,12 +20,23 @@ function LoginContent() {
   const [resetSuccess, setResetSuccess] = useState(false)
 
   useEffect(() => {
-    // Check for callback errors
-    const callbackError = searchParams?.get('error');
-    if (callbackError === 'callback-failed') {
-      handleError('Authentication failed. Please try again.');
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        console.log('User already logged in, redirecting to home')
+        router.push('/')
+        return
+      }
     }
-  }, [searchParams]);
+    checkSession()
+
+    // Check for callback errors
+    const callbackError = searchParams?.get('error')
+    if (callbackError) {
+      handleError('Authentication failed. Please try again.')
+    }
+  }, [searchParams, router])
 
   const handleSuccess = () => {
     router.push('/')
@@ -94,11 +105,15 @@ function LoginContent() {
       setIsLoading(true)
       setError(null)
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { access_type: 'offline', prompt: 'consent' }
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            response_type: 'code'
+          }
         }
       })
 

@@ -1,44 +1,37 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function AuthErrorPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+
+  useEffect(() => {
+    // Log the error for debugging
+    if (error) {
+      console.error('Auth error:', error);
+    }
+  }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg text-center">
-        <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
-          Authentication Error
-        </h1>
-        
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          There was a problem signing you in. This could be due to:
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h1>
+        <p className="text-gray-700 mb-4">
+          There was an issue during authentication. Please try again.
         </p>
-        
-        <ul className="text-left text-gray-600 dark:text-gray-300 mb-8 list-disc pl-6">
-          <li>An expired or invalid session</li>
-          <li>Network connectivity issues</li>
-          <li>Authentication service disruption</li>
-        </ul>
-
-        <div className="space-y-4">
-          <Button
-            onClick={() => router.push('/auth/login')}
-            className="w-full"
-          >
-            Try Again
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => router.push('/')}
-            className="w-full"
-          >
-            Return to Home
-          </Button>
-        </div>
+        {error && (
+          <p className="text-sm text-gray-500">
+            Error details: {error}
+          </p>
+        )}
+        <a 
+          href="/auth/signin" 
+          className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Return to Sign In
+        </a>
       </div>
     </div>
   );
