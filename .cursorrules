@@ -1,21 +1,20 @@
-# AI Agent Rules for Recreating and Enhancing the RateMyEmployer Project
+# AI Agent Rules for RateMyEmployer Project
 
 ## Overview
 
-Welcome, AI Agent! Your mission is to **recreate and enhance** the **RateMyEmployer** project. You have access to the current codebase and documentation. Your goal is to build a superior version of the project, focusing on improved performance, scalability, security, and maintainability. Follow the guidelines below to ensure a successful redevelopment.
+Welcome, AI Agent! Your mission is to assist in developing and maintaining the **RateMyEmployer** project. You have access to the current codebase and documentation. Your goal is to ensure the project maintains high standards of performance, scalability, security, and maintainability. Follow these guidelines for all development tasks.
 
 ## Table of Contents
 
 1. [Project Setup](#project-setup)
-2. [Code Structure and Organization](#code-structure-and-organization)
-3. [Coding Standards and Best Practices](#coding-standards-and-best-practices)
+2. [Code Structure](#code-structure)
+3. [Development Standards](#development-standards)
 4. [Testing Strategy](#testing-strategy)
 5. [Documentation](#documentation)
-6. [Deployment Process](#deployment-process)
-7. [Security Measures](#security-measures)
-8. [Performance Optimization](#performance-optimization)
-9. [Maintenance and Monitoring](#maintenance-and-monitoring)
-10. [Continuous Improvement](#continuous-improvement)
+6. [Security](#security)
+7. [Performance](#performance)
+8. [Monitoring](#monitoring)
+9. [Continuous Improvement](#continuous-improvement)
 
 ---
 
@@ -38,9 +37,32 @@ Welcome, AI Agent! Your mission is to **recreate and enhance** the **RateMyEmplo
   - Populate `.env.local` with the required environment variables:
     - `NEXT_PUBLIC_SUPABASE_URL`
     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-    - Any other necessary keys.
+    - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (optional)
 
-### 2. Database Setup
+### 2. Development Requirements
+
+- **Node.js:**
+  ```bash
+  node -v
+  ```
+  - Ensure version is 20.0.0 or higher.
+- **npm:**
+  ```bash
+  npm -v
+  ```
+  - Ensure version is 10.0.0 or higher.
+- **TypeScript:**
+  ```bash
+  tsc -v
+  ```
+  - Ensure version is 5.3 or higher.
+- **Next.js:**
+  ```bash
+  npx next -v
+  ```
+  - Ensure version is 15.1 or higher.
+
+### 3. Database Setup
 
 - **Supabase Configuration:**
   - Create a Supabase account and set up a new project.
@@ -52,20 +74,9 @@ Welcome, AI Agent! Your mission is to **recreate and enhance** the **RateMyEmplo
   npx supabase gen types typescript --project-id "your-project-id" > src/types/supabase.ts
   ```
 
-### 3. Development Tools
-
-- **Install Global CLI Tools:**
-  ```bash
-  npm install -g vercel
-  ```
-- **Initialize Git Hooks:**
-  ```bash
-  npx husky install
-  ```
-
 ---
 
-## Code Structure and Organization
+## Code Structure
 
 ### 1. Directory Layout
 
@@ -74,80 +85,125 @@ Maintain a clear and scalable directory structure:
 src/
 ├── app/ # Next.js 13 app router
 ├── components/ # Reusable React components
-├── lib/ # Utilities and helpers
+├── contexts/ # React contexts
 ├── hooks/ # Custom React hooks
+├── lib/ # Utilities and helpers
 ├── types/ # TypeScript definitions
 ├── pages/ # Next.js pages
 ├── styles/ # Global and component-specific styles
-├── public/ # Static assets
 └── tests/ # Test suites
+
+tests/
+├── e2e/            # End-to-end tests
+├── fixtures/       # Test data
+└── utils/          # Test utilities
 
 ### 2. File Naming Conventions
 
-- **Components:** `ComponentName.tsx`
+- **Components:** `PascalCase.tsx`
 - **Hooks:** `useHookName.ts`
-- **Utilities:** `utilityName.ts`
-- **Types:** `typeName.d.ts`
+- **Utilities:** `camelCase.ts`
+- **Types:** `PascalCase.d.ts`
+- **Tests:** `*.test.ts` or `*.spec.ts`
 
 ### 3. Code Modularity
 
 - **Single Responsibility:** Each module or component should have a single responsibility.
 - **Reusability:** Design components and utilities to be reusable across different parts of the application.
 
+### 4. Component Structure
+
+- **Example Component:**
+  ```typescript
+  // src/components/ExampleComponent.tsx
+  import { type FC } from 'react'
+  import { cn } from '@/lib/utils'
+
+  interface ExampleProps {
+    title: string
+    children: React.ReactNode
+  }
+
+  export const Example: FC<ExampleProps> = ({ title, children }) => {
+    return (
+      <div className={cn('example-class')}>
+        <h2>{title}</h2>
+        {children}
+      </div>
+    )
+  }
+  ```
+
 ---
 
-## Coding Standards and Best Practices
+## Development Standards
 
 ### 1. TypeScript
 
 - **Strict Mode:** Enable `strict` mode in `tsconfig.json` for type safety.
 - **Explicit Types:** Always define explicit types for variables, function parameters, and return values.
+- **Leverage Type Inference:** Use TypeScript's type inference capabilities where appropriate.
+- **Document Complex Types:** Document complex types and interfaces using JSDoc comments.
 
-### 2. Linting and Formatting
+### 2. Code Quality
 
-- **ESLint:** Enforce code quality and standards.
+- **Linting:** Enforce code quality and standards.
   ```bash
   npm install eslint --save-dev
   npx eslint --init
   ```
-- **Prettier:** Ensure consistent code formatting.
+- **Type Checking:** Ensure type safety and catch potential issues.
+  ```bash
+  npm run type-check
+  ```
+- **Formatting:** Ensure consistent code formatting.
   ```bash
   npm install prettier eslint-config-prettier eslint-plugin-prettier --save-dev
   ```
 - **Configuration:**
   - Integrate ESLint with Prettier to avoid conflicts.
-  - Add `lint` and `format` scripts in `package.json`:
+  - Add `lint`, `format`, and `type-check` scripts in `package.json`:
     ```json
     {
       "scripts": {
         "lint": "eslint . --ext .ts,.tsx",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "type-check": "tsc"
       }
     }
     ```
 
-### 3. Error Handling
+### 3. State Management
+
+- **Global State:** Use React Context for global state management.
+- **Local State:** Prefer hooks for local state management.
+- **Data Fetching:** Implement proper data fetching patterns.
+- **Loading and Error States:** Handle loading and error states appropriately.
+
+### 4. Error Handling
 
 - Implement comprehensive error handling using `try-catch` blocks.
 - Provide meaningful error messages to aid in debugging.
 - Log errors for monitoring and analysis.
 
-### 4. Security Best Practices
-
-- **Authentication:** Utilize Supabase Auth for managing user authentication.
-- **Input Validation:** Use libraries like Zod for validating user inputs.
-- **Sanitization:** Sanitize all user-generated content to prevent XSS and SQL injection.
-- **Environment Variables:** Protect sensitive data by storing it in `.env.local` and never committing it to version control.
-
 ---
 
 ## Testing Strategy
 
-### 1. Testing Frameworks
+### 1. E2E Testing with Playwright
 
-- **Unit Testing:** Use Vitest for unit tests.
-- **Integration Testing:** Test interactions between different parts of the application.
-- **End-to-End Testing:** Utilize Playwright for comprehensive end-to-end tests.
+- **Run All Tests:**
+  ```bash
+  npx playwright test
+  ```
+- **Run Specific Test:**
+  ```bash
+  npx playwright test company.spec.ts
+  ```
+- **Show Report:**
+  ```bash
+  npx playwright show-report
+  ```
 
 ### 2. Test Structure
 
@@ -168,42 +224,12 @@ src/__tests__/
     └── handlers.ts
 ```
 
-### 3. Writing Tests
+### 3. Test Coverage
 
-- **Component Tests:**
-  - Test rendering with different props.
-  - Verify interaction behaviors (e.g., button clicks).
-
-- **Hook Tests:**
-  - Validate the logic within custom hooks.
-  - Ensure state updates correctly.
-
-- **Utility Tests:**
-  - Test utility functions for expected outputs.
-
-### 4. Running Tests
-
-- **Execute All Tests:**
-  ```bash
-  npm test
-  ```
-- **Run with Coverage:**
-  ```bash
-  npm run coverage
-  ```
-- **Run Specific Tests:**
-  ```bash
-  npm test path/to/test
-  ```
-- **Run End-to-End Tests:**
-  ```bash
-  npm run test:e2e
-  ```
-
-### 5. Test Coverage
-
-- **Configuration:** Ensure `vitest.config.ts` includes coverage thresholds.
-- **Enforce Coverage:** Maintain at least 80% test coverage across statements, branches, functions, and lines.
+- **Maintain High Coverage:** Ensure high coverage for critical paths.
+- **Test Error Scenarios:** Verify error handling and edge cases.
+- **Verify Security Measures:** Test security policies and measures.
+- **Test Performance Impact:** Ensure performance metrics are met.
 
 ---
 
@@ -216,13 +242,15 @@ src/__tests__/
   - Example:
     ```typescript
     /**
-     * Calculates the average rating.
-     * @param ratings - Array of numerical ratings.
-     * @returns The average rating.
+     * Calculates the average rating for a company.
+     * @param {number[]} ratings - Array of company ratings
+     * @returns {number} The average rating
+     * @throws {Error} If ratings array is empty
      */
-    const calculateAverage = (ratings: number[]): number => {
-      return ratings.reduce((a, b) => a + b, 0) / ratings.length;
-    };
+    export const calculateAverageRating = (ratings: number[]): number => {
+      if (!ratings.length) throw new Error('No ratings provided')
+      return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+    }
     ```
 
 - **Prop Documentation:**
@@ -233,6 +261,9 @@ src/__tests__/
 - **README.md:**
   - Provide a comprehensive overview of the project.
   - Include setup instructions, features, and contribution guidelines.
+
+- **CHANGELOG.md:**
+  - Maintain a changelog to track project updates and improvements.
 
 - **Documentation Hub:**
   - Centralize all documentation in `docs/`.
@@ -248,85 +279,20 @@ src/__tests__/
 
 ---
 
-## Deployment Process
+## Security
 
-### 1. Continuous Integration and Continuous Deployment (CI/CD)
-
-- **CI/CD Pipeline:**
-  - Use GitHub Actions or similar tools to automate testing, linting, and building.
-  - Example GitHub Actions workflow:
-    ```yaml
-    name: CI/CD Pipeline
-
-    on:
-      push:
-        branches: [ main ]
-      pull_request:
-        branches: [ main ]
-
-    jobs:
-      build:
-        runs-on: ubuntu-latest
-
-        steps:
-          - uses: actions/checkout@v2
-          - name: Setup Node.js
-            uses: actions/setup-node@v2
-            with:
-              node-version: '18.x'
-          - run: npm install
-          - run: npm run lint
-          - run: npm test
-          - run: npm run build
-          - name: Deploy to Vercel
-            uses: amondnet/vercel-action@v20
-            with:
-              vercel-token: ${{ secrets.VERCEL_TOKEN }}
-              vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-              vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-    ```
-
-### 2. Deployment to Vercel
-
-- **Project Settings:**
-  - Connect the repository to Vercel.
-  - Ensure environment variables are correctly set in Vercel Dashboard.
-
-- **Build Configuration:**
-  - Specify the Node.js version in `package.json`:
-    ```json
-    {
-      "engines": {
-        "node": ">=18.17.0"
-      }
-    }
-    ```
-  - Use LTS versions (18.x or 20.x) for optimal compatibility.
-
-### 3. Post-Deployment
-
-- **Smoke Tests:**
-  - Run automated smoke tests to verify deployment success.
-- **Monitoring:**
-  - Monitor application performance and error logs post-deployment.
-
----
-
-## Security Measures
-
-### 1. Authentication and Authorization
+### 1. Authentication
 
 - **Supabase Auth:**
   - Implement secure authentication flows.
-  - Protect routes using middleware to ensure only authorized access.
-
-- **Row-Level Security (RLS):**
-  - Define RLS policies in Supabase to control data access at the database level.
+  - Use middleware for protection.
+  - Handle session management.
+  - Validate user permissions.
 
 ### 2. Data Protection
 
 - **Input Validation:**
-  - Validate all user inputs using Zod schemas to prevent malicious data entry.
+  - Use libraries like Zod for validating user inputs.
 
 - **Sanitization:**
   - Sanitize outputs to prevent cross-site scripting (XSS) and other injection attacks.
@@ -341,39 +307,48 @@ src/__tests__/
 - **Update Dependencies:**
   - Keep all dependencies up-to-date to mitigate security risks.
 
+### 4. Row-Level Security (RLS)
+
+- **Policy Creation:**
+  - Define RLS policies in Supabase to control data access at the database level.
+
 ---
 
-## Performance Optimization
+## Performance
 
-### 1. Bundle Optimization
-
-- **Code Splitting:**
-  - Implement dynamic imports to reduce initial bundle size.
-- **Lazy Loading:**
-  - Lazy load non-critical components to enhance loading performance.
-
-### 2. Image Optimization
+### 1. Optimization Techniques
 
 - **Next.js Image Component:**
   - Utilize Next.js `<Image>` component for automatic image optimization.
 
-### 3. Caching Strategies
+- **Code Splitting:**
+  - Implement dynamic imports to reduce initial bundle size.
 
-- **API Caching:**
+- **Lazy Loading:**
+  - Lazy load non-critical components to enhance loading performance.
+
+- **Caching Strategies:**
   - Implement caching mechanisms for frequently accessed API routes.
+
 - **Static Site Generation (SSG) and Incremental Static Regeneration (ISR):**
   - Leverage Next.js features to serve pre-rendered pages for better performance.
 
-### 4. Monitoring and Profiling
+### 2. Monitoring
 
 - **Performance Metrics:**
   - Track metrics like First Contentful Paint (FCP) and Time to Interactive (TTI).
+
 - **Profiling Tools:**
   - Use tools like Lighthouse and Web Vitals for performance analysis.
 
+### 3. Optimized Database Queries
+
+- **Query Optimization:**
+  - Optimize database queries to improve performance.
+
 ---
 
-## Maintenance and Monitoring
+## Monitoring
 
 ### 1. Regular Updates
 
@@ -421,13 +396,23 @@ src/__tests__/
 - **Implement Enhancements:**
   - Propose and implement innovative features that add value to the project.
 
+### 4. Regular Updates
+
+- **Security Policies:**
+  - Review and update security policies to align with the latest best practices.
+- **Performance Metrics:**
+  - Monitor and analyze performance metrics to identify areas for optimization.
+- **Documentation:**
+  - Update documentation to reflect current practices and improvements.
+
 ---
 
-## Conclusion
-
-By adhering to these rules and guidelines, you will enhance the RateMyEmployer project, ensuring it is robust, secure, and maintainable. Strive for excellence in every aspect of development, from code quality to user experience. Together, we can build an outstanding platform that serves its users effectively.
-
----
+Remember:
+- **Security First:** Prioritize security measures to protect sensitive data.
+- **Performance Matters:** Optimize performance to ensure smooth user experience.
+- **Documentation is Crucial:** Maintain comprehensive documentation for easy maintenance.
+- **Tests are Essential:** Ensure high test coverage to catch issues early.
+- **Code Quality is Non-Negotiable:** Strive for excellence in every aspect of development.
 
 *Happy Coding! 🚀*
 

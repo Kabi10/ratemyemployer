@@ -6,36 +6,32 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 
 - Company reviews with pros and cons
 - Visual rating indicators with color-coded progress bars
-- Detailed company profiles with size and verification status
+- Detailed company profiles with size and industry information
 - Advanced search and filter capabilities
-- Secure user authentication with Firebase
+- Secure user authentication with Supabase
 - Responsive design with dark mode support
 - Real-time updates via Supabase
 - Data validation and sanitization
 - Role-based access control
 - Company news integration
-- Background checks
 
 ## Tech Stack
 
-- Next.js 14 (App Router)
-- TypeScript
+- Next.js 15.1
+- TypeScript 5.3
 - Tailwind CSS
 - Supabase (PostgreSQL + Real-time)
-- Firebase Authentication
 - Shadcn UI Components
 - Framer Motion
-- SWR for data fetching
+- React Hook Form
 - Zod for validation
-- Vitest for testing
 - Playwright for E2E testing
 
 ## Prerequisites
 
-- Node.js >= 18.17.0
-- npm or yarn
+- Node.js >= 20.0.0
+- npm >= 10.0.0
 - Supabase account
-- Firebase project
 - Google Maps API key (optional)
 
 ## Environment Setup
@@ -49,7 +45,6 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 Required environment variables:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `NEXT_PUBLIC_FIREBASE_*`: Firebase configuration
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: (Optional) For location features
 
 ## Development
@@ -61,17 +56,17 @@ npm install
 # Run development server
 npm run dev
 
-# Run tests
-npm test
-
 # Run E2E tests
-npm run test:e2e
+npx playwright test
 
 # Build for production
 npm run build
 
-# Analyze bundle
-ANALYZE=true npm run build
+# Start production server
+npm run start
+
+# Run linting
+npm run lint
 ```
 
 ## Project Structure
@@ -83,31 +78,35 @@ src/
 ├── contexts/        # React contexts
 ├── hooks/          # Custom hooks
 ├── lib/            # Utilities and configurations
-├── types/          # TypeScript types
-└── __tests__/      # Test files
+└── types/          # TypeScript types
+
+tests/
+├── e2e/            # End-to-end tests
+├── fixtures/       # Test data
+└── utils/          # Test utilities
 ```
 
 ## Testing
 
-We use multiple testing strategies:
-- Unit/Integration tests with Vitest
+We use Playwright for end-to-end testing:
 - End-to-end tests with Playwright
 - Type checking with TypeScript
 - Linting with ESLint
 
 ```bash
-# Run all tests
-npm run test:all
+# Run E2E tests
+npx playwright test
 
-# Run specific test suites
-npm test
-npm run test:e2e
-npm run test:e2e:ui
+# Run specific test file
+npx playwright test company.spec.ts
+
+# Show test report
+npx playwright show-report
 ```
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## Security
 
@@ -135,7 +134,10 @@ The application is configured for deployment on Vercel with the following featur
 
 ## Support
 
-For support, please open an issue in the repository.
+For support, please:
+1. Check [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+2. Review [PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)
+3. Open an issue in the repository
 
 ## Automated News Fetching
 
@@ -161,6 +163,4 @@ You can manually trigger the news fetch workflow:
 1. Go to the "Actions" tab in your repository
 2. Select "Fetch Company News" workflow
 3. Click "Run workflow"
-4. Select the branch and click "Run workflow"
-
-This is useful for testing or forcing an immediate news update. 
+4. Select the branch and click "Run workflow" 

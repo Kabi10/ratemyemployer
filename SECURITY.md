@@ -12,33 +12,39 @@ We release patches for security vulnerabilities. Which versions are eligible for
 ## Security Measures
 
 ### Authentication
-- Firebase Authentication for user management
-- Secure session handling
-- Multi-factor authentication support
+- Supabase Authentication for user management
+- Secure session handling with JWT
+- Email verification required
 - Secure password policies
+- OAuth provider integration
 
 ### Data Protection
 - Supabase PostgreSQL with RLS (Row Level Security)
 - End-to-end data encryption
-- Secure API endpoints
+- Secure API endpoints with middleware
 - Input sanitization and validation using Zod
+- Real-time security policies
 
 ### Infrastructure
 - Vercel deployment with security headers
 - CORS policy implementation
 - Rate limiting on API routes
 - DDoS protection
+- Edge functions security
 
 ### Code Security
 - TypeScript strict mode enabled
 - ESLint security rules
 - Automated security scanning in CI/CD
 - Regular dependency updates
+- Playwright E2E testing
 
-### Image Security
-- Strict remote patterns for allowed image domains
+### Content Security
+- Strict remote patterns for allowed domains
 - Image optimization and sanitization
 - Content security policy headers
+- XSS prevention
+- SQL injection protection
 
 ## Reporting a Vulnerability
 
@@ -69,7 +75,7 @@ If you discover a security vulnerability within RateMyEmployer, please follow th
 
 ### For Users
 1. Use strong passwords
-2. Enable two-factor authentication
+2. Enable email verification
 3. Keep your access tokens secure
 4. Report suspicious activities
 5. Follow security guidelines in documentation
@@ -87,10 +93,6 @@ For security-related inquiries, contact:
 - Security Team: [security@ratemyemployer.com](mailto:security@ratemyemployer.com)
 - Lead Security Engineer: [security-lead@ratemyemployer.com](mailto:security-lead@ratemyemployer.com)
 
-## Acknowledgments
-
-We appreciate the security research community's efforts in keeping RateMyEmployer secure. Responsible disclosure of vulnerabilities helps us maintain a secure platform for all users.
-
 ## Security Updates
 
 We use various tools to scan for security vulnerabilities:
@@ -98,6 +100,7 @@ We use various tools to scan for security vulnerabilities:
 - Snyk
 - OWASP Dependency Check
 - Regular manual audits
+- Supabase security monitoring
 
 ## Incident Response
 
@@ -121,9 +124,9 @@ We use various tools to scan for security vulnerabilities:
    - Public disclosure if necessary
    - Documentation update
 
-## Contact
+## Bug Bounty Program
 
-Security-related issues should be reported to:
-- Email: security@ratemyemployer.com
-- Bug Bounty Program: [Link to program]
-- Security Team: [Link to team] 
+We maintain a private bug bounty program. For invitation:
+1. Demonstrate previous security research experience
+2. Contact security@ratemyemployer.com
+3. Sign our security researcher agreement 
