@@ -1,13 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
 
 import { CompanyFormData, ReviewFormData } from './schemas';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Initialize the Supabase client directly
-export const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: (input, init) => fetch(input, { ...init, next: { revalidate: 3600 } })
   }
@@ -61,3 +61,9 @@ export const dbQuery = {
     }
   }
 };
+
+export const createClient = () => {
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey);
+};
+
+export default createClient;

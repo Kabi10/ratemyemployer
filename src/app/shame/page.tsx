@@ -5,8 +5,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon } from '@radix-ui/react-icons';
 import { fetchAndStoreCompanyNews, fetchNewsForCompanies } from '@/lib/newsApi';
+import { fetchNewsWithKluster } from '@/lib/klusterAi';
 import type { Company, Review } from '@/types/database';
 
 interface CompanyWithShameData extends Company {
@@ -35,6 +36,7 @@ export default function WallOfShame() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
+  const [loadingNews, setLoadingNews] = useState<{ [key: string]: boolean }>({});
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
 
   const formatEmploymentStatus = (status: string): string => {
@@ -178,6 +180,19 @@ export default function WallOfShame() {
         })));
         
         setCompanies(sortedCompanies);
+
+        // Fetch news for each company
+        sortedCompanies.forEach(async (company) => {
+          try {
+            setLoadingNews(prev => ({ ...prev, [company.name]: true }));
+            const news = await fetchNewsWithKluster(company.name);
+            setCompanyNews(prev => ({ ...prev, [company.name]: news }));
+          } catch (newsError) {
+            console.error(`Error fetching news for ${company.name}:`, newsError);
+          } finally {
+            setLoadingNews(prev => ({ ...prev, [company.name]: false }));
+          }
+        });
       } catch (err) {
         console.error('Error in fetchCompanies:', err);
         setError(err instanceof Error ? err.message : 'Failed to load the Wall of Shame. Please try again later.');
@@ -237,7 +252,7 @@ export default function WallOfShame() {
         <h1 className="text-2xl font-bold mb-4">Wall of Shame</h1>
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full" />
+            <Skeleton key={i} className="h-48 w-full" />
           ))}
         </div>
       </div>
@@ -356,173 +371,124 @@ export default function WallOfShame() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-4">Wall of Shame</h1>
-      
-      <div className="bg-gray-50 rounded-lg mb-8">
-        <button 
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-4xl font-bold text-red-600 dark:text-red-500">Wall of Shame</h1>
+        <button
           onClick={() => setIsExplanationOpen(!isExplanationOpen)}
-          className="w-full p-4 flex justify-between items-center text-left hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
         >
-          <h2 className="text-lg font-semibold">How Shame Scores Are Calculated</h2>
-          {isExplanationOpen ? (
-            <ChevronUpIcon className="h-5 w-5" />
-          ) : (
-            <ChevronDownIcon className="h-5 w-5" />
-          )}
+          How are scores calculated?
+          {isExplanationOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </button>
-        
-        {isExplanationOpen && (
-          <div className="p-4 pt-0 space-y-4 text-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-medium mb-1">1. Base Score (0-100)</h3>
-                <p className="text-gray-600">
-                  <code className="bg-gray-100 px-1 rounded text-xs">
-                    (5 - Rating) × 20
-                  </code>
-                  <br />
-                  • 1★ = 80pts
-                  <br />
-                  • 2★ = 60pts
-                  <br />
-                  • 3★ = 40pts
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">2. Review Weight</h3>
-                <p className="text-gray-600">
-                  <code className="bg-gray-100 px-1 rounded text-xs">
-                    min(Reviews ÷ 10, 1)
-                  </code>
-                  <br />
-                  • 10+ reviews = 100%
-                  <br />
-                  • 5 reviews = 50%
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">3. Recent Bad Reviews</h3>
-                <p className="text-gray-600">
-                  <code className="bg-gray-100 px-1 rounded text-xs">
-                    Bad Reviews × 5
-                  </code>
-                  <br />
-                  • Last 90 days
-                  <br />
-                  • Rating ≤ 2 stars
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">4. Final Score</h3>
-                <p className="text-gray-600">
-                  <code className="bg-gray-100 px-1 rounded text-xs">
-                    (Base × Weight) + Bonus
-                  </code>
-                  <br />
-                  Higher score = worse rating
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      <p className="text-sm text-gray-500 mb-8">
-        Companies are ranked based on their shame score. Higher scores indicate more negative employee experiences,
-        with extra weight given to recent negative reviews.
-      </p>
+      {isExplanationOpen && (
+        <Alert>
+          <AlertDescription className="text-sm">
+            The shame score is calculated based on several factors:
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Average rating (lower ratings increase the score)</li>
+              <li>Number of reviews (more reviews give the score more weight)</li>
+              <li>Recent negative reviews (reviews in the last 6 months have extra impact)</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
-      <div className="space-y-8">
-        {companies.map((company) => (
-          <Card key={company.id} className="w-full">
+      <div className="space-y-6">
+        {companies.map((company, index) => (
+          <Card key={company.id} className="relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-16 h-16 bg-red-600 dark:bg-red-500 transform -rotate-45 -translate-x-8 -translate-y-8" />
+            <div className="absolute top-1 left-1 text-white font-bold">#{index + 1}</div>
             <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <h2 className="text-2xl font-semibold">{company.name}</h2>
-                    <div className="px-3 py-1 rounded-full bg-red-100 text-red-700 font-semibold">
-                      Shame Score: {company.shame_score?.toFixed(1)}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">{company.name}</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{company.industry}</p>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between">
+                      <span>Shame Score:</span>
+                      <span className="font-bold text-red-600 dark:text-red-500">
+                        {company.shame_score?.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Average Rating:</span>
+                      <span className="font-bold">
+                        {company.average_rating?.toFixed(1)} / 5.0
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Reviews:</span>
+                      <span>{company.total_reviews}</span>
                     </div>
                   </div>
-                  <div className="mt-2 space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Average Rating: <span className="font-medium">{company.average_rating?.toFixed(1)}</span>
-                      <span className="mx-2">•</span>
-                      <span>{company.total_reviews} reviews</span>
-                    </p>
-                  </div>
-                  {company.score_breakdown && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <h3 className="text-sm font-semibold mb-2">Company Score Calculation:</h3>
-                      <div className="space-y-3 text-sm text-gray-600">
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <span>1. Base Score (from {company.average_rating.toFixed(1)}/5 rating)</span>
-                            <span className="font-medium">{company.score_breakdown.base_score.toFixed(1)}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            (5 - {company.average_rating.toFixed(1)}) × 20 = {company.score_breakdown.base_score.toFixed(1)}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <span>2. Weight (from {company.total_reviews} reviews)</span>
-                            <span className="font-medium">{(company.score_breakdown.weight * 100).toFixed()}%</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            min({company.total_reviews} ÷ 10, 1) = {company.score_breakdown.weight.toFixed(2)}
-                          </div>
-                        </div>
 
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <span>3. Recent Review Bonus ({company.score_breakdown.recent_negative_count} bad reviews)</span>
-                            <span className="font-medium">+{company.score_breakdown.recent_bonus}</span>
+                  {company.recent_reviews && company.recent_reviews.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Recent Poor Reviews:</h3>
+                      <div className="space-y-3">
+                        {company.recent_reviews.map((review) => (
+                          <div key={review.id} className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                            <div className="flex justify-between mb-1">
+                              <span className="font-medium">{review.position}</span>
+                              <span className="text-red-600 dark:text-red-500">{review.rating}/5</span>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-400">{review.cons}</p>
+                            <div className="mt-1 text-xs text-gray-500">
+                              {formatEmploymentStatus(review.employment_status)}
+                              {review.is_current_employee !== null && (
+                                <span> • {review.is_current_employee ? 'Current Employee' : 'Former Employee'}</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {company.score_breakdown.recent_negative_count} × 5 = {company.score_breakdown.recent_bonus}
-                          </div>
-                        </div>
-
-                        <div className="pt-2 border-t border-gray-200">
-                          <div className="flex justify-between items-center font-medium">
-                            <span>Final Score</span>
-                            <span>{company.shame_score?.toFixed(1)}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            ({company.score_breakdown.base_score.toFixed(1)} × {company.score_breakdown.weight.toFixed(2)}) + {company.score_breakdown.recent_bonus} = {company.shame_score?.toFixed(1)}
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {company.recent_reviews?.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-3">Recent Employee Experiences</h3>
-                  <div className="space-y-3">
-                    {company.recent_reviews.map((review, index) => (
-                      <div key={index} className="border-l-4 border-red-500 pl-4 py-2">
-                        <div className="font-medium">{review.position}</div>
-                        <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-                          <span>Rating: {review.rating}/5</span>
-                          <span>•</span>
-                          <span>{new Date(review.created_at).toLocaleDateString()}</span>
-                          <span>•</span>
-                          <span>{formatEmploymentStatus(review.employment_status)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Recent News:</h3>
+                  {loadingNews[company.name] ? (
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, i) => (
+                        <Skeleton key={i} className="h-24 w-full" />
+                      ))}
+                    </div>
+                  ) : companyNews[company.name]?.length > 0 ? (
+                    <div className="space-y-3">
+                      {companyNews[company.name].map((article, i) => (
+                        <a
+                          key={i}
+                          href={article.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block bg-gray-50 dark:bg-gray-800 p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="font-medium text-sm">{article.title}</h4>
+                            <ExternalLinkIcon className="h-4 w-4 flex-shrink-0 mt-1" />
+                          </div>
+                          {article.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {article.description}
+                            </p>
+                          )}
+                          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                            <span>{article.source.name}</span>
+                            <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No recent news articles found.</p>
+                  )}
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
         ))}
