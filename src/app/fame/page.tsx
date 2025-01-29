@@ -24,9 +24,26 @@ export default function WallOfFame() {
 
   const fetchTopCompanies = async () => {
     try {
-      console.log('Fetching companies with reviews...');
-      
-      // Fetch companies with their reviews
+      console.log('Starting companies fetch...');
+
+      // First, test a simple query
+      const { data: testData, error: testError } = await supabase
+        .from('companies')
+        .select('id, name')
+        .limit(1);
+
+      console.log('Test query result:', { testData, testError });
+
+      if (testError) {
+        console.error('Test query error:', {
+          code: testError.code,
+          message: testError.message,
+          details: testError.details
+        });
+        throw testError;
+      }
+
+      // If test succeeds, try the full query
       const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
         .select(`
@@ -39,20 +56,20 @@ export default function WallOfFame() {
           logo_url,
           reviews (
             id,
-            title,
-            review_content,
             rating,
-            pros,
-            cons,
-            position,
-            employment_status,
-            is_current_employee,
-            created_at
+            status
           )
-        `);
+        `)
+        .eq('reviews.status', 'approved');
+
+      console.log('Full query response:', { companiesData, companiesError });
 
       if (companiesError) {
-        console.error('Error fetching companies:', companiesError);
+        console.error('Full query error:', {
+          code: companiesError.code,
+          message: companiesError.message,
+          details: companiesError.details
+        });
         throw companiesError;
       }
 
@@ -62,31 +79,15 @@ export default function WallOfFame() {
         return;
       }
 
-      console.log('Raw companies data:', companiesData);
-
-      // Process companies and calculate ratings
+      // Process companies...
       const processedCompanies = companiesData
         .map(company => {
-          const reviews = company.reviews || [];
+          const reviews = (company.reviews || []).filter(r => r.status === 'approved');
           const totalReviews = reviews.length;
           
-          // Calculate average rating
           const averageRating = totalReviews > 0
-            ? reviews.reduce((sum, review) => {
-                const rating = Number(review.rating);
-                if (isNaN(rating)) {
-                  console.warn(`Invalid rating for review in company ${company.name}:`, review);
-                  return sum;
-                }
-                return sum + rating;
-              }, 0) / totalReviews
+            ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / totalReviews
             : 0;
-
-          console.log(`Company ${company.name}:`, {
-            totalReviews,
-            averageRating,
-            reviews: reviews.map(r => ({ id: r.id, rating: r.rating }))
-          });
 
           return {
             ...company,
@@ -94,11 +95,8 @@ export default function WallOfFame() {
             total_reviews: totalReviews
           };
         })
-        // Filter for companies with reviews and high ratings
         .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
-        // Sort by average rating
         .sort((a, b) => b.average_rating - a.average_rating)
-        // Take top 10
         .slice(0, 10);
 
       console.log('Processed companies:', processedCompanies.map(c => ({

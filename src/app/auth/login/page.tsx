@@ -1,367 +1,281 @@
 'use client'
 
-
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Lock, Mail, Github, Twitter } from 'lucide-react';
-
-import { GoogleSignInButton } from '@/components/GoogleSignInButton';
-import { signInWithGithub, signInWithTwitter, signInWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { User, Lock, Mail } from 'lucide-react'
+import { supabase } from '@/lib/supabaseClient'
+import { Button } from '@/components/ui/button'
 
 function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const isSignUp = searchParams?.get('signup') === 'true';
-  const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResetForm, setShowResetForm] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSuccess, setResetSuccess] = useState(false);
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isSignUp = searchParams?.get('signup') === 'true'
+  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [showResetForm, setShowResetForm] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSuccess, setResetSuccess] = useState(false)
 
-  const handleSuccess = (user: any) => {
-    console.log('Signed in user:', user);
-    router.push('/');
-  };
+  useEffect(() => {
+    // Check for callback errors
+    const callbackError = searchParams?.get('error');
+    if (callbackError === 'callback-failed') {
+      handleError('Authentication failed. Please try again.');
+    }
+  }, [searchParams]);
+
+  const handleSuccess = () => {
+    router.push('/')
+  }
 
   const handleError = (error: string) => {
-    setError(error);
-    setTimeout(() => setError(null), 5000);
-  };
+    setError(error)
+    setTimeout(() => setError(null), 5000)
+  }
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
     try {
-      const result = isSignUp 
-        ? await signUpWithEmail(email, password)
-        : await signInWithEmail(email, password);
+      const { data, error } = isSignUp 
+        ? await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          })
+        : await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+
+      if (error) throw error
       
-      if (result.success && result.user) {
-        handleSuccess(result.user);
-      } else {
-        handleError(result.error || `Failed to ${isSignUp ? 'create account' : 'sign in'}`);
+      if (isSignUp) {
+        handleSuccess()
+      } else if (data?.user) {
+        handleSuccess()
       }
     } catch (error) {
-      handleError(error instanceof Error ? error.message : `Failed to ${isSignUp ? 'create account' : 'sign in'}`);
+      handleError(error instanceof Error ? error.message : `Failed to ${isSignUp ? 'create account' : 'sign in'}`)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
     try {
-      const result = await resetPassword(resetEmail);
-      if (result.success) {
-        setResetSuccess(true);
-        setTimeout(() => {
-          setShowResetForm(false);
-          setResetSuccess(false);
-          setResetEmail('');
-        }, 3000);
-      } else {
-        handleError(result.error || 'Failed to send reset email');
-      }
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+      
+      if (error) throw error
+      
+      setResetSuccess(true)
+      setTimeout(() => {
+        setShowResetForm(false)
+        setResetSuccess(false)
+      }, 3000)
     } catch (error) {
-      handleError(error instanceof Error ? error.message : 'Failed to send reset email');
+      handleError(error instanceof Error ? error.message : 'Failed to send reset email')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handleGithubSignIn = async () => {
-    setIsLoading(true);
+  const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithGithub();
-      if (result.success && result.user) {
-        handleSuccess(result.user);
-      } else {
-        handleError(result.error || 'Failed to sign in with GitHub');
-      }
-    } catch (error) {
-      handleError(error instanceof Error ? error.message : 'Failed to sign in with GitHub');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setIsLoading(true)
+      setError(null)
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { access_type: 'offline', prompt: 'consent' }
+        }
+      })
 
-  const handleTwitterSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const result = await signInWithTwitter();
-      if (result.success && result.user) {
-        handleSuccess(result.user);
-      } else {
-        handleError(result.error || 'Failed to sign in with Twitter');
-      }
+      if (error) throw error
+      
+      // No need to redirect here - OAuth will handle it
     } catch (error) {
-      handleError(error instanceof Error ? error.message : 'Failed to sign in with Twitter');
-    } finally {
-      setIsLoading(false);
+      console.error('Error signing in with Google:', error)
+      handleError(error instanceof Error ? error.message : 'Failed to sign in with Google')
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen w-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        {/* Glass panel */}
-        <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20">
-          <AnimatePresence mode="wait">
-            {showResetForm ? (
-              <motion.div
-                key="reset"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-white mb-2">Reset Password</h2>
-                  <p className="text-gray-300">Enter your email to receive reset instructions</p>
-                </div>
-
-                {resetSuccess ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-200 text-sm text-center"
-                  >
-                    Reset instructions sent! Check your email.
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handlePasswordReset} className="space-y-4">
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={resetEmail}
-                        onChange={(e) => setResetEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl
-                                text-white placeholder-gray-400 focus:outline-none focus:ring-2
-                                focus:ring-blue-500/50 transition-all"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600
-                              hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl
-                              font-medium transition-all duration-200 transform hover:scale-[1.02]
-                              active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                      ) : (
-                        'Send Reset Instructions'
-                      )}
-                    </button>
-                  </form>
-                )}
-
-                <button
-                  onClick={() => setShowResetForm(false)}
-                  className="w-full text-center text-blue-400 hover:text-blue-300 transition-colors py-2"
-                >
-                  Back to Sign In
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="main"
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.5 }}
-                  className="text-center mb-8"
-                >
-                  <h1 className="text-3xl font-bold text-white mb-2">
-                    {isSignUp ? 'Create Account' : 'Welcome Back'}
-                  </h1>
-                  <p className="text-gray-300">
-                    {isSignUp 
-                      ? 'Join our community of workplace transparency'
-                      : 'Continue your journey of workplace discovery'}
-                  </p>
-                </motion.div>
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-sm text-center"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                  className="space-y-6"
-                >
-                  {/* Email/Password Form */}
-                  <form onSubmit={handleEmailSignIn} className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="relative group">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 
-                                     group-hover:text-blue-400 transition-colors" />
-                        <input
-                          type="email"
-                          placeholder="Email address"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl
-                                   text-white placeholder-gray-400 focus:outline-none focus:ring-2
-                                   focus:ring-blue-500/50 transition-all group-hover:border-blue-400/50"
-                          required
-                        />
-                      </div>
-                      <div className="relative group">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 
-                                     group-hover:text-blue-400 transition-colors" />
-                        <input
-                          type="password"
-                          placeholder="Password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl
-                                   text-white placeholder-gray-400 focus:outline-none focus:ring-2
-                                   focus:ring-blue-500/50 transition-all group-hover:border-blue-400/50"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setShowResetForm(true)}
-                        className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                    
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600
-                              hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl
-                              font-medium transition-all duration-200 transform hover:scale-[1.02]
-                              active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed
-                              disabled:transform-none shadow-lg hover:shadow-xl"
-                    >
-                      {isLoading ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                      ) : (
-                        'Sign In with Email'
-                      )}
-                    </button>
-                  </form>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/10"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-transparent text-gray-400">Or continue with</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3">
-                    <GoogleSignInButton
-                      onSuccess={handleSuccess}
-                      onError={handleError}
-                      className="hover:scale-[1.02] active:scale-[0.98]"
-                    />
-
-                    <button
-                      onClick={handleGithubSignIn}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3 
-                              bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-xl
-                              transition-all duration-200 transform hover:scale-[1.02] 
-                              active:scale-[0.98] shadow-md hover:shadow-lg"
-                    >
-                      <Github className="w-5 h-5" />
-                      <span>Continue with GitHub</span>
-                    </button>
-
-                    <button
-                      onClick={handleTwitterSignIn}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3 
-                              bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white font-medium rounded-xl
-                              transition-all duration-200 transform hover:scale-[1.02] 
-                              active:scale-[0.98] shadow-md hover:shadow-lg"
-                    >
-                      <Twitter className="w-5 h-5" />
-                      <span>Continue with Twitter</span>
-                    </button>
-                  </div>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/10"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-transparent text-gray-400">
-                        {isSignUp ? 'Already have an account?' : 'New to RateMyEmployer?'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => router.push(`/auth/login?signup=${!isSignUp}`)}
-                    className="w-full text-center text-blue-400 hover:text-blue-300 transition-colors py-2"
-                  >
-                    {isSignUp ? 'Sign in instead' : 'Create an account'}
-                  </button>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {showResetForm ? 'Reset Password' : isSignUp ? 'Create an account' : 'Sign in to your account'}
+          </h2>
         </div>
 
-        {/* Privacy note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-center text-gray-400 text-sm mt-8 px-4"
-        >
-          By continuing, you agree to our Terms of Service and Privacy Policy.
-          We'll handle your data with care.
-        </motion.p>
-      </motion.div>
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              role="alert"
+            >
+              <span className="block sm:inline">{error}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {showResetForm ? (
+          <form className="mt-8 space-y-6" onSubmit={handlePasswordReset}>
+            <div className="rounded-md shadow-sm -space-y-px">
+              <div>
+                <label htmlFor="reset-email" className="sr-only">
+                  Email address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="reset-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="appearance-none rounded-md relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    placeholder="Email address"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                  isLoading ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+              >
+                {isLoading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </div>
+
+            <div className="text-sm text-center">
+              <button
+                type="button"
+                onClick={() => setShowResetForm(false)}
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Back to sign in
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleEmailSignIn}>
+            <div className="rounded-md shadow-sm -space-y-px">
+              <div>
+                <label htmlFor="email-address" className="sr-only">
+                  Email address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="email-address"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="appearance-none rounded-t-md relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    className="appearance-none rounded-b-md relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowResetForm(true)}
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+              <div className="text-sm">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/auth/login?signup=${!isSignUp}`)}
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                  isLoading ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+              >
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <User className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" />
+                </span>
+                {isLoading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign in'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
-  );
+  )
 }
 
 export default function LoginPage(): JSX.Element {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen w-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4">
-        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <div className="min-h-screen bg-gray-50">
       <LoginContent />
-    </Suspense>
-  );
+    </div>
+  )
 }

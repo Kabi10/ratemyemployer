@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StarIcon, CheckBadgeIcon, MapPinIcon, UsersIcon, BuildingOfficeIcon } from '@heroicons/react/24/solid';
@@ -14,21 +14,30 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
 import { ReviewForm } from '@/components/ReviewForm';
 import { X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { supabase } from '@/lib/supabaseClient';
+import { CompanyActions } from './companies/CompanyActions';
 
 interface CompanyCardProps {
   company: Company;
   showActions?: boolean;
-  className?: string;
+  isAdmin?: boolean;
 }
 
-export function CompanyCard({ company, showActions = true, className }: CompanyCardProps) {
-  const [showAddReview, setShowAddReview] = useState(false);
+export function CompanyCard({ company, showActions = true, isAdmin = false }: CompanyCardProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const [showAddReview, setShowAddReview] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const rating = company.average_rating || 0;
   const totalReviews = company.total_reviews || 0;
   const ratingPercentage = (rating / 5) * 100;
+
+  const fallbackLogo = `/images/company-placeholder.png`; // Make sure this exists in your public folder
 
   // Get color based on rating
   const getProgressColor = (rating: number) => {
@@ -46,135 +55,118 @@ export function CompanyCard({ company, showActions = true, className }: CompanyC
     setShowAddReview(true);
   };
 
+  const handleReviewSubmit = async (reviewData: any) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert({
+          ...reviewData,
+          company_id: company.id,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Review submitted successfully! It will be visible after moderation.');
+      setIsReviewModalOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast.error('Failed to submit review. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!company.logo_url) {
+      setImageError(true);
+    }
+  }, [company.logo_url]);
+
   return (
     <>
-      <Card className={`p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 ${className || ''}`}>
-        <div className="flex items-start gap-4">
-          {/* Company Logo */}
-          <div className="relative w-16 h-16 flex-shrink-0">
-            <Image
-              src={company.logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=random`}
-              alt={company.name}
-              className="rounded-lg object-cover"
-              fill
-              sizes="64px"
-            />
-          </div>
-
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+      >
+        <div className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-4">
+              <img
+                src={imageError ? fallbackLogo : company.logo_url || fallbackLogo}
+                alt={`${company.name} logo`}
+                className="w-16 h-16 object-contain"
+                onError={() => setImageError(true)}
+              />
               <div>
-                <div className="flex items-center gap-2">
-                  <Link href={`/companies/${company.id}`} className="hover:text-blue-600">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{company.name}</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  <Link href={`/companies/${company.id}`} className="hover:text-indigo-600">
+                    {company.name}
                   </Link>
+                </h3>
+                <div className="flex items-center mt-1 text-sm text-gray-600">
+                  <MapPinIcon className="w-4 h-4 mr-1" />
+                  <span>{company.location}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mt-1">
-                  <BuildingOfficeIcon className="w-4 h-4" />
-                  <span>{company.industry || 'Industry not specified'}</span>
-                </div>
-                {company.location && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                    <MapPinIcon className="w-4 h-4" />
-                    <span>{company.location}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col items-end">
-                <div className="flex items-center">
-                  <span className="text-xl font-bold text-gray-900 dark:text-gray-100 mr-1">{rating.toFixed(1)}</span>
-                  <StarIcon className="w-5 h-5 text-yellow-400" />
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">{totalReviews} reviews</div>
               </div>
             </div>
-
-            {/* Rating Progress Bar */}
-            <div className="mt-4">
-              <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full transition-all duration-500 ${getProgressColor(rating)}`}
-                  style={{ width: `${ratingPercentage}%` }}
-                  role="progressbar"
-                  aria-valuenow={rating}
-                  aria-valuemin={0}
-                  aria-valuemax={5}
-                />
-              </div>
-            </div>
-            
-            {company.company_values && (
-              <p className="mt-4 text-gray-700 dark:text-gray-300 line-clamp-2">{company.company_values}</p>
-            )}
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {company.ceo && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                  <UsersIcon className="w-4 h-4" />
-                  CEO: {company.ceo}
-                </span>
-              )}
-              {company.benefits && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                  Has Benefits
-                </span>
-              )}
-            </div>
-
-            {/* Key Metrics from Reviews */}
-            {company.reviews && company.reviews.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {(company.reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / company.reviews.length).toFixed(1)}
-                  </div>
-                  <div className="text-gray-500 dark:text-gray-400">Average Rating</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {company.reviews.length}
-                  </div>
-                  <div className="text-gray-500 dark:text-gray-400">Total Reviews</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {((company.reviews.filter(r => r.rating && r.rating >= 4).length / company.reviews.length) * 100).toFixed(0)}%
-                  </div>
-                  <div className="text-gray-500 dark:text-gray-400">Recommend</div>
-                </div>
-              </div>
-            )}
-
-            {company.size && (
-              <Badge variant="outline" className="text-sm">
-                {company.size.replace(/([A-Z])/g, ' $1').trim()}
-              </Badge>
-            )}
-
-            {showActions && (
-              <div className="mt-4 flex space-x-4">
-                <Button
-                  onClick={handleWriteReview}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                >
-                  Write a Review
-                </Button>
-                {company.website && (
-                  <a
-                    href={company.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
-                  >
-                    Visit Website
-                  </a>
-                )}
-              </div>
-            )}
+            {showActions && <CompanyActions company={company} isAdmin={isAdmin} />}
           </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="flex items-center text-sm text-gray-600">
+              <UsersIcon className="w-4 h-4 mr-1" />
+              <span>{company.size || 'Size not specified'}</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <BriefcaseIcon className="w-4 h-4 mr-1" />
+              {company.website ? (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
+                  Visit Website
+                </a>
+              ) : (
+                <span>Website not available</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <StarIcon className="w-5 h-5 text-yellow-400" />
+              <span className="ml-1 text-lg font-semibold">
+                {company.average_rating?.toFixed(1) || 'No ratings'}
+              </span>
+              <span className="ml-2 text-sm text-gray-600">
+                ({company.total_reviews || 0} reviews)
+              </span>
+            </div>
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Write Review
+            </button>
+          </div>
+
+          {company.industry && (
+            <div className="mt-4 flex items-center">
+              <CheckBadgeIcon className="w-4 h-4 mr-1 text-gray-600" />
+              <span className="text-sm text-gray-600">{company.industry}</span>
+            </div>
+          )}
         </div>
-      </Card>
+      </motion.div>
 
       {showAddReview && (
         <div className="fixed inset-0 overflow-hidden z-50">
@@ -211,19 +203,8 @@ export function CompanyCard({ company, showActions = true, className }: CompanyC
                             setShowAddReview(false);
                             router.refresh();
                           }}
-                          onSubmit={async (data) => {
-                            try {
-                              const supabase = createClient();
-                              const { error } = await supabase
-                                .from('reviews')
-                                .insert({ ...data, company_id: company.id });
-                              
-                              if (error) throw error;
-                              return Promise.resolve();
-                            } catch (error) {
-                              return Promise.reject(error);
-                            }
-                          }}
+                          onSubmit={handleReviewSubmit}
+                          isLoading={isLoading}
                         />
                       </div>
                     </div>

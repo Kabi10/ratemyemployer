@@ -7,6 +7,7 @@ import { CompanyList } from '@/components/CompanyList';
 import { CompanyForm } from '@/components/CompanyForm';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { supabase } from '@/lib/supabaseClient';
 
 // Lazy load SearchAndFilter with no SSR
 const SearchAndFilter = dynamic(() => import('@/components/SearchAndFilter'), {

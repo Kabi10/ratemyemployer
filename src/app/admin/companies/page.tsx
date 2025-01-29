@@ -1,46 +1,96 @@
 'use client'
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
+import { withAuth } from '@/lib/auth/withAuth'
+import { CompanyList } from '@/components/CompanyList'
+import type { Database } from '@/types/supabase'
 
-import { withAuth } from '@/lib/auth/withAuth';
-import { useCompany } from '@/hooks/useCompany';
-import { AdminLayout } from '@/components/layouts/AdminLayout';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Button } from '@/components/ui/button';
-import { CompanyList } from '@/components/CompanyList';
-
-import { useCompanies } from '@/hooks/useCompany';
+type Company = Database['public']['Tables']['companies']['Row']
 
 function AdminCompaniesPage() {
-  const { companies, isLoading, error } = useCompanies();
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+
+        setCompanies(data || [])
+      } catch (err) {
+        console.error('Error fetching companies:', err)
+        setError(err instanceof Error ? err : new Error('Failed to fetch companies'))
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCompanies()
+  }, [])
 
   if (isLoading) {
-    return <div>Loading companies...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    )
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-600">Error: {error.message}</div>
+      </div>
+    )
   }
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Manage Companies</h1>
       <div className="grid gap-4">
-        {companies?.map((company) => (
+        {companies.map((company) => (
           <div
             key={company.id}
-            className="p-4 bg-white rounded-lg shadow"
+            className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300"
           >
-            <h2 className="text-xl font-semibold">{company.name}</h2>
-            <p className="text-gray-600">{company.description}</p>
-            {/* Add admin actions here */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-semibold">{company.name}</h2>
+                <p className="text-gray-600 mt-1">{company.industry}</p>
+                <p className="text-gray-500 text-sm mt-1">{company.location}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                  onClick={() => {/* Add edit functionality */}}
+                >
+                  Edit
+                </button>
+                <button
+                  className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-medium"
+                  onClick={() => {/* Add delete functionality */}}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              Created on {new Date(company.created_at).toLocaleDateString()}
+            </div>
           </div>
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 // Wrap the component with withAuth HOC, requiring admin role
-export default withAuth(AdminCompaniesPage, { requiredRole: 'admin' });
+export default withAuth(AdminCompaniesPage, { requiredRole: 'admin' })

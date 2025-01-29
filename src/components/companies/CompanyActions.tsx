@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { ReviewForm } from '@/components/ReviewForm';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
 
 interface CompanyActionsProps {
@@ -74,7 +74,6 @@ export function CompanyActions({ company }: CompanyActionsProps) {
                           }}
                           onSubmit={async (data) => {
                             try {
-                              const supabase = createClient();
                               const { error } = await supabase
                                 .from('reviews')
                                 .insert({ ...data, company_id: company.id });

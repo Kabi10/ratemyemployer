@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { createContext, useContext, useEffect, useState, type FC, type ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabaseClient';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AuthContextType {
   user: User | null;
@@ -31,11 +31,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const supabase = createClient();
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -44,13 +43,35 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     // Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Check if user is in admins table or has admin role
+          const { data: adminData } = await supabase
+            .from('admins')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          setIsAdmin(!!adminData);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
+    checkAdminStatus();
   }, []);
 
   const signIn = async (email: string, password: string) => {

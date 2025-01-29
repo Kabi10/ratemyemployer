@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -46,8 +46,6 @@ export default function WallOfShame() {
     };
     return statusMap[status] || status;
   };
-
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchCompanies() {

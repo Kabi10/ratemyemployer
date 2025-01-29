@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -29,7 +29,6 @@ function ReviewsList() {
   const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchReviews() {

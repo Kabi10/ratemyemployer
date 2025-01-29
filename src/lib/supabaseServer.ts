@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 import type { Database } from '@/types/supabase';
@@ -12,22 +12,32 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const createClient = () => 
-  createServerClient<Database>(
+export function createServerSupabaseClient() {
+  const cookieStore = cookies();
+
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: async (name) => {
-          const cookieStore = cookies();
+        get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options: any) {
-          cookies().set({ name, value, ...options });
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // Handle cookies in edge functions
+          }
         },
-        remove(name: string, options: any) {
-          cookies().set({ name, value: '', ...options });
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            // Handle cookies in edge functions
+          }
         },
-      }
+      },
     }
-  ); 
+  );
+} 

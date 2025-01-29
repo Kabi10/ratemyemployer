@@ -12,7 +12,7 @@ import { INDUSTRIES, type Industry } from '@/types';
 import { companySchema, type CompanyFormData, type ReviewFormData } from '@/lib/schemas';
 import type { Database } from '@/types/supabase';
 import { Review } from '@/types/review';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -64,7 +64,6 @@ export function HomeClient() {
 
     setIsSearching(true);
     try {
-      const supabase = createClient();
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -97,7 +96,6 @@ export function HomeClient() {
 
   useEffect(() => {
     const fetchReviews = async () => {
-      const supabase = createClient();
       const { data, error } = await supabase
         .from('reviews')
         .select(`
@@ -303,7 +301,6 @@ export function HomeClient() {
                           }}
                           onSubmit={async (data) => {
                             try {
-                              const supabase = createClient();
                               const { error } = await supabase
                                 .from('reviews')
                                 .insert({ ...data, company_id: selectedCompany.id });

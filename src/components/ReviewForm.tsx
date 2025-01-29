@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
 import { useAuth } from '@/contexts/AuthContext';
 import type { CompanyId, JoinedCompany, ReviewInsert, Review } from '@/types/database';
@@ -67,7 +67,6 @@ export const ReviewForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<JoinedCompany | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
 
   const {
     register,
@@ -141,17 +140,13 @@ export const ReviewForm = ({
     };
   }, [companyId, toast]);
 
-  const handleFormSubmit = async (data: ReviewFormData) => {
-    console.log('Form submission started', { data });  // Debug log
-    
+  const handleReviewSubmit = async (data: ReviewFormData) => {
     if (!user) {
-      console.log('No user found, redirecting to login');  // Debug log
       router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
     if (!companyId) {
-      console.log('No company ID found');  // Debug log
       toast({
         title: "Error",
         description: "Company ID is required",
@@ -162,78 +157,27 @@ export const ReviewForm = ({
 
     try {
       setIsSubmitting(true);
-      console.log('Attempting to submit review');  // Debug log
+      const { error } = await supabase.from('reviews').insert({
+        ...data,
+        company_id: companyId,
+        reviewer_id: user.id,
+        status: 'pending'
+      });
 
-      // If onSubmit prop is provided, use it
-      if (onSubmit) {
-        console.log('Using provided onSubmit handler');  // Debug log
-        await onSubmit(data);
-      } else {
-        console.log('Submitting directly to Supabase');  // Debug log
-        // Otherwise, submit directly to Supabase
-        const { data: supabaseData, error } = await supabase
-          .from('reviews')
-          .insert({
-            title: data.title,
-            rating: data.rating,
-            pros: data.pros,
-            cons: data.cons,
-            position: data.position,
-            employment_status: data.employment_status,
-            is_current_employee: data.is_current_employee,
-            reviewer_name: data.reviewer_name,
-            reviewer_email: data.reviewer_email,
-            company_id: companyId,
-            user_id: user.id,
-            status: 'pending'
-          })
-          .select('*');
+      if (error) throw error;
 
-        console.log('Supabase insert response:', {
-          data: supabaseData,
-          error: error,
-          status: error?.code
-        });
-
-        if (error) {
-          console.error('Supabase error:', error);  // Debug log
-          throw error;
-        }
-
-        console.log('Review submitted successfully');  // Debug log
-        toast({
-          title: "Success",
-          description: "Your review has been submitted successfully and is pending approval.",
-        });
-      }
-
+      toast({
+        title: "Success",
+        description: "Your review has been submitted successfully and is pending approval.",
+      });
+      
       reset();
       onSuccess?.();
-    } catch (error: unknown) {
-      console.error('Full error object:', error);
-      
-      // Handle Supabase PostgrestError
-      if (error && typeof error === 'object' && 'code' in error) {
-        console.error('Supabase error details:', {
-          code: (error as PostgrestError).code,
-          details: (error as PostgrestError).details,
-          hint: (error as PostgrestError).hint,
-          message: (error as PostgrestError).message
-        });
-      }
-      // Handle generic errors
-      else if (error instanceof Error) {
-        console.error('Error message:', error.message);
-      }
-      // Handle non-Error objects
-      else {
-        console.error('Unknown error type:', JSON.stringify(error));
-      }
-
-      const message = error instanceof Error ? error.message : 'Failed to submit review';
+    } catch (error) {
+      console.error('Error submitting review:', error);
       toast({
         title: "Error",
-        description: message,
+        description: error instanceof Error ? error.message : 'Failed to submit review',
         variant: "destructive",
       });
     } finally {
@@ -254,7 +198,7 @@ export const ReviewForm = ({
       onSubmit={(e) => {
         e.preventDefault();
         console.log('Form onSubmit triggered');  // Debug log
-        handleSubmit(handleFormSubmit)(e);
+        handleSubmit(handleReviewSubmit)(e);
       }} 
       className="space-y-6"
     >

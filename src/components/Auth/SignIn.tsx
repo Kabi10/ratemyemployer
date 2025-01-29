@@ -19,7 +19,7 @@ export function SignIn() {
 
     try {
       await signIn(email, password);
-      router.push('/dashboard');
+      router.push('/');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred during sign in');
     } finally {

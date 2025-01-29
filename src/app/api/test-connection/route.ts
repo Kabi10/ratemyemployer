@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseServer';
+import { createServerSupabaseClient } from '@/lib/supabaseServer';
 
 export async function GET() {
   try {
-    const supabase = createClient();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase.from('companies').select('count').single();
 
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    return NextResponse.json({ message: 'Connection successful', count: data.count });
+    return NextResponse.json({
+      status: 'success',
+      message: 'Successfully connected to Supabase',
+      data
+    });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Database connection error:', error);
     return NextResponse.json(
-      { error: 'Failed to connect to Supabase' },
+      {
+        status: 'error',
+        message: 'Failed to connect to database',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

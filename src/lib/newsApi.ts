@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
-import { Database } from '@/types/supabase';
-import { createClient } from '@/lib/supabaseClient';
+import { supabase } from './supabaseClient';
+import type { Database } from '@/types/supabase';
 
 // Use the hardcoded key for now since env variable isn't working
 const SERP_API_KEY = 'db313510e725130ead277b13cb64416fd4ed6f8551c7f00cbc9b9163d44e548f';
@@ -43,8 +43,6 @@ interface DatabaseNewsArticle {
 interface SerpApiResponse {
   news_results: SerpApiNewsResult[];
 }
-
-const supabase = createClient();
 
 // This function is for initial data gathering only
 export async function fetchAndStoreCompanyNews(companies: string[], isPositive: boolean = false): Promise<boolean> {
@@ -188,7 +186,6 @@ export async function fetchAndStoreCompanyNews(companies: string[], isPositive: 
 // Use this function to get news for multiple companies
 export async function fetchNewsForCompanies(companies: string[]): Promise<{ [company: string]: NewsArticle[] }> {
   try {
-    const supabase = createClient();
     const results: { [company: string]: NewsArticle[] } = {};
 
     for (const company of companies) {
