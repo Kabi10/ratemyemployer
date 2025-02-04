@@ -8,16 +8,8 @@ import {
   Review,
   ReviewInsert,
   ReviewUpdate,
-  DatabaseResult,
-  ErrorLogDetails,
-  DatabaseOperation,
-  TableName,
-} from '@/types/database';
-import { logError } from '@/lib/errorHandling';
-
-// Core database types
-export type CompanyWithReviews = Company & { reviews: Review[] };
-export type ReviewWithCompany = Review & { company: Company };
+  CompanyWithReviews,
+} from '@/types';
 
 // Response types
 export interface DatabaseResponse<T> {
@@ -37,6 +29,21 @@ export interface DatabaseError {
   message: string;
   details?: unknown;
 }
+
+export type DatabaseResult<T> = {
+  data?: T | null;
+  error: DatabaseError | null;
+};
+
+export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT' | 'RPC' | 'AUTH';
+export type TableName = keyof Database['public']['Tables'] | 'review_likes';
+export type ErrorLogDetails = {
+  operation: DatabaseOperation;
+  table: TableName;
+  error: Error;
+  details?: Record<string, any>;
+  user_id?: string;
+};
 
 // Helper function to ensure ID is a number
 function ensureNumericId(id: string | number): number {
@@ -186,17 +193,31 @@ export async function deleteLike(id: number) {
 }
 
 export const createCompany = async (data: CompanyInsert) => {
-  const cleanData = {
-    ...data,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  
-  const { error } = await supabase
-    .from('companies')
-    .insert(cleanData);
+  try {
+    // Omit any ID field to let Supabase auto-generate it
+    const { id, ...cleanData } = data; // Ensure id is never passed to the insert
+    
+    const { data: company, error } = await supabase
+      .from('companies')
+      .insert(cleanData)
+      .select('*')
+      .single();
 
-  return { error };
+    if (error) {
+      console.error('Supabase error:', error);
+      return { error };
+    }
+
+    return { data: company, error: null };
+  } catch (error) {
+    console.error('Create company error:', error);
+    return { 
+      data: null, 
+      error: { 
+        message: error instanceof Error ? error.message : 'Failed to create company' 
+      } 
+    };
+  }
 };
 
 export async function updateCompany(id: number, data: CompanyUpdate) {
@@ -306,11 +327,11 @@ export async function createReview(data: ReviewInsert) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   
   if (userError) {
-    return { error: handleDatabaseError(userError, 'AUTH', 'reviews') };
+    return { error: handleDatabaseError(userError, 'AUTH' as DatabaseOperation, 'reviews', data) };
   }
 
   if (!user) {
-    return { error: handleDatabaseError(new Error('User must be authenticated to create a review'), 'AUTH', 'reviews') };
+    return { error: handleDatabaseError(new Error('User must be authenticated to create a review'), 'AUTH' as DatabaseOperation, 'reviews', data) };
   }
 
   try {
@@ -371,7 +392,7 @@ const handleDatabaseError = async <T>(
 ): Promise<DatabaseResult<T>> => {
   const errorMessage = error?.message || error?.toString() || 'Unknown error';
   
-  await logError({
+  await dbLogError({
     operation,
     table,
     error: new Error(errorMessage),
@@ -382,4 +403,21 @@ const handleDatabaseError = async <T>(
     data: null,
     error: new Error(errorMessage),
   };
+};
+
+// Update the error logging functions to use the correct operation type
+export const dbLogError = async (details: ErrorLogDetails) => {
+  const { operation, table, error, details: errorDetails, user_id } = details;
+  
+  try {
+    await supabase.from('error_logs').insert({
+      error_message: error.message,
+      error_code: operation,
+      metadata: errorDetails,
+      user_id,
+      error_stack: errorDetails?.stack as string
+    });
+  } catch (err) {
+    console.error('Failed to log error:', err);
+  }
 };
