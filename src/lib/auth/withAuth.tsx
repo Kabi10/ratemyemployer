@@ -7,29 +7,42 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-import { Role } from '@/types';
-
 interface WithAuthProps {
-  requiredRole?: string;
+  requiredRole?: 'admin' | 'user';
   redirectTo?: string;
 }
 
 export function withAuth<P extends object>(
   WrappedComponent: ComponentType<P>,
-  options: { requiredRole?: string } = {}
+  options: WithAuthProps = {}
 ) {
   return function ProtectedRoute(props: P) {
     const router = useRouter();
-    const { user, isLoading } = useAuth();
+    const { user, isLoading, isAdmin } = useAuth();
+    const { requiredRole = 'user', redirectTo = '/auth/login' } = options;
 
     React.useEffect(() => {
-      if (!isLoading && !user) {
-        router.push('/login');
+      if (!isLoading) {
+        if (!user) {
+          router.push(redirectTo);
+        } else if (requiredRole === 'admin' && !isAdmin) {
+          router.push('/');
+        }
       }
-    }, [user, isLoading, router]);
+    }, [user, isLoading, isAdmin, router, redirectTo, requiredRole]);
 
-    if (isLoading) return <LoadingSpinner />;
-    
-    return user ? <WrappedComponent {...props} /> : null;
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      );
+    }
+
+    if (!user || (requiredRole === 'admin' && !isAdmin)) {
+      return null;
+    }
+
+    return <WrappedComponent {...props} />;
   };
 }

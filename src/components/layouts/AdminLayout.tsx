@@ -27,6 +27,12 @@ function AdminLayoutBase({ children }: AdminLayoutProps): JSX.Element {
                 <Link href="/admin/users" className="text-gray-900 dark:text-gray-100 hover:text-gray-500 dark:hover:text-gray-400 px-3 py-2 rounded-md text-sm font-medium">
                   Users
                 </Link>
+                <Link href="/admin/companies" className="text-gray-900 dark:text-gray-100 hover:text-gray-500 dark:hover:text-gray-400 px-3 py-2 rounded-md text-sm font-medium">
+                  Companies
+                </Link>
+                <Link href="/admin/reviews" className="text-gray-900 dark:text-gray-100 hover:text-gray-500 dark:hover:text-gray-400 px-3 py-2 rounded-md text-sm font-medium">
+                  Reviews
+                </Link>
                 <Link href="/admin/analytics" className="text-gray-900 dark:text-gray-100 hover:text-gray-500 dark:hover:text-gray-400 px-3 py-2 rounded-md text-sm font-medium">
                   Analytics
                 </Link>
@@ -44,4 +50,4 @@ function AdminLayoutBase({ children }: AdminLayoutProps): JSX.Element {
   );
 }
 
-export const AdminLayout = withAuth(AdminLayoutBase);
+export const AdminLayout = withAuth(AdminLayoutBase, { requiredRole: 'admin' });

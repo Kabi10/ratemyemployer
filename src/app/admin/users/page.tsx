@@ -11,6 +11,7 @@ import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useToast } from '@/components/ui/toast';
+import { withAuth } from '@/lib/auth/withAuth';
 
 type User = {
   id: string;
@@ -30,7 +31,9 @@ const mapSupabaseUser = (user: SupabaseUser): User => ({
   app_metadata: user.app_metadata || { role: 'user' }
 });
 
-export default function AdminUsers() {
+export default withAuth(AdminUsers, { requiredRole: 'admin' });
+
+function AdminUsers() {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
