@@ -57,22 +57,34 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Check if user is in admins table or has admin role
+          // Check both admins table and user metadata for admin role
           const { data: adminData } = await supabase
             .from('admins')
             .select('*')
             .eq('user_id', user.id)
             .single();
-          
-          setIsAdmin(!!adminData);
+
+          // Check user metadata for role
+          const isAdminRole = user.user_metadata?.role === 'admin' || 
+                            user.app_metadata?.role === 'admin';
+
+          // User is admin if they're in admins table OR have admin role in metadata
+          setIsAdmin(!!adminData || isAdminRole);
+        } else {
+          setIsAdmin(false);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
+        setIsAdmin(false);
       }
     };
 
-    checkAdminStatus();
-  }, []);
+    if (user) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     try {
