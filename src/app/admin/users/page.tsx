@@ -31,28 +31,45 @@ const mapSupabaseUser = (user: SupabaseUser): User => ({
 });
 
 export default function AdminUsers() {
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchUsers() {
+    const fetchUsers = async () => {
       try {
-        const supabase = createClient();
-        const { data: { users: supabaseUsers }, error } = await supabase.auth.admin.listUsers();
-        if (error) throw error;
-        setUsers((supabaseUsers || []).map(mapSupabaseUser));
+        const { data: users, error } = await createClient()
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive"
+          });
+          setError(error.message);
+          return;
+        }
+
+        setUsers(users || []);
       } catch (err) {
-        console.error('Error fetching users:', err);
-        setError('Failed to load users');
+        const message = err instanceof Error ? err.message : 'An error occurred while fetching users';
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive"
+        });
+        setError(message);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchUsers();
-  }, []);
+  }, [toast]);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
@@ -69,10 +86,18 @@ export default function AdminUsers() {
           : u
       ));
 
-      addToast('User role updated successfully', 'success');
+      toast({
+        title: "Success",
+        description: "User role updated successfully",
+        variant: "default"
+      });
     } catch (err) {
       console.error('Error updating user role:', err);
-      addToast('Failed to update user role', 'error');
+      toast({
+        title: "Error",
+        description: "Failed to update user role",
+        variant: "destructive"
+      });
     }
   };
 
