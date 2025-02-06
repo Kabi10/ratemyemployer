@@ -1,0 +1,105 @@
+
+> ratemyemployer@1.0.0 prebuild
+> npm run clean && npm run type-check
+
+
+> ratemyemployer@1.0.0 clean
+> rimraf .next out dist
+
+
+> ratemyemployer@1.0.0 type-check
+> tsc --noEmit
+
+src/__tests__/__mocks__/mockData.ts(1,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/__tests__/app.test.tsx(2,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/__tests__/basic.spec.ts(2,30): error TS2307: Cannot find module 'supabase' or its corresponding type declarations.
+src/__tests__/utils/test-types.ts(1,26): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/admin/companies/page.tsx(8,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/api/companies/route.ts(4,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/api/reviews/route.ts(4,26): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/companies/[id]/edit/page.tsx(7,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/companies/[id]/page.tsx(75,26): error TS2339: Property 'average_rating' does not exist on type 'JoinedCompany'.
+src/app/companies/[id]/page.tsx(78,35): error TS2339: Property 'total_reviews' does not exist on type 'JoinedCompany'.
+src/app/companies/[id]/page.tsx(103,14): error TS2741: Property 'onSubmit' is missing in type '{ companyId: number; onSuccess: () => void; }' but required in type 'ReviewFormProps'.
+src/app/fame/page.tsx(7,26): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/reviews/[id]/edit/page.tsx(9,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/reviews/[id]/edit/page.tsx(81,8): error TS2741: Property 'onSubmit' is missing in type '{ companyId: any; initialData: any; onSuccess: () => void; }' but required in type 'ReviewFormProps'.
+src/app/reviews/[id]/page.tsx(24,20): error TS2339: Property 'isLoading' does not exist on type 'UseCompanyResult'.
+src/app/reviews/[id]/page.tsx(40,46): error TS2339: Property 'message' does not exist on type 'string'.
+src/app/reviews/page.tsx(10,26): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/app/shame/page.tsx(145,50): error TS2345: Argument of type '{ average_rating: number; total_reviews: number; id: any; name: any; industry: any; location: any; description: any; logo_url: any; reviews: { id: any; rating: any; pros: any; cons: any; position: any; employment_status: any; is_current_employee: any; created_at: any; }[]; }' is not assignable to parameter of type 'CompanyWithShameData'.
+  Type '{ average_rating: number; total_reviews: number; id: any; name: any; industry: any; location: any; description: any; logo_url: any; reviews: { id: any; rating: any; pros: any; cons: any; position: any; employment_status: any; is_current_employee: any; created_at: any; }[]; }' is missing the following properties from type 'CompanyWithShameData': website, size, ceo, company_values, and 6 more.
+src/app/shame/page.tsx(171,22): error TS2345: Argument of type '{ shame_score: number; recent_reviews: { id: any; rating: any; pros: any; cons: any; position: any; employment_status: any; is_current_employee: any; created_at: any; }[]; average_rating: number; total_reviews: number; ... 6 more ...; reviews: { ...; }[]; }[]' is not assignable to parameter of type 'SetStateAction<CompanyWithShameData[]>'.
+  Type '{ shame_score: number; recent_reviews: { id: any; rating: any; pros: any; cons: any; position: any; employment_status: any; is_current_employee: any; created_at: any; }[]; average_rating: number; total_reviews: number; ... 6 more ...; reviews: { ...; }[]; }[]' is not assignable to type 'CompanyWithShameData[]'.
+    Type '{ shame_score: number; recent_reviews: { id: any; rating: any; pros: any; cons: any; position: any; employment_status: any; is_current_employee: any; created_at: any; }[]; average_rating: number; total_reviews: number; ... 6 more ...; reviews: { ...; }[]; }' is missing the following properties from type 'CompanyWithShameData': website, size, ceo, company_values, and 6 more.
+src/app/shame/page.tsx(197,18): error TS2339: Property 'average_rating' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(197,45): error TS2339: Property 'total_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(203,38): error TS2339: Property 'average_rating' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(206,43): error TS2339: Property 'total_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(210,33): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+src/app/shame/page.tsx(409,34): error TS2339: Property 'average_rating' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(414,38): error TS2339: Property 'total_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(418,28): error TS2339: Property 'recent_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(418,54): error TS2339: Property 'recent_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(422,34): error TS2339: Property 'recent_reviews' does not exist on type 'CompanyWithShameData'.
+src/app/shame/page.tsx(422,54): error TS7006: Parameter 'review' implicitly has an 'any' type.
+src/app/shame/page.tsx(470,51): error TS2339: Property 'name' does not exist on type 'string'.
+src/app/shame/page.tsx(471,53): error TS2551: Property 'publishedAt' does not exist on type 'MarketauxArticle'. Did you mean 'published_at'?
+src/components/companies/CompanyHeader.tsx(3,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/companies/CompanyList.tsx(3,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/companies/CompanyStats.tsx(2,26): error TS2307: Cannot find module '@/components/ui/StatCard' or its corresponding type declarations.
+src/components/companies/CompanyStats.tsx(9,26): error TS2339: Property 'average_rating' does not exist on type 'Company'.
+src/components/companies/CompanyStats.tsx(10,32): error TS2339: Property 'total_reviews' does not exist on type 'Company'.
+src/components/companies/CompanyStats.tsx(11,38): error TS2339: Property 'recommendation_rate' does not exist on type 'Company'.
+src/components/CompanyCard.tsx(7,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/CompanyCard.tsx(45,18): error TS2339: Property 'logo_url' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyCard.tsx(48,15): error TS2339: Property 'logo_url' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyCard.tsx(63,30): error TS2339: Property 'logo_url' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyCard.tsx(64,33): error TS2339: Property 'name' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyCard.tsx(70,51): error TS2339: Property 'id' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyCard.tsx(71,28): error TS2339: Property 'name' does not exist on type 'CompanyWithReviews'.
+src/components/CompanyForm.tsx(15,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/CompanyForm.tsx(142,67): error TS2304: Cannot find name 'Industry'.
+src/components/CompanyForm.tsx(148,14): error TS2304: Cannot find name 'INDUSTRIES'.
+src/components/CompanyForm.tsx(148,30): error TS7006: Parameter 'industry' implicitly has an 'any' type.
+src/components/CompanyList.tsx(8,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/CompanyList.tsx(256,15): error TS2322: Type '{ key: any; company: any; onClick: () => void | undefined; }' is not assignable to type 'IntrinsicAttributes & CompanyCardProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & CompanyCardProps'.
+src/components/CompanyProfile.tsx(4,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/components/CompanyProfile.tsx(7,28): error TS2307: Cannot find module './StarRating' or its corresponding type declarations.
+src/components/CreateReview.tsx(24,20): error TS2339: Property 'isLoading' does not exist on type 'UseCompanyResult'.
+src/components/CreateReview.tsx(31,31): error TS2339: Property 'message' does not exist on type 'string'.
+src/components/CreateReview.tsx(41,19): error TS2322: Type 'string' is not assignable to type 'number'.
+src/components/FeaturedCompanies.tsx(12,22): error TS2339: Property 'isLoading' does not exist on type 'UseCompaniesResult'.
+src/components/FeaturedCompanies.tsx(21,58): error TS2339: Property 'message' does not exist on type 'string'.
+src/components/FeaturedCompanies.tsx(46,41): error TS2322: Type 'JoinedCompany' is not assignable to type 'CompanyWithReviews'.
+  Types of property 'reviews' are incompatible.
+    Type 'Review[] | undefined' is not assignable to type 'Database[]'.
+      Type 'undefined' is not assignable to type 'Database[]'.
+src/components/HomeClient.tsx(161,9): error TS2353: Object literal may only specify known properties, and 'reviewer_email' does not exist in type 'Omit<{ id: number; company_id: number | null; user_id: string | null; rating: number; title: string; pros: string; cons: string; position: string | null; employment_status: EmploymentStatus | null; is_current_employee: boolean | null; created_at: string | null; updated_at: string | null; content: string | null; }, "...'.
+src/components/ReviewCard.tsx(5,28): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/components/ui/StarRating.tsx' is not a module.
+src/components/ReviewForm.tsx(98,7): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/components/ReviewForm.tsx(103,7): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/ReviewForm.tsx(105,7): error TS2322: Type 'EmploymentStatus | null' is not assignable to type '"Full-time" | "Part-time" | "Contract" | "Intern" | undefined'.
+  Type 'null' is not assignable to type '"Full-time" | "Part-time" | "Contract" | "Intern" | undefined'.
+src/components/ReviewForm.tsx(106,7): error TS2322: Type 'boolean | null' is not assignable to type 'boolean | undefined'.
+  Type 'null' is not assignable to type 'boolean | undefined'.
+src/components/ReviewList.tsx(66,11): error TS2322: Type 'string' is not assignable to type 'number'.
+src/hooks/useLikes.ts(1,10): error TS2724: '"@/types"' has no exported member named 'ReviewLike'. Did you mean 'ReviewId'?
+src/hooks/useReviews.ts(38,33): error TS2339: Property 'message' does not exist on type 'Promise<DatabaseResult<unknown>>'.
+src/lib/database.ts(1,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/lib/errorHandling.ts(2,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/lib/supabase-server.ts(5,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/lib/supabaseClient.ts(2,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/lib/supabaseServer.ts(4,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/lib/validations/review.ts(2,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/types/database.ts(219,15): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.
+src/types/index.ts(1,31): error TS2306: File 'C:/Dev/Websites/ratemyemployer/src/types/supabase.ts' is not a module.

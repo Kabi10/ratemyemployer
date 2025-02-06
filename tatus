@@ -1,0 +1,96 @@
+[33m5961391[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix/eslint-config[m[33m, [m[1;31morigin/fix/eslint-config[m[33m)[m fix: Restrict admin access to users in admins table only
+[33mc1a26c1[m fix: Improve admin role check for Google Auth users
+[33m1e927ab[m fix: Improve admin route protection and role checks
+[33m09c5990[m fix: Update useToast usage in AdminUsers page
+[33me355ae4[m refactor: Update ReviewForm with improved star rating and type safety
+[33m97f34c3[m chore: add eslint.ignoreDuringBuilds config
+[33me37b143[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Update comment in createCompany to emphasize omitting id field in inserts
+[33ma89236b[m chore: update configuration and remaining files
+[33ma2ee0d7[m feat: add news API integration and testing setup
+[33m07e9d30[m feat: improve authentication flow and error handling
+[33mf16be94[m chore: update package dependencies
+[33meb5ec5d[m refactor: simplify company card navigation by removing redundant View Details button
+[33m254cd98[m docs: consolidate and update project documentation
+[33m72eca0a[m Update project structure and dependencies, improve auth flow, and add database migrations
+[33m45544b4[m refactor: improve review submission and company listing
+[33m8b50185[m Update project structure and dependencies: Move to src/app, add not-found page, update Next.js config
+[33m280d628[m Fix review form submission and improve error handling
+[33m9e36dfd[m refactor: focus Wall of Shame on internal review data
+[33md67795b[m fix: improve SerpAPI request handling and test with single company
+[33m9dd5678[m feat: improve error handling and logging in news fetching
+[33mf34a853[m refactor: simplify news fetching to use only SerpAPI
+[33m0cb8cf1[m feat: add GitHub Action for automated news fetching
+[33m891988e[m feat: enhance Wall of Shame with improved news fetching
+[33m1121b8f[m fix: improve auth flow and database security
+[33m0f53ef3[m fix: Update page component to use database helper for company creation
+[33ma09cfc5[m fix: Update company creation to properly handle authentication and created_by field
+[33m00f40b0[m fix: Temporarily replace LocationAutocomplete with regular input
+[33md661037[m feat: Add detailed authentication logging to CompanyForm
+[33mb537b30[m feat: Add user authentication and RLS policies for reviews and companies
+[33mee93119[m fix: Add user authentication check and created_by field in company creation
+[33m197fcc1[m feat: enhance company listing with advanced filters, sorting, and improved UI components
+[33ma6d0908[m Fix: Mark root layout as client component
+[33me743ccc[m Fix: Update useToast import path
+[33m4e6e120[m Fix: Add use client directive to Toast component
+[33m3fb5289[m Add: Toast component and provider
+[33m37a7a0a[m Fix: Add AuthProvider and ToastProvider, move shame page config to separate file
+[33m8c43b58[m fix: add route config and rewrites for /shame page
+[33mca3fe1b[m Update .gitignore to exclude data files
+[33m6b4e34d[m feat: Add footer pages (About, Terms, Privacy)
+[33m92024db[m feat: Add Firebase authentication with multiple providers
+[33m356c071[m feat: Add Background Check feature with glassmorphism UI and news integration
+[33m88259dd[m Major update: Improved company management, review system, and database migrations
+[33m77f8577[m feat: Enhanced UI components and removed Benefits/Values columns
+[33m355e118[m fix: revert package.json changes
+[33ma9c020d[m fix: resolve dependency conflicts
+[33m98ebcfb[m chore: specify node version requirements
+[33med2b38b[m fix: add suspense boundaries and toast provider
+[33mf241853[m fix: skip type checking and linting during build
+[33m8b205ca[m fix: downgrade @types/react to v17 for compatibility with testing libraries
+[33maa8c93b[m refactor: consolidate scripts into unified CLI tool
+[33m69f0f15[m fix: update coverage script references to use correct name
+[33mde7d20b[m docs: restore original README.md with detailed sections
+[33m6226207[m fix: update module system to support ES modules
+[33m0e19472[m refactor: simplify test suite for MVP
+[33m3aa47ae[m fix: resolve dependency conflicts for production build
+[33m958d792[m docs: update changelog for v1.0.0 release
+[33m87ffc53[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m)[m feat: add E2E testing with Playwright
+[33m3906ec8[m feat: add build verification system and troubleshooting guide
+[33m8e16d71[m chore: add project management configs and changelog
+[33m5527e8d[m chore: add GitHub issue and PR templates
+[33meab881e[m docs: add community and security documentation
+[33ma49fcd5[m docs: add documentation and wiki sync workflow
+[33m13aef2c[m docs: add documentation and wiki sync workflow
+[33mf294b26[m Merge pull request #8 from Kabi10/develop
+[33md6abc93[m Update project configuration and dependencies
+[33m1785ead[m Major update: Code refactoring and improvements - Updated ESLint config, improved TypeScript types, enhanced error handling, removed deprecated files
+[33m68ade6e[m Update dependencies and clean up package.json
+[33me9a644f[m Fix CI pipeline and test configuration
+[33m5d571c3[m Add test configuration and basic test
+[33m4b88124[m Add deployment information to README
+[33m01814a1[m Update CI workflow with simplified Vercel deployment
+[33mbe5cdb5[m Add comprehensive CI/CD pipeline with Jest configuration
+[33m933b63a[m Clean up package.json: remove duplicates and fix version conflicts
+[33m05b4a46[m Fix dependency conflicts and update build configuration
+[33md9d3b76[m Add branch protection and env variable export script
+[33m3a798fe[m Add GitHub Actions workflow for auto-merging develop to main
+[33m063b1b5[m Fix cookie handling in Supabase integration
+[33m22c69e9[m Update all Supabase integrations to use @supabase/ssr
+[33ma98b67d[m Merge remote changes and update dependencies
+[33m12932a2[m Update route handlers to use @supabase/ssr and improve error handling
+[33m0491379[m Merge pull request #7 from Kabi10/develop
+[33m3a79716[m Merge pull request #6 from Kabi10/dependabot/npm_and_yarn/develop/dependencies-b2904c7d44
+[33mce6bc07[m chore(deps-dev): bump the dependencies group across 1 directory with 2 updates
+[33mbce9bde[m Update: Major refactor with improved auth, UI components, and API routes
+[33me8c86f1[m Cleanup
+[33m85a9249[m Merge pull request #1 from Kabi10/develop
+[33mf9e49c7[m fix: update deployment workflow environment configuration
+[33m8f96ac4[m chore: add Lighthouse CI configuration and workflow
+[33m3d4a17e[m chore: add contributing guide, license, and project configuration
+[33md45e2c1[m Add GitHub Actions, README, and PR template
+[33ma617374[m Initial commit: Project setup with updated dependencies
+[33mc960c26[m Initial commit: Project setup with updated dependencies
+[33m16562b0[m Fix database types and schema
+[33md5107cc[m Fix unused variables
+[33m72cf330[m chore: add GitHub workflows and PR template
+[33mecd99de[m Initial commit: Project setup with Next.js, TypeScript, and tooling

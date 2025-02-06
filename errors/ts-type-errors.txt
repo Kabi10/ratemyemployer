@@ -1,0 +1,1 @@
+/mnt/c/Users/kabil/AppData/Roaming/npm/tsc: 15: exec: node: not found
