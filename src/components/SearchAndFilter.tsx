@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui-library/input';
+import { Button } from '@/components/ui-library/button';
+import { Slider } from '@/components/ui-library/slider';
+import { Badge } from '@/components/ui-library/badge';
 import { FilterIcon, XIcon } from 'lucide-react';
 import {
   Select,
@@ -15,7 +15,7 @@ import {
   SelectValue,
   SelectContent,
   SelectItem
-} from '@/components/ui/select';
+} from '@/components/ui-library/select';
 
 interface SearchAndFilterProps {
   onSearch?: (query: string) => void;

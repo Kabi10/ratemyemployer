@@ -1,5 +1,5 @@
 import type { Database } from '@/types/supabase';
-import { StatCard } from '@/components/ui/StatCard';
+import { StatCard } from '@/components/ui-library/StatCard';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 

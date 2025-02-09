@@ -163,4 +163,6 @@ This guide helps you resolve common build issues in the Rate My Employer project
 - [Next.js Build Documentation](https://nextjs.org/docs/deployment)
 - [TypeScript Configuration](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
 - [Supabase Setup Guide](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
-- [Testing Best Practices](https://testing-library.com/docs/react-testing-library/intro/) 
+- [Testing Best Practices](https://testing-library.com/docs/react-testing-library/intro/)
+
+3. Check `src/components/companies/CompanyList.tsx` settings 

@@ -32,7 +32,7 @@ jobs:
         run: |
           cat > scripts/fetch-news.ts << 'EOL'
           import { createClient } from '@supabase/supabase-js';
-          import { fetchAndStoreCompanyNews } from '../src/lib/newsApi';
+          // import { fetchNewsFromRSS } from '../src/lib/newsApi';
 
           async function main() {
             if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -61,14 +61,14 @@ jobs:
 
               console.log(`Fetching news for ${companies.length} companies...`);
               
-              // Fetch news for each company
+              // Fetch news for each company using RSS
               const companyNames = companies.map(c => c.name);
-              const success = await fetchAndStoreCompanyNews(companyNames, false);
+              // const news = await fetchNewsFromRSS(companyNames);
               
-              if (success) {
-                console.log('Successfully fetched and stored news');
+              if (news) {
+                console.log('Successfully fetched news');
               } else {
-                throw new Error('Failed to fetch or store news');
+                throw new Error('Failed to fetch news');
               }
             } catch (error) {
               console.error('Error:', error);

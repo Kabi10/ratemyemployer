@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { supabase } from '@/lib/supabaseClient';
 
 /**
  * src/middleware.ts
@@ -42,9 +43,7 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
   // Protected routes that require authentication
   const protectedPaths = [
@@ -93,3 +92,12 @@ export const config = {
     '/admin/:path*'
   ],
 };
+
+// Example middleware for authentication
+export async function exampleMiddleware(req) {
+  const { user } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.redirect('/auth/login');
+  }
+  return NextResponse.next();
+}

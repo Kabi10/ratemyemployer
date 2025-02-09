@@ -1,21 +1,24 @@
 'use client'
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
-import type { CompanyId, ReviewFormData, CompanyWithStats } from '@/types';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { LoadingSpinner } from './ui/loading-spinner';
-import { useToast } from './ui/use-toast';
+import type { Company, Review, ReviewFormData, CompanyWithStats } from '@/types';
+import { Button } from '@/components/ui-library/button';
+import { Input } from '@/components/ui-library/input';
+import { Textarea } from '@/components/ui-library/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-library/select';
+import { LoadingSpinner } from '@/components/ui-library/loading-spinner';
+import { useToast } from '@/components/ui-library/use-toast';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
+import { CompanyId } from '@/types/company';
+import type { Database } from '@/types/supabase';
 
 /**
  * src/components/ReviewForm.tsx
@@ -48,9 +51,9 @@ const commonPositions = [
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  rating: z.number().min(1).max(5),
-  pros: z.string().min(1, 'Pros are required'),
-  cons: z.string().min(1, 'Cons are required'),
+  rating: z.number().min(1).max(5).nullable(),
+  pros: z.string().min(1).default(''),
+  cons: z.string().min(1).default(''),
   position: z.string().optional(),
   employment_status: z.enum(EMPLOYMENT_STATUSES).optional(),
   is_current_employee: z.boolean().optional(),
@@ -62,11 +65,17 @@ type FormData = z.infer<typeof formSchema>;
 
 interface ReviewFormProps {
   companyId: CompanyId;
-  initialData?: Partial<FormData>;
+  initialData?: ReviewFormData;
   onSuccess?: () => void;
+  onSubmit: (data: ReviewFormData) => Promise<void>;
 }
 
-export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProps) {
+type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
+interface ReviewFormValues extends ReviewInsert {
+  // Add any additional form-specific fields here
+}
+
+export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: ReviewFormProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -97,6 +106,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
   });
 
   const rating = watch('rating');
+  const ratingValue = rating !== null ? rating : 0;
   const pros = watch('pros');
   const cons = watch('cons');
 
@@ -123,11 +133,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         }
       } catch (err) {
         console.error('Error fetching company:', err);
-        toast({
-          title: "Error",
-          description: "Failed to load company data. Please try again.",
-          variant: "destructive",
-        });
+        toast('Failed to load company data. Please try again.');
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -149,11 +155,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
     }
 
     if (!companyId) {
-      toast({
-        title: "Error",
-        description: "Company ID is required",
-        variant: "destructive",
-      });
+      toast('Company ID is required');
       return;
     }
 
@@ -168,20 +170,13 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Your review has been submitted successfully and is pending approval.",
-      });
+      toast('Your review has been submitted successfully and is pending approval.');
       
       reset();
-      onSuccess?.();
+      onSubmit(data as ReviewFormData);
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to submit review',
-        variant: "destructive",
-      });
+      toast('Failed to submit review');
     } finally {
       setIsSubmitting(false);
     }
@@ -222,7 +217,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
               onClick={() => setValue('rating', value)}
               className={cn(
                 'p-1 rounded-md transition-colors',
-                rating >= value ? 'text-yellow-400' : 'text-gray-300'
+                ratingValue >= value ? 'text-yellow-400' : 'text-gray-300'
               )}
             >
               <StarIcon className="h-8 w-8" />

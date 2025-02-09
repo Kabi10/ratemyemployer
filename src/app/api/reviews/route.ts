@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     
     const companyId = searchParams.get('companyId');
+    const companyIdNumber = companyId ? parseInt(companyId) : null;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
@@ -25,8 +26,8 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (companyId) {
-      query = query.eq('company_id', companyId);
+    if (companyIdNumber) {
+      query = query.eq('company_id', companyIdNumber);
     }
 
     const { data, error, count } = await query;

@@ -13,13 +13,14 @@ import { companySchema, type CompanyFormData, type ReviewFormData } from '@/lib/
 import type { Database } from '@/types/supabase';
 import { Review } from '@/types/review';
 import { supabase } from '@/lib/supabaseClient';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui-library/button';
+import { Input } from '@/components/ui-library/input';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { ReviewForm } from '@/components/ReviewForm';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-library/select';
 import { createCompany, getReviews } from '@/lib/database';
+import { CompanyList } from '@/components/companies/CompanyList';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 
@@ -64,6 +65,7 @@ export function HomeClient() {
 
     setIsSearching(true);
     try {
+      console.log('Searching for companies with query:', trimmedQuery);
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -76,6 +78,7 @@ export function HomeClient() {
         setSearchResults([]);
         return;
       }
+      console.log('Search results:', data);
       setSearchResults(data || []);
     } catch (error) {
       console.error('Error searching companies:', error);

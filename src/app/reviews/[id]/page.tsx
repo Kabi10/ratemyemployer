@@ -5,26 +5,20 @@ import Link from 'next/link';
 
 import { StarIcon } from '@heroicons/react/20/solid';
 
-
 import { useCompany } from '@/hooks/useCompany';
+import type { Review } from '@/types';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-
 export const dynamic = 'force-dynamic';
-
-
-
-
-
 
 export default function ReviewPage() {
   const params = useParams();
   const id = params?.id;
-  const { company, isLoading, error } = useCompany(id as string, { withReviews: true });
-  const review = company?.reviews?.find(r => r.id?.toString() === id);
+  const { company, loading, error } = useCompany(id as string, { withReviews: true });
+  const review = company?.reviews?.find(r => r.id?.toString() === id) as Review | undefined;
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center">
@@ -37,7 +31,7 @@ export default function ReviewPage() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-red-500">{error.message}</div>
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }
@@ -71,7 +65,7 @@ export default function ReviewPage() {
               <StarIcon
                 key={i}
                 className={`h-6 w-6 ${
-                  i < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                  i < (review.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
                 }`}
               />
             ))}
@@ -83,7 +77,7 @@ export default function ReviewPage() {
 
         <div className="prose dark:prose-invert max-w-none">
           <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">{review.title}</h2>
+            <h2 className="text-xl font-semibold mb-2">{review.title || 'Untitled Review'}</h2>
             <p className="text-gray-700 dark:text-gray-300">{review.content}</p>
           </div>
 

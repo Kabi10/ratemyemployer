@@ -6,72 +6,34 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { formatDateDisplay } from '@/utils/date';
 import { ReviewCard } from './ReviewCard';
-import { List } from './ui/List';
+import { List } from '@/components/ui-library/List';
 import type { Review } from '@/types/database';
 
 import { useCompany } from '@/hooks/useCompany';
 
 interface ReviewListProps {
-  reviews?: Review[];
-  loading?: boolean;
-  error?: Error | null;
-  emptyMessage?: string;
-  companyId: string;
+  reviews: Review[];
 }
 
-export const ReviewList = ({
-  reviews = [],
-  loading = false,
-  error = null,
-  emptyMessage = 'No reviews found',
-  companyId
-}: ReviewListProps) => {
-  const { session } = useAuth();
-  const [showReviewForm, setShowReviewForm] = useState(false);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-gray-100 dark:bg-gray-800 animate-pulse h-32 rounded-lg"
-          />
-        ))}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 dark:text-red-400 text-center p-4">
-        {error.message || 'An error occurred while loading reviews'}
-      </div>
-    );
-  }
-
-  if (!reviews?.length) {
-    return (
-      <div className="text-gray-500 dark:text-gray-400 text-center p-4">
-        {emptyMessage}
-      </div>
-    );
-  }
-
+export const ReviewList = ({ reviews }: ReviewListProps) => {
   return (
-    <div className="reviews-section">
-      <h3>Reviews</h3>
-      {showReviewForm && (
-        <ReviewForm 
-          companyId={companyId}
-          onClose={() => setShowReviewForm(false)}
-        />
-      )}
-      <div className="reviews-list">
-        {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
-        ))}
-      </div>
+    <div className="space-y-4">
+      {reviews.map(review => (
+        <div key={review.id} className="bg-white rounded-lg p-4 shadow-sm">
+          <h3 className="font-semibold">{review.title}</h3>
+          <div className="flex items-center mt-2">
+            <StarIcon className="w-4 h-4 text-yellow-400" />
+            <span className="ml-1">{review.rating}</span>
+          </div>
+          <p className="mt-2 text-gray-600">{review.pros}</p>
+          <p className="mt-2 text-gray-600">{review.cons}</p>
+          {review.company && (
+            <p className="mt-2 text-sm text-gray-500">
+              Company: {review.company.name}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

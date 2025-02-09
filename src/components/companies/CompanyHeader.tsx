@@ -1,5 +1,6 @@
 'use client'
 
+import { createClient } from '@/lib/supabaseClient';
 import type { Database } from '@/types/supabase';
 
 type Company = Database['public']['Tables']['companies']['Row'];

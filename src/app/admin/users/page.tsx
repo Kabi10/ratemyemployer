@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabaseClient';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@/components/ui-library/toast';
 import { withAuth } from '@/lib/auth/withAuth';
 
 type User = {
@@ -48,11 +48,7 @@ function AdminUsers() {
           .order('created_at', { ascending: false });
 
         if (error) {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive"
-          });
+          toast(error.message, 'error');
           setError(error.message);
           return;
         }
@@ -60,11 +56,7 @@ function AdminUsers() {
         setUsers(users || []);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'An error occurred while fetching users';
-        toast({
-          title: "Error",
-          description: message,
-          variant: "destructive"
-        });
+        toast(message, 'error');
         setError(message);
       } finally {
         setLoading(false);
@@ -89,18 +81,10 @@ function AdminUsers() {
           : u
       ));
 
-      toast({
-        title: "Success",
-        description: "User role updated successfully",
-        variant: "default"
-      });
+      toast('User role updated successfully', 'success');
     } catch (err) {
       console.error('Error updating user role:', err);
-      toast({
-        title: "Error",
-        description: "Failed to update user role",
-        variant: "destructive"
-      });
+      toast('Failed to update user role', 'error');
     }
   };
 

@@ -34,7 +34,23 @@ export default function EditReview() {
         .single();
 
       if (error) throw error;
-      setReview(data);
+      setReview({
+        id: data.id,
+        company_id: data.company_id,
+        title: data.title || '',
+        content: data.content || '',
+        rating: (data.rating !== null && data.rating !== undefined) ? data.rating : 0,
+        pros: data.pros || '',
+        cons: data.cons || '',
+        employment_status: data.employment_status || 'Full-time',
+        position: data.position || '',
+        is_current_employee: data.is_current_employee || false,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        reviewer_name: data.reviewer_name || '',
+        reviewer_email: data.reviewer_email || '',
+        user_id: data.user_id || '',
+      });
     } catch (err) {
       console.error('Error fetching review:', err);
       setError('Failed to load review');
@@ -75,8 +91,18 @@ export default function EditReview() {
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit Review</h1>
       <ReviewForm
-        companyId={review.company_id}
-        initialData={review}
+        companyId={review.company_id || 0}
+        initialData={{
+          title: review.title || '',
+          rating: review.rating || 0,
+          pros: review.pros || '',
+          cons: review.cons || '',
+          position: review.position || '',
+          employment_status: (review.employment_status as "Full-time" | "Part-time" | "Contract" | "Intern") || undefined,
+          is_current_employee: review.is_current_employee || false,
+          reviewer_email: review.reviewer_email || '',
+          reviewer_name: review.reviewer_name || '',
+        }}
         onSuccess={() => {
           router.push('/account');
         }}

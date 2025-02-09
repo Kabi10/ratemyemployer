@@ -15,20 +15,15 @@ export interface Company {
   created_at: string
   updated_at: string
   metadata?: Record<string, any> | null
+  verification_status?: string | null
+  verified?: boolean | null
+  created_by?: string | null
 }
 
-export interface Review {
-  id: number;
-  rating: number;
-  pros: string;
-  cons: string;
-  position: string;
-  employment_status: EmploymentStatus;
-  is_current_employee: boolean;
-  company_id: number;
-  user_id: string | null;
-  created_at: string;
-  updated_at: string | null;
+export interface Review extends Database['public']['Tables']['reviews']['Row'] {
+  company?: Company;
+  likes?: number;
+  user_liked?: boolean;
 }
 
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -73,11 +68,10 @@ export type ReviewWithLikes = Review & {
 };
 
 export type ReviewLike = {
-  id: number;
-  user_id: string;
-  review_id: number;
-  created_at: string;
-  liked: boolean;
+  id: string;
+  reviewId: string;
+  userId: string;
+  createdAt: Date;
 };
 
 // Error handling types
@@ -88,7 +82,7 @@ export interface DatabaseError {
 
 export interface DatabaseResult<T> {
   data: T | null;
-  error: DatabaseError | null;
+  error: Error | null;
 }
 
 // Function parameter types
@@ -156,11 +150,10 @@ export type JoinedReview = Review & {
   user_liked?: boolean;
 };
 
-export type JoinedCompany = Company & {
-  reviews?: Review[];
+export type JoinedCompany = Database['public']['Tables']['companies']['Row'] & {
+  reviews: Database['public']['Tables']['reviews']['Row'][];
   average_rating?: number;
   total_reviews?: number;
-  user_reviewed?: boolean;
 };
 
 export type DatabaseReview = Review; 

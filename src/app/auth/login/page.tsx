@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, Lock, Mail } from 'lucide-react'
-import { supabase } from '@/lib/supabaseClient'
-import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabaseClient'
+import { Button } from '@/components/ui-library/button'
 
 function LoginContent() {
   const router = useRouter()
@@ -22,7 +22,7 @@ function LoginContent() {
   useEffect(() => {
     // Check if user is already logged in
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await createClient.auth.getSession()
       if (session) {
         console.log('User already logged in, redirecting to home')
         router.push('/')
@@ -52,14 +52,14 @@ function LoginContent() {
     setIsLoading(true)
     try {
       const { data, error } = isSignUp 
-        ? await supabase.auth.signUp({
+        ? await createClient.auth.signUp({
             email,
             password,
             options: {
               emailRedirectTo: `${window.location.origin}/auth/callback`,
             },
           })
-        : await supabase.auth.signInWithPassword({
+        : await createClient.auth.signInWithPassword({
             email,
             password,
           })
@@ -82,7 +82,7 @@ function LoginContent() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      const { error } = await createClient.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       })
       
@@ -105,7 +105,7 @@ function LoginContent() {
       setIsLoading(true)
       setError(null)
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await createClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,

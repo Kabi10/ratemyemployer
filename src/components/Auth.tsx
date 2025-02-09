@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react';
 import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
@@ -12,10 +13,10 @@ import { createClient } from '@/lib/supabaseClient';
 
 import { useAuth } from '@/contexts/AuthContext';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui-library/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui-library/card';
+import { Input } from '@/components/ui-library/input';
+import { Label } from '@/components/ui-library/label';
 
 import { AuthError as CustomAuthError } from '@/types/auth';
 

@@ -15,6 +15,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       
     steps:
       - uses: actions/checkout@v3
@@ -29,7 +30,7 @@ jobs:
         run: npm ci --legacy-peer-deps
         
       - name: Type check
-        run: npm run type-check
+        run: tsc -p tsconfig.base.json && tsc -p tsconfig.scripts.json
         
       - name: Lint
         run: npm run lint

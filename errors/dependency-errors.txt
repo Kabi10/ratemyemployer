@@ -1,6 +1,0 @@
-pydeps not installed. Run: pip install pydeps
-Pylint not installed. Run: pip install pylint
-Mypy not installed. Run: pip install mypy
-Mypy not installed. Run: pip install mypy
-pydeps not installed. Run: pip install pydeps
-Pylint not installed. Run: pip install pylint

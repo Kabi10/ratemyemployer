@@ -69,30 +69,16 @@ export const companySchema = z.object({
 
 // Review schema
 export const reviewSchema = z.object({
-  company_id: z.number().int().positive('Invalid company ID'),
-  rating: z.number()
-    .min(1, 'Rating must be between 1 and 5')
-    .max(5, 'Rating must be between 1 and 5'),
-  title: z.string()
-    .min(1, 'Title is required')
-    .max(100, 'Title must be less than 100 characters'),
+  company_id: z.number().int().positive(),
+  rating: z.number().min(1).max(5),
+  title: z.string().min(3).max(100),
+  content: z.string().min(10),
   pros: z.string().min(10),
   cons: z.string().min(10),
-  position: z.string()
-    .min(1, 'Position is required')
-    .max(100, 'Position must be less than 100 characters'),
-  employment_status: employmentStatusEnum,
+  position: z.string().min(2).max(100),
+  employment_status: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']),
   is_current_employee: z.boolean(),
-  status: reviewStatusEnum.default('pending'),
-  reviewer_name: z.string()
-    .max(100, 'Reviewer name must be less than 100 characters')
-    .optional()
-    .nullable(),
-  reviewer_email: z.string()
-    .email('Invalid email address')
-    .max(255, 'Email must be less than 255 characters')
-    .optional()
-    .nullable(),
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending')
 });
 
 // Validation Utilities

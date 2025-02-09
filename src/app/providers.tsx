@@ -2,7 +2,7 @@
 
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui-library/toaster';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

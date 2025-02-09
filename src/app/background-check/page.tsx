@@ -1,14 +1,10 @@
 'use client'
 
-
 import { useEffect, useState } from 'react';
 
 import { motion } from 'framer-motion';
 
 import { AssessmentList } from '@/components/AssessmentList';
-
-
-
 
 export default function BackgroundCheck() {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
@@ -47,6 +43,15 @@ export default function BackgroundCheck() {
     scale: Math.random() * 0.3 + 0.2,
     duration: Math.random() * 5 + 15
   }));
+
+  useEffect(() => {
+    // Client-side only code
+    const handleResize = () => {
+      window.document.title = "Resized";
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">

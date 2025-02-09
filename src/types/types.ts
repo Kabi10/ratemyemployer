@@ -17,7 +17,15 @@ export interface CompanyWithReviews extends CompanyWithStats {
 }
 
 export interface ReviewWithCompany extends Review {
-  company?: Company;
+  company: Company;
+  position: string;
+  employment_status: EmploymentStatus;
+  rating: number;
+  title: string;
+  content: string;
+  pros: string;
+  cons: string;
+  created_at: string | null;
 }
 
 export interface CompanyWithShameData extends CompanyWithStats {
@@ -72,4 +80,21 @@ export const INDUSTRIES = [
 export type Industry = typeof INDUSTRIES[number];
 
 // Re-export types from supabase.ts
-export type { Database } from './supabase'; 
+export type { Database } from './supabase';
+
+// Add these type definitions
+declare global {
+  interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
+  }
+  namespace NodeJS {
+    interface ProcessEnv {
+      NEXT_PUBLIC_SUPABASE_URL: string;
+      NEXT_PUBLIC_SUPABASE_KEY: string;
+    }
+  }
+}
+
+type HTMLInputElement = globalThis.HTMLInputElement;
+type HTMLTextAreaElement = globalThis.HTMLTextAreaElement;
+type HTMLButtonElement = globalThis.HTMLButtonElement; 

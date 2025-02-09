@@ -1,29 +1,19 @@
 'use client'
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui-library/loading-spinner';
 import { Database } from '@/types/supabase';
+import { ReviewList } from '@/components/ReviewList';
+import type { Review } from '@/types/database';
+import type { ReviewWithCompany } from '@/types/types';
 
 type Company = Database['public']['Tables']['companies']['Row'];
-
-interface ReviewWithCompany {
-  id: number;
-  rating: number;
-  title: string;
-  content: string;
-  pros: string | null;
-  cons: string | null;
-  position: string;
-  employment_status: string;
-  created_at: string;
-  user_id: string;
-  company: Pick<Company, 'id' | 'name'>;
-}
 
 function ReviewsList() {
   const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
@@ -60,7 +50,8 @@ function ReviewsList() {
         }
 
         console.log('Number of reviews:', data.length);
-        setReviews(data);
+        console.log('Fetched reviews:', data);
+        setReviews(data as ReviewWithCompany[]);
       } catch (err) {
         console.error('Error fetching reviews:', err);
         setError('Failed to load reviews');
@@ -130,7 +121,7 @@ function ReviewsList() {
               </div>
 
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Posted on {new Date(review.created_at).toLocaleDateString()}
+                Posted on {review.created_at ? new Date(review.created_at).toLocaleDateString() : 'Unknown date'}
               </div>
             </div>
           ))
@@ -141,9 +132,62 @@ function ReviewsList() {
 }
 
 export default function ReviewsPage() {
+  const [reviews, setReviews] = React.useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    async function fetchReviews() {
+      const { searchParams } = new URL(window.location.href);
+      const companyId = searchParams.get('companyId');
+
+      if (!companyId) {
+        setError('Company ID is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', companyId)
+          .single();
+
+        if (companyError) throw companyError;
+        if (!companyData) throw new Error('Company not found');
+
+        setCompany(companyData);
+
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*, company:companies!inner(*)')
+          .eq('company.id', companyId)
+          .order('created_at', { ascending: false });
+
+        if (reviewsError) throw reviewsError;
+        setReviews(reviewsData || []);
+
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchReviews();
+  }, [router]);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorDisplay message={error} />;
+  if (reviews.length === 0) return <div>No reviews found.</div>;
+
   return (
-    <ErrorBoundary>
-      <ReviewsList />
-    </ErrorBoundary>
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">All Reviews</h1>
+      <ReviewList reviews={reviews} />
+    </div>
   );
 }

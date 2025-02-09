@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
 import type { Company, Review } from '@/types/database';
@@ -54,6 +53,8 @@ export default function WallOfFame() {
           website,
           description,
           logo_url,
+          created_at,
+          updated_at,
           reviews (
             id,
             rating,
@@ -92,7 +93,9 @@ export default function WallOfFame() {
           return {
             ...company,
             average_rating: averageRating,
-            total_reviews: totalReviews
+            total_reviews: totalReviews,
+            created_at: company.created_at,
+            updated_at: company.updated_at,
           };
         })
         .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
@@ -218,6 +221,7 @@ export default function WallOfFame() {
                     </div>
                   )}
                 </div>
+                <img src={company.logo_url} alt={`${company.name} logo`} className="w-16 h-16 rounded-full" />
               </div>
 
               <div className="mt-4">

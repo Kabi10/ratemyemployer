@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui-library/button';
 import { X } from 'lucide-react';
 import { ReviewForm } from '@/components/ReviewForm';
 import { supabase } from '@/lib/supabaseClient';

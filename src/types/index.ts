@@ -74,3 +74,24 @@ export const EMPLOYMENT_STATUSES = [
 export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
   return EMPLOYMENT_STATUSES.includes(status as EmploymentStatus);
 };
+
+export type CompanyId = number;
+export type ReviewFormData = {
+  title: string;
+  rating: number;
+  company_id: number;
+  pros: string;
+  cons: string;
+  employment_status?: 'Full-time' | 'Part-time' | 'Contract' | 'Intern';
+  is_current_employee?: boolean;
+  position?: string;
+  reviewer_email?: string;
+  reviewer_name?: string;
+  reviewer_id?: string;
+  status?: string;
+};
+export interface CompanyWithStats extends Company {
+  average_rating?: number;
+  total_reviews?: number;
+  recommendation_rate?: number;
+};

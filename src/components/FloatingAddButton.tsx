@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
-import { CompanyForm } from '@/components/CompanyForm';
+import { CompanyForm } from '@/components/ui-library/CompanyForm';
 
 
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { withAuth } from '@/lib/auth/withAuth'
-import { CompanyList } from '@/components/CompanyList'
+import { CompanyList } from '@/components/ui-library/CompanyList'
 import type { Database } from '@/types/supabase'
 
 type Company = Database['public']['Tables']['companies']['Row']
@@ -83,7 +83,7 @@ function AdminCompaniesPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-500">
-              Created on {new Date(company.created_at).toLocaleDateString()}
+              Created on {company.created_at ? new Date(company.created_at).toLocaleDateString() : 'Unknown date'}
             </div>
           </div>
         ))}

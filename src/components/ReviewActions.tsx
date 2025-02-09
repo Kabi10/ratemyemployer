@@ -4,8 +4,8 @@ import * as React from 'react';
 import type { MouseEvent } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui-library/button';
+import { useToast } from '@/components/ui-library/use-toast';
 import { ReviewId } from '@/types/database';
 
 interface ReviewActionsProps {

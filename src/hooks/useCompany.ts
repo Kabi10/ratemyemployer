@@ -48,13 +48,15 @@ export const useCompany = (
         const { data, error } = await supabase
           .from('companies')
           .select('*, reviews(*)')
-          .eq('id', numericId);
+          .eq('id', numericId)
+          .single();
         
         if (error) {
           setError(error.message || 'Failed to fetch company');
           setCompany(null);
         } else {
-          setCompany(data[0] as JoinedCompany);
+          const validReviews = data.reviews?.filter(isReview) || [];
+          setCompany({ ...data, reviews: validReviews });
           setError(null);
         }
       } catch (err) {
@@ -80,37 +82,53 @@ export const useCompanies = (options: GetCompaniesOptions = {}): UseCompaniesRes
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        let query = supabase
           .from('companies')
-          .select('*, reviews(*)');
+          .select('*', { count: 'exact' });
+
+        // Add filters
+        if (options.search) {
+          query = query.ilike('name', `%${options.search}%`);
+        }
+        if (options.industry) {
+          query = query.eq('industry', options.industry);
+        }
+        if (options.location) {
+          query = query.eq('location', options.location);
+        }
+
+        // Add pagination
+        const offset = ((options.page || 1) - 1) * (options.limit || ITEMS_PER_PAGE);
+        query = query.range(offset, offset + (options.limit || ITEMS_PER_PAGE) - 1);
+
+        // Add sorting
+        if (options.orderBy) {
+          query = query.order(options.orderBy, { ascending: options.orderDirection === 'asc' });
+        }
+
+        const { data, error, count } = await query;
+
         if (error) {
-          setError(error.message || 'Failed to fetch companies');
+          setError(error.message);
           setCompanies([]);
+          setTotalCount(0);
         } else {
           setCompanies(data as JoinedCompany[]);
-          setTotalCount(data.length);
+          setTotalCount(count || 0);
           setError(null);
         }
       } catch (err) {
-        setError('An unexpected error occurred');
+        setError('Failed to load companies');
         setCompanies([]);
+        setTotalCount(0);
       } finally {
-        setLoading(false);
+        setLoading(false); // Ensure loading is always set to false
       }
     };
 
     fetchCompanies();
-  }, [
-    options.page, 
-    options.limit, 
-    options.industry, 
-    options.location, 
-    options.search, 
-    options.orderBy, 
-    options.orderDirection,
-    options.withReviews,
-    options.withStats
-  ]);
+  }, [options.page, options.limit, options.industry, options.location, options.search, options.orderBy, options.orderDirection]);
 
   return { companies, totalCount, loading, error };
 };

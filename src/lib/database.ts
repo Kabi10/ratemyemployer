@@ -1,28 +1,16 @@
 import type { Database } from '@/types/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
-import { supabase } from './supabaseClient';
+import { createClient } from '@/lib/supabaseClient';
 import {
   Company,
-  CompanyInsert,
-  CompanyUpdate,
   Review,
-  ReviewInsert,
-  ReviewUpdate,
-  CompanyWithReviews,
+  // ReviewLike,
 } from '@/types';
 
 // Response types
 export interface DatabaseResponse<T> {
   data: T | null;
   error: DatabaseError | null;
-}
-
-export interface ReviewLike {
-  id: number;
-  review_id: number;
-  user_id: string;
-  created_at: string;
-  liked: boolean;
 }
 
 export interface DatabaseError {
@@ -36,7 +24,7 @@ export type DatabaseResult<T> = {
 };
 
 export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT' | 'RPC' | 'AUTH';
-export type TableName = keyof Database['public']['Tables'] | 'review_likes';
+export type TableName = keyof Database['public']['Tables'];
 export type ErrorLogDetails = {
   operation: DatabaseOperation;
   table: TableName;
@@ -50,29 +38,52 @@ function ensureNumericId(id: string | number): number {
   return typeof id === 'string' ? parseInt(id, 10) : id;
 }
 
-export const getCompanies = async () => {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+
+export async function getCompanies() {
   const { data, error } = await supabase
     .from('companies')
-    .select('*');
-  return { data, error };
-};
+    .select('*')
+    .order('created_at', { ascending: false });
 
-export async function getCompany(id: number) {
-  try {
-    const { data, error } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) {
-      return { error: handleDatabaseError(error, 'SELECT', 'companies', { company_id: id }) };
-    }
-    
-    return { data: data as Company, error: null };
-  } catch (error) {
-    return { error: handleDatabaseError(error, 'SELECT', 'companies', { company_id: id }) };
-  }
+  if (error) throw error;
+  return data;
+}
+
+export async function getCompanyById(id: number) {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getReviewsByCompanyId(companyId: number) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getCompany(id: number): Promise<Database['public']['Tables']['companies']['Row'] | null> {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
 export async function getReviews(companyId?: number) {
@@ -192,23 +203,18 @@ export async function deleteLike(id: number) {
   }
 }
 
-export const createCompany = async (data: CompanyInsert) => {
+export const createCompany = async (data: any) => {
   try {
-    // Omit any ID field to let Supabase auto-generate it
-    const { id, ...cleanData } = data; // Ensure id is never passed to the insert
-    
     const { data: company, error } = await supabase
       .from('companies')
-      .insert(cleanData)
-      .select('*')
-      .single();
+      .insert([data]).select();
 
     if (error) {
       console.error('Supabase error:', error);
       return { error };
     }
 
-    return { data: company, error: null };
+    return { data: company ? company[0] : null, error: null };
   } catch (error) {
     console.error('Create company error:', error);
     return { 
@@ -220,7 +226,7 @@ export const createCompany = async (data: CompanyInsert) => {
   }
 };
 
-export async function updateCompany(id: number, data: CompanyUpdate) {
+export async function updateCompany(id: number, data: any) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   
   if (userError) {
@@ -323,7 +329,7 @@ export async function deleteCompany(id: number) {
   }
 }
 
-export async function createReview(data: ReviewInsert) {
+export async function createReview(data: any) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   
   if (userError) {
@@ -349,7 +355,7 @@ export async function createReview(data: ReviewInsert) {
   }
 }
 
-export async function updateReview(id: number, data: ReviewUpdate) {
+export async function updateReview(id: number, data: any) {
   try {
     const { error } = await supabase
       .from('reviews')
@@ -384,25 +390,25 @@ export async function deleteReview(id: number) {
 }
 
 // Helper function to handle database errors
-const handleDatabaseError = async <T>(
+const handleDatabaseError = (
   error: any,
   operation: DatabaseOperation,
   table: TableName,
   details?: Record<string, any>
-): Promise<DatabaseResult<T>> => {
-  const errorMessage = error?.message || error?.toString() || 'Unknown error';
-  
-  await dbLogError({
-    operation,
-    table,
-    error: new Error(errorMessage),
-    details,
-  });
-  
-  return {
-    data: null,
-    error: new Error(errorMessage),
+): DatabaseError => {
+  console.error(`Database error (${operation} on ${table}):`, error);
+  const databaseError: DatabaseError = {
+    message: error.message || 'An unknown database error occurred',
+    details: {
+      ...details,
+      operation,
+      table,
+      code: error.code,
+      hint: error.hint,
+      details: error.details,
+    },
   };
+  return databaseError;
 };
 
 // Update the error logging functions to use the correct operation type
@@ -421,3 +427,14 @@ export const dbLogError = async (details: ErrorLogDetails) => {
     console.error('Failed to log error:', err);
   }
 };
+
+export function isReview(data: unknown): data is Review {
+  const review = data as Review;
+  return (
+    typeof review?.id === 'number' &&
+    typeof review?.company_id === 'number' &&
+    typeof review?.rating === 'number' &&
+    typeof review?.pros === 'string' &&
+    typeof review?.cons === 'string'
+  );
+}

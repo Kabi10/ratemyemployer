@@ -22,8 +22,8 @@ Get-ChildItem -Path "docs/*" -Exclude "README.md","CONTRIBUTING.md" |
 
 # Move non-essential configuration files
 $configFiles = @(
-    "jest.config.js",
-    "jest.setup.js",
+    "config/jest/jest.config.js",
+    "config/jest/jest.setup.js",
     "playwright.config.ts"
 )
 

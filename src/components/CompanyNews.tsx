@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchCompanyNews, type NewsArticle } from '@/lib/newsApi';
 
 interface CompanyNewsProps {
   companyName: string;
@@ -12,13 +11,7 @@ export function CompanyNews({ companyName }: CompanyNewsProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadNews() {
-      const articles = await fetchCompanyNews(companyName);
-      setNews(articles);
-      setLoading(false);
-    }
-
-    loadNews();
+    setLoading(false);
   }, [companyName]);
 
   if (loading) {
@@ -34,7 +27,7 @@ export function CompanyNews({ companyName }: CompanyNewsProps) {
     return (
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <p className="text-gray-500 dark:text-gray-400 text-center">
-          No workplace violations or issues found for {companyName}
+          No news available for {companyName}
         </p>
       </div>
     );

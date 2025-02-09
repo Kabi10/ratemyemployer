@@ -6,18 +6,29 @@ import { useCompany } from '@/hooks/useCompany';
 import { CompanyNews } from '@/components/CompanyNews';
 import { ReviewList } from '@/components/ReviewList';
 import { ReviewForm } from '@/components/ReviewForm';
+
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui-library/button';
+import type { Database } from '@/types/supabase';
 
-// app/companies/[id]/page.tsx
+// Update JoinedCompany type
+type Company = Database['public']['Tables']['companies']['Row'];
+type Review = Database['public']['Tables']['reviews']['Row'];
+
+type JoinedCompany = Company & {
+  reviews: Review[];
+  average_rating: number | null;
+  total_reviews: number | null;
+  recommendation_rate?: number;
+};
 
 export default function CompanyPage() {
   const { id } = useParams() as { id: string };
-  const { company, isLoading, error } = useCompany(id);
+  const { company, loading, error } = useCompany(id);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -26,7 +37,7 @@ export default function CompanyPage() {
   }
 
   if (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return <ErrorDisplay message={errorMessage} />;
   }
 
@@ -73,10 +84,10 @@ export default function CompanyPage() {
                 Rating
               </h3>
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {company.rating?.toFixed(1) || 'N/A'}
+                {company.average_rating?.toFixed(1) || 'N/A'}
               </div>
               <p className="text-gray-600 dark:text-gray-400">
-                Based on {company.review_count || 0} reviews
+                Based on {company.total_reviews || 0} reviews
               </p>
             </div>
 
@@ -112,7 +123,7 @@ export default function CompanyPage() {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-              {company.id && <ReviewList companyId={company.id} />}
+              {company.id && <ReviewList companyId={String(company.id)} />}
             </div>
           </div>
 
