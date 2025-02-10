@@ -1,5 +1,5 @@
-import { Review } from '@/types';
-import { NextResponse } from 'next/server';
+import { ReviewRow } from '@/types';
+import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabaseServer';
 import { Database } from '@/types/supabase';
 import { reviewSchema } from '@/lib/schemas';
@@ -9,11 +9,11 @@ import { reviewSchema } from '@/lib/schemas';
  * API routes for handling review creation and updates
  */
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServerSupabaseClient();
-    const { searchParams } = new URL(request.url);
-    
+    const { searchParams } = request.nextUrl;
+
     const companyId = searchParams.get('companyId');
     const companyIdNumber = companyId ? parseInt(companyId) : null;
     const page = parseInt(searchParams.get('page') || '1');
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       reviews: data,
       total: count || 0,
       page,
-      limit
+      limit,
     });
   } catch (error) {
     console.error('Error fetching reviews:', error);
@@ -49,16 +49,16 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       .insert({
         ...validatedData,
         reviewer_id: user.id,
-        status: 'pending'
+        status: 'pending',
       })
       .select()
       .single();
@@ -86,29 +86,23 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
-  const supabase = createServerSupabaseClient()
-  const { id } = await request.json()
-
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', id)
+    const supabase = createServerSupabaseClient();
+    const { id } = await request.json();
+
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
 
     if (error) {
-      throw error
+      throw error;
     }
 
-    return new Response(null, { status: 204 })
+    return NextResponse.json(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting review:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to delete review' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    console.error('Error deleting review:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete review' },
+      { status: 500 }
+    );
   }
 }

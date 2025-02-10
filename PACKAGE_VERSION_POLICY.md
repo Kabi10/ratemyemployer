@@ -33,7 +33,8 @@ We enforce this through both `resolutions` and `overrides` in package.json:
 ### ⚠️ Important
 
 Do not change these versions without team discussion and thorough testing. Changes can affect:
+
 - Testing libraries compatibility
 - Component type checking
 - Build process
-- Third-party component integration 
+- Third-party component integration

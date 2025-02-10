@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 
@@ -13,7 +13,7 @@ export default function BackgroundCheck() {
     // Set initial dimensions
     setDimensions({
       width: window.innerWidth,
-      height: window.innerHeight
+      height: window.innerHeight,
     });
 
     // Debounced resize handler with touch device detection
@@ -23,7 +23,7 @@ export default function BackgroundCheck() {
       timeoutId = setTimeout(() => {
         setDimensions({
           width: window.innerWidth,
-          height: window.innerHeight
+          height: window.innerHeight,
         });
       }, 100);
     };
@@ -41,13 +41,13 @@ export default function BackgroundCheck() {
     initialX: Math.random() * dimensions.width,
     initialY: Math.random() * dimensions.height,
     scale: Math.random() * 0.3 + 0.2,
-    duration: Math.random() * 5 + 15
+    duration: Math.random() * 5 + 15,
   }));
 
   useEffect(() => {
     // Client-side only code
     const handleResize = () => {
-      window.document.title = "Resized";
+      window.document.title = 'Resized';
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -61,7 +61,11 @@ export default function BackgroundCheck() {
           <motion.div
             key={i}
             className="absolute w-[50px] md:w-[100px] h-[50px] md:h-[100px] rounded-full bg-white/5"
-            initial={{ x: particle.initialX, y: particle.initialY, scale: particle.scale }}
+            initial={{
+              x: particle.initialX,
+              y: particle.initialY,
+              scale: particle.scale,
+            }}
             animate={{
               x: [particle.initialX, particle.initialX + 50, particle.initialX],
               y: [particle.initialY, particle.initialY + 50, particle.initialY],
@@ -69,8 +73,8 @@ export default function BackgroundCheck() {
             transition={{
               duration: particle.duration,
               repeat: Infinity,
-              ease: "linear",
-              times: [0, 0.5, 1]
+              ease: 'linear',
+              times: [0, 0.5, 1],
             }}
             style={{ willChange: 'transform' }}
           />
@@ -102,9 +106,9 @@ export default function BackgroundCheck() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-base sm:text-lg md:text-xl text-gray-300 text-center mb-8 md:mb-12 max-w-2xl mx-auto px-2"
             >
-              Discover the truth about companies before making your next career move. 
-              Our comprehensive assessment framework helps you evaluate potential employers 
-              across multiple critical factors.
+              Discover the truth about companies before making your next career
+              move. Our comprehensive assessment framework helps you evaluate
+              potential employers across multiple critical factors.
             </motion.p>
 
             {/* Search box */}
@@ -122,7 +126,7 @@ export default function BackgroundCheck() {
                            backdrop-blur-lg text-white placeholder-gray-400 outline-none focus:ring-2 
                            focus:ring-blue-400/50 transition-all duration-300 shadow-lg text-base sm:text-lg"
                 />
-                <button 
+                <button
                   className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-1.5 sm:py-2 
                            rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500/80 to-purple-500/80 
                            text-white font-medium text-sm sm:text-base hover:from-blue-500 hover:to-purple-500 

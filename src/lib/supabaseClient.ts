@@ -1,5 +1,5 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/types/supabase';
 
 import { CompanyFormData, ReviewFormData } from './schemas';
 
@@ -13,8 +13,9 @@ export const supabase = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     global: {
-      fetch: (input, init) => fetch(input, { ...init, next: { revalidate: 3600 } })
-    }
+      fetch: (input, init) =>
+        fetch(input, { ...init, next: { revalidate: 3600 } }),
+    },
   }
 );
 
@@ -27,7 +28,10 @@ export const handleSupabaseError = (error: unknown): string => {
 // Type-safe database queries
 export const dbQuery = {
   companies: {
-    create: async (data: Database['public']['Tables']['companies']['Insert'], userId: string) => {
+    create: async (
+      data: Database['public']['Tables']['companies']['Insert'],
+      userId: string
+    ) => {
       return supabase
         .from('companies')
         .insert({
@@ -36,20 +40,23 @@ export const dbQuery = {
           verification_status: 'pending',
           verified: false,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select()
-        .single()
+        .single();
     },
-    update: async (id: number, data: Database['public']['Tables']['companies']['Update']) => {
+    update: async (
+      id: number,
+      data: Database['public']['Tables']['companies']['Update']
+    ) => {
       return supabase
         .from('companies')
         .update({
           ...data,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', id)
-    }
+        .eq('id', id);
+    },
   },
   reviews: {
     create: async (data: Database['public']['Tables']['reviews']['Insert']) => {
@@ -58,20 +65,31 @@ export const dbQuery = {
         .insert({
           ...data,
           reviewer_id: data.user_id,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         })
         .select()
-        .single()
+        .single();
     },
-    update: async (id: number, data: Database['public']['Tables']['reviews']['Update'], userId: string) => {
+    update: async (
+      id: number,
+      data: Database['public']['Tables']['reviews']['Update'],
+      userId: string
+    ) => {
       return supabase
         .from('reviews')
         .update(data)
         .eq('id', id)
-        .eq('reviewer_id', userId) // Ensure user can only update their own reviews
-    }
-  }
+        .eq('reviewer_id', userId); // Ensure user can only update their own reviews
+    },
+  },
 };
 
 // Add createClient export
-export const createClient = () => supabase;
+export function createClient(url: string, key: string) {
+  return createSupabaseClient<Database>(url, key, {
+    global: {
+      fetch: (input, init) =>
+        fetch(input, { ...init, next: { revalidate: 3600 } }),
+    },
+  });
+}

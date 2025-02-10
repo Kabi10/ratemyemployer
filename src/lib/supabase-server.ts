@@ -1,12 +1,11 @@
-import { cookies } from 'next/headers'
+import { cookies } from 'next/headers';
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
-import type { Database } from '@/types/supabase'
-import { createClient } from '@/lib/supabaseClient'
+import type { Database } from '@/types/supabase';
+import { createClient } from '@/lib/supabaseClient';
 
-
-export { createServerClient }
+export { createServerClient };
 
 export const createServerSupabase = async () => {
   return createServerClient<Database>(
@@ -15,56 +14,52 @@ export const createServerSupabase = async () => {
     {
       cookies: {
         async get(name: string) {
-          const cookieStore = await cookies()
-          return cookieStore.get(name)?.value
+          const cookieStore = await cookies();
+          return cookieStore.get(name)?.value;
         },
         async set(name: string, value: string, options: CookieOptions) {
-          const cookieStore = await cookies()
-          cookieStore.set({ name, value, ...options })
+          const cookieStore = await cookies();
+          cookieStore.set({ name, value, ...options });
         },
         async remove(name: string, options: CookieOptions) {
-          const cookieStore = await cookies()
-          cookieStore.delete({ name, ...options })
-        }
-      }
+          const cookieStore = await cookies();
+          cookieStore.delete({ name, ...options });
+        },
+      },
     }
-  )
-}
+  );
+};
 
 // Server-side database queries
 export const serverQuery = {
   companies: {
     getAll: async () => {
-      const supabase = await createServerSupabase()
+      const supabase = await createServerSupabase();
       return supabase
         .from('companies')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
     },
     getById: async (id: string) => {
-      const supabase = await createServerSupabase()
-      return supabase
-        .from('companies')
-        .select('*')
-        .eq('id', id)
-        .single()
-    }
+      const supabase = await createServerSupabase();
+      return supabase.from('companies').select('*').eq('id', id).single();
+    },
   },
   reviews: {
     getAll: async () => {
-      const supabase = await createServerSupabase()
+      const supabase = await createServerSupabase();
       return supabase
         .from('reviews')
         .select('*, companies(*)')
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
     },
     getPending: async () => {
-      const supabase = await createServerSupabase()
+      const supabase = await createServerSupabase();
       return supabase
         .from('reviews')
         .select('*, companies(*)')
         .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-    }
-  }
-}
+        .order('created_at', { ascending: false });
+    },
+  },
+};

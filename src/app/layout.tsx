@@ -9,7 +9,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'RateMyEmployer - Workplace Reviews & Transparency',
-  description: 'Discover honest employee reviews, workplace insights, and company culture. Make informed career decisions with RateMyEmployer.',
+  description:
+    'Discover honest employee reviews, workplace insights, and company culture. Make informed career decisions with RateMyEmployer.',
   icons: {
     icon: '/favicon.ico',
   },

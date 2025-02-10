@@ -1,6 +1,5 @@
 import type { Database } from './supabase';
 
-
 // src/types/index.ts
 
 type Tables = Database['public']['Tables'];
@@ -10,7 +9,7 @@ export type CompanyRow = Tables['companies']['Row'];
 export type ReviewRow = Tables['reviews']['Row'];
 export type UserProfileRow = Tables['user_profiles']['Row'];
 
-export type EmploymentStatus = typeof EMPLOYMENT_STATUSES[number];
+export type EmploymentStatus = (typeof EMPLOYMENT_STATUSES)[number];
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 export type VerificationStatus = Enums['verification_status'];
 
@@ -22,11 +21,11 @@ export const INDUSTRIES = [
   'Finance',
   'Manufacturing',
   'Retail',
-  'Other'
+  'Other',
 ] as const;
 
 // Types
-export type Industry = typeof INDUSTRIES[number];
+export type Industry = (typeof INDUSTRIES)[number];
 export type Role = 'user' | 'admin' | 'moderator';
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
 
@@ -52,15 +51,18 @@ export interface MonthlyReview {
   averageRating: number;
 }
 
-export type ReviewLike = {
+export interface ReviewLike {
   id: string;
   user_id: string;
   review_id: number;
+  liked: boolean;
   created_at: string;
-};
+}
 
 // Type guards
-export const isValidIndustry = (industry: string | null): industry is Industry => {
+export const isValidIndustry = (
+  industry: string | null
+): industry is Industry => {
   return industry !== null && INDUSTRIES.includes(industry as Industry);
 };
 
@@ -68,10 +70,12 @@ export const EMPLOYMENT_STATUSES = [
   'FULL_TIME',
   'PART_TIME',
   'CONTRACT',
-  'INTERN'
+  'INTERN',
 ] as const;
 
-export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
+export const isValidEmploymentStatus = (
+  status: string
+): status is EmploymentStatus => {
   return EMPLOYMENT_STATUSES.includes(status as EmploymentStatus);
 };
 
@@ -94,4 +98,4 @@ export interface CompanyWithStats extends Company {
   average_rating?: number;
   total_reviews?: number;
   recommendation_rate?: number;
-};
+}

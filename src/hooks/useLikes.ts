@@ -1,6 +1,5 @@
 import { ReviewLike } from '@/types';
 
-
 import { useState, useEffect } from 'react';
 
 import { createBrowserClient } from '@supabase/ssr';
@@ -17,11 +16,10 @@ export function useLikes(reviewId: number, userId?: string) {
     async function checkLikeStatus() {
       if (!userId) return;
 
-      const { data, error } = await supabase
-        .rpc('has_user_liked_review', {
-          p_user_id: userId,
-          p_review_id: reviewId
-        });
+      const { data, error } = await supabase.rpc('has_user_liked_review', {
+        p_user_id: userId,
+        p_review_id: reviewId,
+      });
 
       if (!error) {
         setIsLiked(!!data);
@@ -49,12 +47,10 @@ export function useLikes(reviewId: number, userId?: string) {
         }
       } else {
         // Like
-        const { error } = await supabase
-          .from('review_likes')
-          .insert({
-            user_id: userId,
-            review_id: reviewId
-          });
+        const { error } = await supabase.from('review_likes').insert({
+          user_id: userId,
+          review_id: reviewId,
+        });
 
         if (!error) {
           setIsLiked(true);
@@ -68,6 +64,6 @@ export function useLikes(reviewId: number, userId?: string) {
   return {
     isLiked,
     isLoading,
-    toggleLike
+    toggleLike,
   };
 }

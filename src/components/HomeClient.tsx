@@ -9,7 +9,11 @@ import { X } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuth } from '@/contexts/AuthContext';
 import { INDUSTRIES, type Industry } from '@/types';
-import { companySchema, type CompanyFormData, type ReviewFormData } from '@/lib/schemas';
+import {
+  companySchema,
+  type CompanyFormData,
+  type ReviewFormData,
+} from '@/lib/schemas';
 import type { Database } from '@/types/supabase';
 import { Review } from '@/types/review';
 import { supabase } from '@/lib/supabaseClient';
@@ -18,7 +22,13 @@ import { Input } from '@/components/ui-library/input';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { ReviewForm } from '@/components/ReviewForm';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-library/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui-library/select';
 import { createCompany, getReviews } from '@/lib/database';
 import { CompanyList } from '@/components/companies/CompanyList';
 
@@ -51,7 +61,7 @@ export function HomeClient() {
       website: '',
       industry: undefined,
       location: '',
-    }
+    },
   });
 
   const locationValue = watch('location');
@@ -90,7 +100,7 @@ export function HomeClient() {
 
   // Check if exact company name exists in results
   const hasExactMatch = searchResults.some(
-    company => company.name.toLowerCase() === searchQuery.trim().toLowerCase()
+    (company) => company.name.toLowerCase() === searchQuery.trim().toLowerCase()
   );
 
   useEffect(() => {
@@ -101,10 +111,12 @@ export function HomeClient() {
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
-        .select(`
+        .select(
+          `
           *,
           company:company_id(*)
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -134,7 +146,7 @@ export function HomeClient() {
       };
 
       console.log('Submitting data:', cleanData, 'User:', user);
-      
+
       const { data: newCompany, error } = await createCompany(cleanData);
 
       if (error) {
@@ -151,8 +163,15 @@ export function HomeClient() {
       setShowAddCompany(false);
       reset();
     } catch (error) {
-      console.error('Error creating company:', error instanceof Error ? error.message : 'Unknown error');
-      alert(error instanceof Error ? error.message : 'Failed to create company. Please try again.');
+      console.error(
+        'Error creating company:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to create company. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -164,8 +183,10 @@ export function HomeClient() {
     }
   }, [showAddCompany, searchQuery, setValue]);
 
-  const filteredCompanies = searchResults.filter((company: Company) => 
-    company.industry && INDUSTRIES.includes(company.industry as typeof INDUSTRIES[number])
+  const filteredCompanies = searchResults.filter(
+    (company: Company) =>
+      company.industry &&
+      INDUSTRIES.includes(company.industry as (typeof INDUSTRIES)[number])
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,9 +219,13 @@ export function HomeClient() {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{company.name}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                    {company.name}
+                  </h3>
                   {company.industry && (
-                    <p className="text-base text-gray-600 dark:text-gray-300 mt-2">{company.industry}</p>
+                    <p className="text-base text-gray-600 dark:text-gray-300 mt-2">
+                      {company.industry}
+                    </p>
                   )}
                 </div>
                 <Button
@@ -250,7 +275,9 @@ export function HomeClient() {
 
       {searchQuery.trim() && !isSearching && searchResults.length === 0 && (
         <div className="mt-12 text-center space-y-6">
-          <p className="text-xl text-gray-600 dark:text-gray-400">No companies found matching your search.</p>
+          <p className="text-xl text-gray-600 dark:text-gray-400">
+            No companies found matching your search.
+          </p>
           <Button
             onClick={() => {
               if (!user) {
@@ -261,7 +288,9 @@ export function HomeClient() {
             }}
             className="py-8 px-10 text-xl font-medium rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all duration-300"
           >
-            {user ? `Add "${searchQuery.trim()}" as a new company` : 'Sign in to add a company'}
+            {user
+              ? `Add "${searchQuery.trim()}" as a new company`
+              : 'Sign in to add a company'}
           </Button>
         </div>
       )}
@@ -270,7 +299,8 @@ export function HomeClient() {
       {showAddReview && selectedCompany && (
         <div className="fixed inset-0 overflow-hidden z-50">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+            <div
+              className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
               onClick={() => setShowAddReview(false)}
             />
             <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex animate-slide-in-right">
@@ -306,8 +336,11 @@ export function HomeClient() {
                             try {
                               const { error } = await supabase
                                 .from('reviews')
-                                .insert({ ...data, company_id: selectedCompany.id });
-                              
+                                .insert({
+                                  ...data,
+                                  company_id: selectedCompany.id,
+                                });
+
                               if (error) throw error;
                               return Promise.resolve();
                             } catch (error) {
@@ -347,31 +380,35 @@ export function HomeClient() {
                           <X className="h-6 w-6" />
                         </Button>
                       </div>
-                      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
+                      <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="mt-6 space-y-6"
+                      >
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Company Name
                           </label>
-                          <Input
-                            {...register('name')}
-                            className="mt-1"
-                          />
+                          <Input {...register('name')} className="mt-1" />
                           {errors.name && (
-                            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.name.message}
+                            </p>
                           )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Website (optional)
                           </label>
-                          <Input 
+                          <Input
                             {...register('website')}
                             className="mt-1"
                             placeholder="https://example.com"
                             type="url"
                           />
                           {errors.website && (
-                            <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.website.message}
+                            </p>
                           )}
                           <p className="mt-1 text-xs text-gray-500">
                             Leave empty if unknown
@@ -382,7 +419,9 @@ export function HomeClient() {
                             Industry
                           </label>
                           <Select
-                            onValueChange={(value: Industry) => setValue('industry', value)}
+                            onValueChange={(value: Industry) =>
+                              setValue('industry', value)
+                            }
                             defaultValue={undefined}
                           >
                             <SelectTrigger className="mt-1">
@@ -397,7 +436,9 @@ export function HomeClient() {
                             </SelectContent>
                           </Select>
                           {errors.industry && (
-                            <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.industry.message}
+                            </p>
                           )}
                         </div>
                         <div>
@@ -429,4 +470,4 @@ export function HomeClient() {
       )}
     </div>
   );
-} 
+}

@@ -5,6 +5,7 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ## Quick Fixes
 
 1. **Clear Dependencies**
+
    ```bash
    # Remove dependencies
    rm -rf node_modules
@@ -18,6 +19,7 @@ This guide helps you resolve common build issues in the Rate My Employer project
    ```
 
 2. **Clear Next.js Cache**
+
    ```bash
    # Remove Next.js cache
    rm -rf .next
@@ -31,11 +33,13 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ### 1. TypeScript Errors
 
 #### Symptoms
+
 - Build fails with type errors
 - Red squiggly lines in IDE
 - "Type ... is not assignable to type ..."
 
 #### Solutions
+
 1. Run type checking:
    ```bash
    npm run type-check
@@ -50,12 +54,15 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ### 2. Environment Variables
 
 #### Symptoms
+
 - Build fails with missing environment variable errors
 - API calls fail
 - Supabase connection issues
 
 #### Solutions
+
 1. Check `.env.local` exists and contains:
+
    - NEXT_PUBLIC_SUPABASE_URL
    - NEXT_PUBLIC_SUPABASE_ANON_KEY
    - SUPABASE_SERVICE_ROLE_KEY
@@ -68,17 +75,21 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ### 3. Dependency Issues
 
 #### Symptoms
+
 - Package version conflicts
 - Missing peer dependencies
 - Incompatible versions
 
 #### Solutions
+
 1. Check for outdated packages:
+
    ```bash
    npm outdated
    ```
 
 2. Update dependencies:
+
    ```bash
    npm update
    ```
@@ -91,12 +102,15 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ### 4. Build Performance Issues
 
 #### Symptoms
+
 - Slow build times
 - Memory issues
 - Build hanging
 
 #### Solutions
+
 1. Increase Node.js memory limit:
+
    ```bash
    export NODE_OPTIONS="--max-old-space-size=4096"
    ```
@@ -109,12 +123,15 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ### 5. Testing Issues
 
 #### Symptoms
+
 - Tests failing
 - Coverage thresholds not met
 - Test timeouts
 
 #### Solutions
+
 1. Run tests in watch mode:
+
    ```bash
    npm test -- --watch
    ```
@@ -127,11 +144,13 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ## Prevention Tips
 
 1. **Regular Maintenance**
+
    - Keep dependencies updated
    - Run type checking regularly
    - Maintain test coverage
 
 2. **Pre-commit Checks**
+
    - Use husky hooks
    - Run linting before commits
    - Verify types before pushing
@@ -144,11 +163,13 @@ This guide helps you resolve common build issues in the Rate My Employer project
 ## Getting Help
 
 1. Check the build verification report:
+
    ```bash
    npm run verify
    ```
 
 2. Review error logs:
+
    - Check `npm-debug.log`
    - Review GitHub Actions logs
    - Check browser console
@@ -165,4 +186,4 @@ This guide helps you resolve common build issues in the Rate My Employer project
 - [Supabase Setup Guide](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
 - [Testing Best Practices](https://testing-library.com/docs/react-testing-library/intro/)
 
-3. Check `src/components/companies/CompanyList.tsx` settings 
+3. Check `src/components/companies/CompanyList.tsx` settings

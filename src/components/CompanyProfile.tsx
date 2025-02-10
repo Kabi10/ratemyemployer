@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import type { Database } from '@/types/supabase';
@@ -22,25 +22,25 @@ function formatNumber(value: number | null): number {
 export function CompanyStats({ company }: { company: Company }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      <StatCard 
-        label="Overall Rating" 
-        value={formatRating(company.average_rating)} 
-        type="rating" 
+      <StatCard
+        label="Overall Rating"
+        value={formatRating(company.average_rating)}
+        type="rating"
       />
       <StatCard
         label="Would Recommend"
         value={formatPercentage(company.recommendation_rate)}
         type="percentage"
       />
-      <StatCard 
-        label="Reviews" 
-        value={formatNumber(company.total_reviews)} 
-        type="number" 
+      <StatCard
+        label="Reviews"
+        value={formatNumber(company.total_reviews)}
+        type="number"
       />
-      <StatCard 
-        label="CEO Rating" 
-        value={company.ceo || 'Not Available'} 
-        type="rating" 
+      <StatCard
+        label="CEO Rating"
+        value={company.ceo || 'Not Available'}
+        type="rating"
       />
     </div>
   );

@@ -1,78 +1,65 @@
-import { Database } from './supabase';
+import type { Database } from './supabase';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Base table types
-export interface Company {
-  id: number
-  name: string
-  industry: string
-  location?: string | null
-  website?: string | null
-  description?: string | null
-  logo_url?: string | null
-  average_rating?: number | null
-  total_reviews?: number | null
-  created_at: string
-  updated_at: string
-  metadata?: Record<string, any> | null
-  verification_status?: string | null
-  verified?: boolean | null
-  created_by?: string | null
-}
-
-export interface Review extends Database['public']['Tables']['reviews']['Row'] {
-  company?: Company;
-  likes?: number;
-  user_liked?: boolean;
-}
-
+export type Company = Database['public']['Tables']['companies']['Row'];
+export type Review = Database['public']['Tables']['reviews']['Row'];
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 export type ErrorLog = Database['public']['Tables']['error_logs']['Row'];
+export type ReviewLike = Database['public']['Tables']['review_likes']['Row'];
 
 // Insert types
-export type CompanyInsert = Omit<Company, 'id' | 'created_at' | 'updated_at'>;
-export type ReviewInsert = Omit<Review, 'id' | 'created_at' | 'updated_at'>;
-export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert'];
-export type ErrorLogInsert = Database['public']['Tables']['error_logs']['Insert'];
+export type CompanyInsert = Database['public']['Tables']['companies']['Insert'];
+export type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
+export type UserProfileInsert =
+  Database['public']['Tables']['user_profiles']['Insert'];
+export type ErrorLogInsert =
+  Database['public']['Tables']['error_logs']['Insert'];
+export type ReviewLikeInsert =
+  Database['public']['Tables']['review_likes']['Insert'];
 
 // Update types
-export type CompanyUpdate = Partial<CompanyInsert>;
-export type ReviewUpdate = Partial<ReviewInsert>;
-export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
+export type CompanyUpdate = Database['public']['Tables']['companies']['Update'];
+export type ReviewUpdate = Database['public']['Tables']['reviews']['Update'];
+export type UserProfileUpdate =
+  Database['public']['Tables']['user_profiles']['Update'];
+export type ReviewLikeUpdate =
+  Database['public']['Tables']['review_likes']['Update'];
 
 // Enum types
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 export type RateLimitType = 'ip' | 'user';
-export type EmploymentStatus = 'Full-time' | 'Part-time' | 'Contract' | 'Intern';
-export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
+export type EmploymentStatus = 'current' | 'former';
+export type CompanySize = 'small' | 'medium' | 'large';
 
 // ID types
-export type CompanyId = Company['id'];
-export type ReviewId = Review['id'];
-export type UserId = UserProfile['id'];
+export type CompanyId = number;
+export type ReviewId = number;
+export type UserId = string;
 
 // Extended types with relationships
-export type ReviewWithCompany = Review & {
-  company: Company;
-};
+export interface ReviewWithCompany extends Review {
+  company?: Company;
+}
 
-export type CompanyWithReviews = Company & {
-  reviews: Review[];
-  average_rating: number;
-  total_reviews: number;
-};
+export interface CompanyWithReviews extends Company {
+  reviews?: Review[];
+  average_rating?: number;
+  total_reviews?: number;
+}
 
-export type ReviewWithLikes = Review & {
-  likes: number;
+export interface ReviewWithLikes extends Review {
+  likes?: number;
   user_liked?: boolean;
-};
+}
 
-export type ReviewLike = {
+export interface ReviewLike {
   id: string;
-  reviewId: string;
-  userId: string;
-  createdAt: Date;
-};
+  user_id: string;
+  review_id: number;
+  liked: boolean;
+  created_at: string;
+}
 
 // Error handling types
 export interface DatabaseError {
@@ -81,8 +68,8 @@ export interface DatabaseError {
 }
 
 export interface DatabaseResult<T> {
-  data: T | null;
-  error: Error | null;
+  data?: T | null;
+  error: DatabaseError | null;
 }
 
 // Function parameter types
@@ -97,63 +84,138 @@ export interface GetCompaniesOptions {
 }
 
 export interface GetReviewsOptions {
-  status?: string;
+  companyId?: number;
+  userId?: string;
+  status?: ReviewStatus;
   orderBy?: keyof Review;
   orderDirection?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  withCompany?: boolean;
+  withLikes?: boolean;
 }
 
 // Helper types for Supabase
-export type SupabaseQueryResult<T> = {
+export interface SupabaseQueryResult<T> {
   data: T | null;
   error: PostgrestError | null;
-};
+}
 
-export type DatabaseOperation = 
-  | 'SELECT' 
-  | 'INSERT'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'AUTH'
-  | 'RPC'
+export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
+export type TableName =
+  | 'companies'
+  | 'reviews'
+  | 'user_profiles'
+  | 'error_logs'
+  | 'review_likes';
 
-export type TableName = 'companies' | 'reviews' | 'user_profiles' | 'error_logs' | 'review_likes';
-
-export type ErrorLogDetails = {
+export interface ErrorLogDetails {
   operation: DatabaseOperation;
   table: TableName;
   error: string;
   details?: Record<string, unknown>;
   user_id?: string;
   created_at?: string;
-};
+}
 
 // Utility types
-export type WithTimestamps = {
+export interface WithTimestamps {
   created_at: string;
   updated_at?: string;
-};
+}
 
-export type WithUser = {
+export interface WithUser {
   user_id: string;
-};
+}
 
-export type WithCompany = {
+export interface WithCompany {
   company_id: number;
-};
+}
 
-// Join types
-export type JoinedReview = Review & {
-  company?: Company;
-  likes?: number;
-  user_liked?: boolean;
-};
-
-export type JoinedCompany = Database['public']['Tables']['companies']['Row'] & {
-  reviews: Database['public']['Tables']['reviews']['Row'][];
-  average_rating?: number;
-  total_reviews?: number;
-};
-
-export type DatabaseReview = Review; 
+export interface ExtendedDatabase extends Database {
+  public: {
+    Tables: Database['public']['Tables'] & {
+      user_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      error_logs: {
+        Row: {
+          id: number;
+          message: string;
+          stack: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          message: string;
+          stack?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          message?: string;
+          stack?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      review_likes: {
+        Row: {
+          id: string;
+          user_id: string;
+          review_id: number;
+          liked: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          review_id: number;
+          liked: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          review_id?: number;
+          liked?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Database['public']['Views'];
+    Functions: Database['public']['Functions'];
+    Enums: Database['public']['Enums'];
+    CompositeTypes: Database['public']['CompositeTypes'] & {
+      review_likes: {
+        id: string;
+        user_id: string;
+        review_id: number;
+        liked: boolean;
+        created_at: string;
+      };
+    };
+  };
+}

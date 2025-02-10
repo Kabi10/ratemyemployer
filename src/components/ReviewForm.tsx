@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { useState, useEffect } from 'react';
@@ -7,11 +7,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Company, Review, ReviewFormData, CompanyWithStats } from '@/types';
+import type {
+  Company,
+  Review,
+  ReviewFormData,
+  CompanyWithStats,
+} from '@/types';
 import { Button } from '@/components/ui-library/button';
 import { Input } from '@/components/ui-library/input';
 import { Textarea } from '@/components/ui-library/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-library/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui-library/select';
 import { LoadingSpinner } from '@/components/ui-library/loading-spinner';
 import { useToast } from '@/components/ui-library/use-toast';
 import { StarIcon } from '@heroicons/react/24/solid';
@@ -29,7 +40,12 @@ import type { Database } from '@/types/supabase';
 
 // Internal imports
 
-const EMPLOYMENT_STATUSES = ['Full-time', 'Part-time', 'Contract', 'Intern'] as const;
+const EMPLOYMENT_STATUSES = [
+  'Full-time',
+  'Part-time',
+  'Contract',
+  'Intern',
+] as const;
 
 const commonPositions = [
   'Software Engineer',
@@ -46,7 +62,7 @@ const commonPositions = [
   'Operations Manager',
   'Account Manager',
   'Quality Assurance',
-  'DevOps Engineer'
+  'DevOps Engineer',
 ];
 
 const formSchema = z.object({
@@ -75,12 +91,18 @@ interface ReviewFormValues extends ReviewInsert {
   // Add any additional form-specific fields here
 }
 
-export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: ReviewFormProps) {
+export function ReviewForm({
+  companyId,
+  initialData,
+  onSuccess,
+  onSubmit,
+}: ReviewFormProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyWithStats | null>(null);
+  const [selectedCompany, setSelectedCompany] =
+    useState<CompanyWithStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -89,7 +111,7 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
     formState: { errors },
     reset,
     setValue,
-    watch
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -102,7 +124,7 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
       is_current_employee: initialData?.is_current_employee || false,
       reviewer_email: initialData?.reviewer_email || '',
       reviewer_name: initialData?.reviewer_name || '',
-    }
+    },
   });
 
   const rating = watch('rating');
@@ -150,7 +172,9 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
 
   const handleReviewSubmit = async (data: FormData) => {
     if (!user) {
-      router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
+      router.push(
+        '/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname)
+      );
       return;
     }
 
@@ -165,13 +189,15 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
         ...data,
         company_id: companyId,
         reviewer_id: user.id,
-        status: 'pending'
+        status: 'pending',
       });
 
       if (error) throw error;
 
-      toast('Your review has been submitted successfully and is pending approval.');
-      
+      toast(
+        'Your review has been submitted successfully and is pending approval.'
+      );
+
       reset();
       onSubmit(data as ReviewFormData);
     } catch (error) {
@@ -184,7 +210,11 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]" role="status" aria-label="Loading form...">
+      <div
+        className="flex justify-center items-center min-h-[400px]"
+        role="status"
+        aria-label="Loading form..."
+      >
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -273,7 +303,12 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
           Employment Status
         </label>
         <Select
-          onValueChange={(value) => setValue('employment_status', value as typeof EMPLOYMENT_STATUSES[number])}
+          onValueChange={(value) =>
+            setValue(
+              'employment_status',
+              value as (typeof EMPLOYMENT_STATUSES)[number]
+            )
+          }
           defaultValue={watch('employment_status')}
         >
           <SelectTrigger>
@@ -288,7 +323,9 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
           </SelectContent>
         </Select>
         {errors.employment_status && (
-          <p className="mt-1 text-sm text-red-600">{errors.employment_status.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.employment_status.message}
+          </p>
         )}
       </div>
 
@@ -349,7 +386,10 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
       {/* Reviewer Info */}
       <div className="space-y-4">
         <div>
-          <label htmlFor="reviewer_name" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="reviewer_name"
+            className="block text-sm font-medium text-gray-700"
+          >
             Your Name
           </label>
           <Input
@@ -359,12 +399,17 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
             placeholder="Optional - will be displayed as 'Anonymous' if left blank"
           />
           {errors.reviewer_name && (
-            <p className="mt-1 text-sm text-red-600">{errors.reviewer_name.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.reviewer_name.message}
+            </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="reviewer_email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="reviewer_email"
+            className="block text-sm font-medium text-gray-700"
+          >
             Your Email
           </label>
           <Input
@@ -375,7 +420,9 @@ export function ReviewForm({ companyId, initialData, onSuccess, onSubmit }: Revi
             placeholder="Optional - will not be displayed publicly"
           />
           {errors.reviewer_email && (
-            <p className="mt-1 text-sm text-red-600">{errors.reviewer_email.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.reviewer_email.message}
+            </p>
           )}
         </div>
       </div>

@@ -9,16 +9,8 @@ export function CompanyStats({ company }: { company: Company }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <StatCard
-        label="Overall Rating"
-        value={rating}
-        type="rating"
-      />
-      <StatCard
-        label="Reviews"
-        value={totalReviews}
-        type="number"
-      />
+      <StatCard label="Overall Rating" value={rating} type="rating" />
+      <StatCard label="Reviews" value={totalReviews} type="number" />
       <StatCard
         label="Recommendation Rate"
         value={company.recommendation_rate || 0}

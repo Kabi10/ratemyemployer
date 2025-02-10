@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,13 +7,19 @@ import { useForm } from 'react-hook-form';
 import { companySchema, type CompanyFormData } from '@/lib/schemas';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
-import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { LoadingSpinner } from '@/components/ui-library/loading-spinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { Button } from '@/components/ui-library/button';
 import { Input } from '@/components/ui-library/input';
 import type { Database } from '@/types/supabase';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-library/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui-library/select';
 
 type Company = Database['public']['Tables']['companies']['Row'];
 
@@ -70,7 +76,10 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       setIsSubmitting(true);
       setError(null);
 
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (!session?.user) {
         setError('No active session found. Please log in again.');
@@ -78,21 +87,21 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       }
 
       // Create the company using the database helper
-      const { error: createError } = await supabase
-        .from('companies')
-        .insert([{
+      const { error: createError } = await supabase.from('companies').insert([
+        {
           ...data,
           created_by: session.user.id,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }]);
+          updated_at: new Date().toISOString(),
+        },
+      ]);
 
       if (createError) {
         console.error('Error creating company:', {
           message: createError.message,
           details: createError.details,
           hint: createError.hint,
-          code: createError.code
+          code: createError.code,
         });
         setError(createError.message);
         return;
@@ -116,18 +125,24 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">Company Name</label>
         <Input {...register('name')} />
-        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+        )}
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">Industry</label>
         <Select
           value={watch('industry')}
-          onValueChange={(value) => setValue('industry', value as CompanyIndustry)}
+          onValueChange={(value) =>
+            setValue('industry', value as CompanyIndustry)
+          }
         >
           {/* options */}
         </Select>
-        {errors.industry && <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>}
+        {errors.industry && (
+          <p className="mt-1 text-sm text-red-600">{errors.industry.message}</p>
+        )}
       </div>
 
       <div>
@@ -139,14 +154,20 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
           placeholder="Enter location..."
           required
         />
-        {locationError && <p className="mt-1 text-sm text-red-600">{locationError}</p>}
-        {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>}
+        {locationError && (
+          <p className="mt-1 text-sm text-red-600">{locationError}</p>
+        )}
+        {errors.location && (
+          <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+        )}
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">Website</label>
         <Input {...register('website')} type="url" />
-        {errors.website && <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>}
+        {errors.website && (
+          <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+        )}
       </div>
 
       <div>
@@ -156,11 +177,21 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
           rows={3}
           className="w-full p-3 border rounded-lg"
         />
-        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.description.message}
+          </p>
+        )}
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? <LoadingSpinner /> : initialData ? 'Update Company' : 'Add Company'}
+        {isSubmitting ? (
+          <LoadingSpinner />
+        ) : initialData ? (
+          'Update Company'
+        ) : (
+          'Add Company'
+        )}
       </Button>
     </form>
   );

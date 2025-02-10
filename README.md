@@ -43,6 +43,7 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
    ```
 
 Required environment variables:
+
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: (Optional) For location features
@@ -89,6 +90,7 @@ tests/
 ## Testing
 
 We use Playwright for end-to-end testing:
+
 - End-to-end tests with Playwright
 - Type checking with TypeScript
 - Linting with ESLint
@@ -119,6 +121,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Deployment
 
 The application is configured for deployment on Vercel with the following features:
+
 - Standalone output
 - Compressed responses
 - Security headers
@@ -135,6 +138,7 @@ The application is configured for deployment on Vercel with the following featur
 ## Support
 
 For support, please:
+
 1. Check [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 2. Review [PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)
 3. Open an issue in the repository
@@ -163,4 +167,4 @@ You can manually trigger the news fetch workflow:
 1. Go to the "Actions" tab in your repository
 2. Select "Fetch Company News" workflow
 3. Click "Run workflow"
-4. Select the branch and click "Run workflow" 
+4. Select the branch and click "Run workflow"

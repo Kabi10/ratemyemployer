@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Company news integration with SerpAPI
 - Wall of Shame feature for lowest-rated companies
 - Bundle analysis support with @next/bundle-analyzer
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation structure
 
 ### Changed
+
 - Upgraded to Next.js 15.1
 - Enhanced Supabase Auth integration
 - Updated image configuration to use remotePatterns
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consolidated project documentation
 
 ### Fixed
+
 - Image loading optimization
 - Static asset handling
 - Type definition conflicts
@@ -31,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation structure
 
 ### Security
+
 - Enhanced Supabase RLS policies
 - Implemented proper CORS policies
 - Added security headers
@@ -40,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-01-19
 
 ### Added
+
 - Initial release with core features
 - Company review system
 - Rating visualization
@@ -50,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time updates
 
 ### Security
+
 - Supabase RLS policies
 - Input validation with Zod
 - Rate limiting
@@ -58,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2024-01-08
 
 ### Changed
+
 - Enhanced CompanyCard component with:
   - Visual rating progress bars
   - Company size badges
@@ -73,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-01-05
 
 ### Added
+
 - Initial project setup
 - Basic repository structure
-- Core documentation files 
+- Core documentation files

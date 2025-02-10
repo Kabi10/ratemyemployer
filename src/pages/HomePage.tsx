@@ -19,5 +19,5 @@ export default function HomePage() {
 
       {/* Rest of page content */}
     </main>
-  )
-} 
+  );
+}

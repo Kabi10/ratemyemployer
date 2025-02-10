@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
-
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 // Helper function to create Supabase client
 const createClient = () => {
@@ -12,61 +11,64 @@ const createClient = () => {
     {
       cookies: {
         async get(name: string) {
-          const cookieStore = await cookies()
-          return cookieStore.get(name)?.value
+          const cookieStore = await cookies();
+          return cookieStore.get(name)?.value;
         },
         async set(name: string, value: string, options: CookieOptions) {
-          const cookieStore = await cookies()
+          const cookieStore = await cookies();
           cookieStore.set({
             name,
             value,
             ...options,
-            path: '/'
-          })
+            path: '/',
+          });
         },
         async remove(name: string, _options: CookieOptions) {
-          const cookieStore = await cookies()
-          cookieStore.delete(name)
-        }
-      }
+          const cookieStore = await cookies();
+          cookieStore.delete(name);
+        },
+      },
     }
-  )
-}
+  );
+};
 
 export async function POST(request: Request) {
-  const { email, password } = await request.json()
-  const supabase = createClient()
+  const { email, password } = await request.json();
+  const supabase = createClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  })
+  });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 401 })
+    return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
 
 export async function DELETE() {
-  const supabase = createClient()
-  const { error } = await supabase.auth.signOut()
+  const supabase = createClient();
+  const { error } = await supabase.auth.signOut();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true });
 }
 
 export async function GET() {
-  const supabase = createClient()
-  const { data: { session }, error } = await supabase.auth.getSession()
+  const supabase = createClient();
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ session })
+  return NextResponse.json({ session });
 }

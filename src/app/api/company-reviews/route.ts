@@ -26,18 +26,23 @@ const createClient = () => {
   );
 };
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   const supabase = createClient();
-  const { id } = context.params;
+  const { searchParams } = request.nextUrl;
+  const companyId = searchParams.get('companyId');
+
+  if (!companyId) {
+    return NextResponse.json(
+      { error: 'Company ID is required' },
+      { status: 400 }
+    );
+  }
 
   try {
     const { data: reviews, error } = await supabase
       .from('reviews')
       .select('*')
-      .eq('company_id', id)
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -50,7 +55,7 @@ export async function GET(
 
     return NextResponse.json(reviews);
   } catch (error) {
-    console.error('Error in GET /api/companies/[id]/reviews:', error);
+    console.error('Error in GET /api/company-reviews:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -58,18 +63,21 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const body = await request.json();
+export async function POST(request: NextRequest) {
   const supabase = createClient();
-  const { id } = context.params;
+  const { companyId, ...body } = await request.json();
+
+  if (!companyId) {
+    return NextResponse.json(
+      { error: 'Company ID is required' },
+      { status: 400 }
+    );
+  }
 
   try {
     const { data, error } = await supabase
       .from('reviews')
-      .insert([{ ...body, company_id: id }])
+      .insert([{ ...body, company_id: companyId }])
       .select()
       .single();
 
@@ -83,7 +91,7 @@ export async function POST(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error in POST /api/companies/[id]/reviews:', error);
+    console.error('Error in POST /api/company-reviews:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

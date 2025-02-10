@@ -17,17 +17,17 @@ export default function AuthErrorPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h1>
+        <h1 className="text-2xl font-bold text-red-600 mb-4">
+          Authentication Error
+        </h1>
         <p className="text-gray-700 mb-4">
           There was an issue during authentication. Please try again.
         </p>
         {error && (
-          <p className="text-sm text-gray-500">
-            Error details: {error}
-          </p>
+          <p className="text-sm text-gray-500">Error details: {error}</p>
         )}
-        <a 
-          href="/auth/signin" 
+        <a
+          href="/auth/signin"
           className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Return to Sign In
@@ -35,4 +35,4 @@ export default function AuthErrorPage() {
       </div>
     </div>
   );
-} 
+}

@@ -12,6 +12,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 ## Security Measures
 
 ### Authentication
+
 - Supabase Authentication for user management
 - Secure session handling with JWT
 - Email verification required
@@ -19,6 +20,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 - OAuth provider integration
 
 ### Data Protection
+
 - Supabase PostgreSQL with RLS (Row Level Security)
 - End-to-end data encryption
 - Secure API endpoints with middleware
@@ -26,6 +28,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 - Real-time security policies
 
 ### Infrastructure
+
 - Vercel deployment with security headers
 - CORS policy implementation
 - Rate limiting on API routes
@@ -33,6 +36,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 - Edge functions security
 
 ### Code Security
+
 - TypeScript strict mode enabled
 - ESLint security rules
 - Automated security scanning in CI/CD
@@ -40,6 +44,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 - Playwright E2E testing
 
 ### Content Security
+
 - Strict remote patterns for allowed domains
 - Image optimization and sanitization
 - Content security policy headers
@@ -59,6 +64,7 @@ If you discover a security vulnerability within RateMyEmployer, please follow th
    - Suggested fix (if any)
 
 ### What to Expect
+
 - Acknowledgment within 24 hours
 - Regular updates on progress
 - Credit for responsible disclosure
@@ -67,6 +73,7 @@ If you discover a security vulnerability within RateMyEmployer, please follow th
 ## Security Best Practices
 
 ### For Contributors
+
 1. Never commit sensitive information
 2. Use environment variables for secrets
 3. Follow the principle of least privilege
@@ -74,6 +81,7 @@ If you discover a security vulnerability within RateMyEmployer, please follow th
 5. Write secure code following OWASP guidelines
 
 ### For Users
+
 1. Use strong passwords
 2. Enable email verification
 3. Keep your access tokens secure
@@ -90,12 +98,14 @@ If you discover a security vulnerability within RateMyEmployer, please follow th
 ## Contact
 
 For security-related inquiries, contact:
+
 - Security Team: [security@ratemyemployer.com](mailto:security@ratemyemployer.com)
 - Lead Security Engineer: [security-lead@ratemyemployer.com](mailto:security-lead@ratemyemployer.com)
 
 ## Security Updates
 
 We use various tools to scan for security vulnerabilities:
+
 - GitHub's Dependabot
 - Snyk
 - OWASP Dependency Check
@@ -105,16 +115,19 @@ We use various tools to scan for security vulnerabilities:
 ## Incident Response
 
 1. **Discovery & Alert**
+
    - Vulnerability identified
    - Initial assessment made
    - Key personnel notified
 
 2. **Assessment & Triage**
+
    - Impact evaluation
    - Risk assessment
    - Priority assignment
 
 3. **Response & Remediation**
+
    - Patch development
    - Testing in staging
    - Deployment to production
@@ -127,6 +140,7 @@ We use various tools to scan for security vulnerabilities:
 ## Bug Bounty Program
 
 We maintain a private bug bounty program. For invitation:
+
 1. Demonstrate previous security research experience
 2. Contact security@ratemyemployer.com
-3. Sign our security researcher agreement 
+3. Sign our security researcher agreement

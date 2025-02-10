@@ -62,9 +62,9 @@ interface MetricsHistoryEntry {
 // Enhanced utility functions
 const runCommand = (command: string, silent = false): string => {
   try {
-    return execSync(command, { 
+    return execSync(command, {
       encoding: 'utf8',
-      stdio: silent ? 'pipe' : 'inherit'
+      stdio: silent ? 'pipe' : 'inherit',
     });
   } catch (error) {
     throw new Error(`Command failed: ${command}\n${error}`);
@@ -74,7 +74,9 @@ const runCommand = (command: string, silent = false): string => {
 const logResult = (result: CommandResult) => {
   const icon = result.success ? '✓' : '✗';
   const color = result.success ? chalk.green : chalk.red;
-  const timestamp = result.timestamp ? chalk.gray(` [${result.timestamp.toISOString()}]`) : '';
+  const timestamp = result.timestamp
+    ? chalk.gray(` [${result.timestamp.toISOString()}]`)
+    : '';
   console.log(color(`${icon} ${result.message}${timestamp}`));
   if (result.details) {
     console.log(chalk.gray('Details:'), result.details);
@@ -92,11 +94,11 @@ const analyzeProject = async (): Promise<CommandResult> => {
       hooks: glob.sync('src/hooks/**/*.ts').length,
       utils: glob.sync('src/lib/**/*.ts').length,
       totalLines: 0,
-      testCoverage: '0%'
+      testCoverage: '0%',
     };
 
     // Calculate total lines of code
-    glob.sync('src/**/*.{ts,tsx}').forEach(file => {
+    glob.sync('src/**/*.{ts,tsx}').forEach((file) => {
       const content = fs.readFileSync(file, 'utf8');
       stats.totalLines += content.split('\n').length;
     });
@@ -117,14 +119,14 @@ const analyzeProject = async (): Promise<CommandResult> => {
       success: true,
       message: 'Project analysis complete',
       details: stats,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       success: false,
       message: 'Project analysis failed',
       details: error,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 };
@@ -144,11 +146,13 @@ const generateDocs = async (): Promise<CommandResult> => {
     const analysis = await analyzeProject();
     docs.push('# Project Documentation\n');
     docs.push('## Project Overview\n');
-    docs.push('```json\n' + JSON.stringify(analysis.details, null, 2) + '\n```\n');
+    docs.push(
+      '```json\n' + JSON.stringify(analysis.details, null, 2) + '\n```\n'
+    );
 
     // API documentation
     docs.push('\n## API Documentation\n');
-    glob.sync('src/app/api/**/*.ts').forEach(file => {
+    glob.sync('src/app/api/**/*.ts').forEach((file) => {
       const content = fs.readFileSync(file, 'utf8');
       const endpoint = file.replace('src/app/api', '').replace('.ts', '');
       docs.push(`### ${endpoint}\n`);
@@ -158,15 +162,17 @@ const generateDocs = async (): Promise<CommandResult> => {
 
     // Component documentation with props
     docs.push('\n## Component Documentation\n');
-    glob.sync('src/components/**/*.tsx').forEach(file => {
+    glob.sync('src/components/**/*.tsx').forEach((file) => {
       const content = fs.readFileSync(file, 'utf8');
       const componentName = path.basename(file, '.tsx');
       docs.push(`### ${componentName}\n`);
-      
+
       // Extract TypeScript interfaces/types
       const interfaces = content.match(/interface.*?{[\s\S]*?}/g) || [];
       if (interfaces.length) {
-        docs.push('#### Props\n```typescript\n' + interfaces.join('\n') + '\n```\n');
+        docs.push(
+          '#### Props\n```typescript\n' + interfaces.join('\n') + '\n```\n'
+        );
       }
 
       // Extract JSDoc comments
@@ -181,14 +187,14 @@ const generateDocs = async (): Promise<CommandResult> => {
     return {
       success: true,
       message: `Documentation generated at ${docsPath}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       success: false,
       message: 'Documentation generation failed',
       details: error,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 };
@@ -213,14 +219,14 @@ const setupDev = async (): Promise<CommandResult> => {
     return {
       success: true,
       message: 'Development environment setup complete',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       success: false,
       message: 'Development environment setup failed',
       details: error,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 };
@@ -238,15 +244,15 @@ const handleDatabase = async (options: any): Promise<CommandResult> => {
     if (options.backup) {
       // Validate database connection
       runCommand('npx supabase db ping');
-      
+
       // Create full backup
       const backupPath = path.join(backupDir, `backup-${timestamp}.sql`);
       runCommand(`npx supabase db dump > ${backupPath}`);
-      
+
       return {
         success: true,
         message: `Database backup created at ${backupPath}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
@@ -255,34 +261,36 @@ const handleDatabase = async (options: any): Promise<CommandResult> => {
         return {
           success: false,
           message: 'Backup file not found',
-          timestamp: new Date()
+          timestamp: new Date(),
         };
       }
 
       // Create backup before restore
-      runCommand(`npx supabase db dump > ${path.join(backupDir, `pre-restore-${timestamp}.sql`)}`);
-      
+      runCommand(
+        `npx supabase db dump > ${path.join(backupDir, `pre-restore-${timestamp}.sql`)}`
+      );
+
       // Restore database
       runCommand(`npx supabase db reset && psql -f ${options.restore}`);
-      
+
       return {
         success: true,
         message: 'Database restored successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
     return {
       success: false,
       message: 'No database operation specified',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       success: false,
       message: 'Database operation failed',
       details: error,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 };
@@ -291,79 +299,115 @@ const handleDatabase = async (options: any): Promise<CommandResult> => {
 const generateConfig = () => {
   // Generate tsconfig.json if it doesn't exist
   if (!fs.existsSync('tsconfig.json')) {
-    fs.writeFileSync('tsconfig.json', JSON.stringify({
-      compilerOptions: {
-        target: "es2017",
-        lib: ["dom", "dom.iterable", "esnext"],
-        allowJs: true,
-        skipLibCheck: true,
-        strict: true,
-        forceConsistentCasingInFileNames: true,
-        noEmit: true,
-        esModuleInterop: true,
-        module: "esnext",
-        moduleResolution: "node",
-        resolveJsonModule: true,
-        isolatedModules: true,
-        jsx: "preserve",
-        incremental: true,
-        plugins: [{ name: "next" }],
-        paths: { "@/*": ["./src/*"] }
-      },
-      include: ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-      exclude: ["node_modules"]
-    }, null, 2));
+    fs.writeFileSync(
+      'tsconfig.json',
+      JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'es2017',
+            lib: ['dom', 'dom.iterable', 'esnext'],
+            allowJs: true,
+            skipLibCheck: true,
+            strict: true,
+            forceConsistentCasingInFileNames: true,
+            noEmit: true,
+            esModuleInterop: true,
+            module: 'esnext',
+            moduleResolution: 'node',
+            resolveJsonModule: true,
+            isolatedModules: true,
+            jsx: 'preserve',
+            incremental: true,
+            plugins: [{ name: 'next' }],
+            paths: { '@/*': ['./src/*'] },
+          },
+          include: [
+            'next-env.d.ts',
+            '**/*.ts',
+            '**/*.tsx',
+            '.next/types/**/*.ts',
+          ],
+          exclude: ['node_modules'],
+        },
+        null,
+        2
+      )
+    );
   }
-  
+
   // Generate next.config.js if it doesn't exist
   if (!fs.existsSync('next.config.js')) {
-    fs.writeFileSync('next.config.js', `
+    fs.writeFileSync(
+      'next.config.js',
+      `
       /** @type {import('next').NextConfig} */
       const nextConfig = {
         reactStrictMode: true,
         swcMinify: true,
       }
       module.exports = nextConfig
-    `);
+    `
+    );
   }
-  
+
   // Generate .eslintrc.json if it doesn't exist
   if (!fs.existsSync('.eslintrc.json')) {
-    fs.writeFileSync('.eslintrc.json', JSON.stringify({
-      extends: "next/core-web-vitals"
-    }, null, 2));
+    fs.writeFileSync(
+      '.eslintrc.json',
+      JSON.stringify(
+        {
+          extends: 'next/core-web-vitals',
+        },
+        null,
+        2
+      )
+    );
   }
 };
 
 // Add new analysis functions
-const analyzeCodeQuality = async (): Promise<Partial<ProjectMetrics['codeQuality']>> => {
+const analyzeCodeQuality = async (): Promise<
+  Partial<ProjectMetrics['codeQuality']>
+> => {
   const results = {
     eslintErrors: 0,
     eslintWarnings: 0,
     testCoverage: 0,
     duplicateCode: 0,
-    complexity: { high: 0, medium: 0, low: 0 }
+    complexity: { high: 0, medium: 0, low: 0 },
   };
 
   try {
     // Run ESLint
     const eslintOutput = runCommand('npx eslint . --format json', true);
-    const eslintResults = JSON.parse(eslintOutput) as Array<{ severity: number }>;
-    results.eslintErrors = eslintResults.filter(result => result.severity === 2).length;
-    results.eslintWarnings = eslintResults.filter(result => result.severity === 1).length;
+    const eslintResults = JSON.parse(eslintOutput) as Array<{
+      severity: number;
+    }>;
+    results.eslintErrors = eslintResults.filter(
+      (result) => result.severity === 2
+    ).length;
+    results.eslintWarnings = eslintResults.filter(
+      (result) => result.severity === 1
+    ).length;
 
     // Run test coverage with Vitest
     const coverageOutput = runCommand('npm run coverage', true);
     try {
-      const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+      const coverage = JSON.parse(
+        fs.readFileSync('coverage/coverage-summary.json', 'utf8')
+      );
       results.testCoverage = coverage.total.statements.pct;
     } catch (e) {
-      console.log(chalk.yellow('Warning: Could not read coverage data. Run tests with coverage first.'));
+      console.log(
+        chalk.yellow(
+          'Warning: Could not read coverage data. Run tests with coverage first.'
+        )
+      );
     }
 
     // Analyze code complexity
     const files = glob.sync('src/**/*.{ts,tsx}');
-    files.forEach(file => {
+    files.forEach((file) => {
       const content = fs.readFileSync(file, 'utf8');
       const complexity = analyzeComplexity(content);
       results.complexity.high += complexity.high;
@@ -378,7 +422,9 @@ const analyzeCodeQuality = async (): Promise<Partial<ProjectMetrics['codeQuality
   }
 };
 
-const analyzePerformance = async (): Promise<Partial<ProjectMetrics['performance']>> => {
+const analyzePerformance = async (): Promise<
+  Partial<ProjectMetrics['performance']>
+> => {
   try {
     // Build with bundle analyzer
     process.env.ANALYZE = 'true';
@@ -394,8 +440,8 @@ const analyzePerformance = async (): Promise<Partial<ProjectMetrics['performance
       lazyLoadedChunks: clientBundleStats.chunks.length,
       imageOptimization: {
         optimizedCount: glob.sync('public/**/*.{jpg,png,webp}').length,
-        totalCount: glob.sync('public/**/*.{jpg,png,webp,gif,jpeg}').length
-      }
+        totalCount: glob.sync('public/**/*.{jpg,png,webp,gif,jpeg}').length,
+      },
     };
   } catch (error) {
     console.error('Error analyzing performance:', error);
@@ -403,7 +449,9 @@ const analyzePerformance = async (): Promise<Partial<ProjectMetrics['performance
   }
 };
 
-const analyzeSecurity = async (): Promise<Partial<ProjectMetrics['security']>> => {
+const analyzeSecurity = async (): Promise<
+  Partial<ProjectMetrics['security']>
+> => {
   try {
     // Run npm audit
     const auditOutput = runCommand('npm audit --json', true);
@@ -417,7 +465,7 @@ const analyzeSecurity = async (): Promise<Partial<ProjectMetrics['security']>> =
       dependencyVulnerabilities: auditResults.vulnerabilities?.total || 0,
       outdatedDependencies: Object.keys(outdatedDeps).length,
       securityHeaders: checkSecurityHeaders(),
-      authImplementation: checkAuthImplementation()
+      authImplementation: checkAuthImplementation(),
     };
   } catch (error) {
     console.error('Error analyzing security:', error);
@@ -430,13 +478,13 @@ const analyzeComplexity = (content: string) => {
   const results = {
     high: 0,
     medium: 0,
-    low: 0
+    low: 0,
   };
 
   // Count nested blocks as complexity indicators
   const blocks = content.match(/{/g)?.length || 0;
-  const conditionals = (content.match(/if|switch|for|while/g)?.length || 0);
-  const callbacks = (content.match(/=>/g)?.length || 0);
+  const conditionals = content.match(/if|switch|for|while/g)?.length || 0;
+  const callbacks = content.match(/=>/g)?.length || 0;
 
   const complexity = blocks + conditionals + callbacks;
 
@@ -450,9 +498,11 @@ const analyzeComplexity = (content: string) => {
 const checkSecurityHeaders = (): boolean => {
   try {
     const nextConfig = fs.readFileSync('next.config.js', 'utf8');
-    return nextConfig.includes('headers:') && 
-           nextConfig.includes('Content-Security-Policy') &&
-           nextConfig.includes('X-Frame-Options');
+    return (
+      nextConfig.includes('headers:') &&
+      nextConfig.includes('Content-Security-Policy') &&
+      nextConfig.includes('X-Frame-Options')
+    );
   } catch {
     return false;
   }
@@ -460,8 +510,10 @@ const checkSecurityHeaders = (): boolean => {
 
 const checkAuthImplementation = (): boolean => {
   try {
-    return fs.existsSync('src/contexts/AuthContext.tsx') &&
-           fs.existsSync('src/middleware.ts');
+    return (
+      fs.existsSync('src/contexts/AuthContext.tsx') &&
+      fs.existsSync('src/middleware.ts')
+    );
   } catch {
     return false;
   }
@@ -485,7 +537,10 @@ const saveMetricsHistory = (history: MetricsHistoryEntry[]) => {
   fs.writeFileSync(METRICS_FILE, JSON.stringify(history, null, 2));
 };
 
-const generateMetricsReport = (metrics: Partial<ProjectMetrics>, duration: number) => {
+const generateMetricsReport = (
+  metrics: Partial<ProjectMetrics>,
+  duration: number
+) => {
   const report = [
     chalk.blue('\nMetrics Report'),
     chalk.gray(`Generated in ${duration}s\n`),
@@ -524,38 +579,57 @@ const generateMetricsReport = (metrics: Partial<ProjectMetrics>, duration: numbe
   console.log(report.join('\n'));
 };
 
-const analyzeMetricsTrends = (history: MetricsHistoryEntry[], days: number): MetricsTrends => {
+const analyzeMetricsTrends = (
+  history: MetricsHistoryEntry[],
+  days: number
+): MetricsTrends => {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
 
-  const relevantHistory = history.filter(entry => new Date(entry.timestamp) >= cutoff);
-  
-  const calculateMetricTrend = (values: (number | undefined)[]): TrendResult => {
+  const relevantHistory = history.filter(
+    (entry) => new Date(entry.timestamp) >= cutoff
+  );
+
+  const calculateMetricTrend = (
+    values: (number | undefined)[]
+  ): TrendResult => {
     const validValues = values.filter((v): v is number => v !== undefined);
     if (validValues.length < 2) return 'insufficient data';
-    
+
     const first = validValues[0];
     const last = validValues[validValues.length - 1];
     const change = ((last - first) / first) * 100;
-    
+
     return {
       change: change.toFixed(2) + '%',
-      trend: change > 0 ? 'increasing' : change < 0 ? 'decreasing' : 'stable'
+      trend: change > 0 ? 'increasing' : change < 0 ? 'decreasing' : 'stable',
     };
   };
-  
+
   return {
     codeQuality: {
-      eslintErrors: calculateMetricTrend(relevantHistory.map(h => h.metrics.codeQuality?.eslintErrors)),
-      testCoverage: calculateMetricTrend(relevantHistory.map(h => h.metrics.codeQuality?.testCoverage))
+      eslintErrors: calculateMetricTrend(
+        relevantHistory.map((h) => h.metrics.codeQuality?.eslintErrors)
+      ),
+      testCoverage: calculateMetricTrend(
+        relevantHistory.map((h) => h.metrics.codeQuality?.testCoverage)
+      ),
     },
     performance: {
-      bundleSize: calculateMetricTrend(relevantHistory.map(h => h.metrics.performance?.bundleSize)),
-      firstLoadJS: calculateMetricTrend(relevantHistory.map(h => h.metrics.performance?.firstLoadJS))
+      bundleSize: calculateMetricTrend(
+        relevantHistory.map((h) => h.metrics.performance?.bundleSize)
+      ),
+      firstLoadJS: calculateMetricTrend(
+        relevantHistory.map((h) => h.metrics.performance?.firstLoadJS)
+      ),
     },
     security: {
-      vulnerabilities: calculateMetricTrend(relevantHistory.map(h => h.metrics.security?.dependencyVulnerabilities))
-    }
+      vulnerabilities: calculateMetricTrend(
+        relevantHistory.map(
+          (h) => h.metrics.security?.dependencyVulnerabilities
+        )
+      ),
+    },
   };
 };
 
@@ -573,26 +647,28 @@ interface MetricsTrends {
   };
 }
 
-type TrendResult = {
-  change: string;
-  trend: 'increasing' | 'decreasing' | 'stable';
-} | 'insufficient data';
+type TrendResult =
+  | {
+      change: string;
+      trend: 'increasing' | 'decreasing' | 'stable';
+    }
+  | 'insufficient data';
 
 const displayMetricsTrends = (trends: MetricsTrends) => {
   console.log(chalk.blue('\nMetrics Trends:'));
-  
+
   Object.entries(trends).forEach(([category, metrics]) => {
     console.log(chalk.yellow(`\n${category}:`));
-    Object.entries(metrics as Record<string, TrendResult>).forEach(([metric, trend]) => {
-      console.log(`${metric}: ${JSON.stringify(trend)}`);
-    });
+    Object.entries(metrics as Record<string, TrendResult>).forEach(
+      ([metric, trend]) => {
+        console.log(`${metric}: ${JSON.stringify(trend)}`);
+      }
+    );
   });
 };
 
 // CLI Commands
-program
-  .version('1.0.0')
-  .description('RateMyEmployer CLI tool');
+program.version('1.0.0').description('RateMyEmployer CLI tool');
 
 // Analysis command
 program
@@ -640,32 +716,34 @@ program
         results.push({
           success: true,
           message: 'TypeScript validation passed',
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       } catch (error) {
         results.push({
           success: false,
           message: 'TypeScript validation failed',
           details: error,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
 
     if (options.all || options.deps) {
       try {
-        const outdated = JSON.parse(runCommand('npm outdated --json', true) || '{}');
+        const outdated = JSON.parse(
+          runCommand('npm outdated --json', true) || '{}'
+        );
         results.push({
           success: Object.keys(outdated).length === 0,
           message: 'Dependency check complete',
           details: outdated,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       } catch (error) {
         results.push({
           success: true,
           message: 'All dependencies are up to date',
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
@@ -676,14 +754,14 @@ program
         results.push({
           success: true,
           message: 'Build verification passed',
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       } catch (error) {
         results.push({
           success: false,
           message: 'Build verification failed',
           details: error,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
@@ -694,21 +772,21 @@ program
         results.push({
           success: true,
           message: 'Coverage check passed',
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       } catch (error) {
         results.push({
           success: false,
           message: 'Coverage check failed',
           details: error,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
 
     const endTime = new Date();
     const duration = (endTime.getTime() - startTime.getTime()) / 1000;
-    
+
     results.forEach(logResult);
     console.log(chalk.blue(`\nVerification completed in ${duration}s`));
   });
@@ -744,7 +822,9 @@ program
         console.log(chalk.yellow('\nAnalyzing code quality...'));
         try {
           const qualityMetrics = await analyzeCodeQuality();
-          if (qualityMetrics) metrics.codeQuality = qualityMetrics as ProjectMetrics['codeQuality'];
+          if (qualityMetrics)
+            metrics.codeQuality =
+              qualityMetrics as ProjectMetrics['codeQuality'];
         } catch (error) {
           console.error(chalk.red('Error analyzing code quality:'), error);
         }
@@ -754,7 +834,9 @@ program
         console.log(chalk.yellow('\nAnalyzing performance...'));
         try {
           const performanceMetrics = await analyzePerformance();
-          if (performanceMetrics) metrics.performance = performanceMetrics as ProjectMetrics['performance'];
+          if (performanceMetrics)
+            metrics.performance =
+              performanceMetrics as ProjectMetrics['performance'];
         } catch (error) {
           console.error(chalk.red('Error analyzing performance:'), error);
         }
@@ -764,7 +846,8 @@ program
         console.log(chalk.yellow('\nAnalyzing security...'));
         try {
           const securityMetrics = await analyzeSecurity();
-          if (securityMetrics) metrics.security = securityMetrics as ProjectMetrics['security'];
+          if (securityMetrics)
+            metrics.security = securityMetrics as ProjectMetrics['security'];
         } catch (error) {
           console.error(chalk.red('Error analyzing security:'), error);
         }
@@ -777,13 +860,17 @@ program
       const metricsHistory = loadMetricsHistory();
       metricsHistory.push({
         timestamp: new Date(),
-        metrics
+        metrics,
       });
       saveMetricsHistory(metricsHistory);
 
       // Generate report
       if (Object.keys(metrics).length === 0) {
-        console.log(chalk.red('\nNo metrics were collected. Please check the errors above.'));
+        console.log(
+          chalk.red(
+            '\nNo metrics were collected. Please check the errors above.'
+          )
+        );
       } else {
         generateMetricsReport(metrics, duration);
       }
@@ -803,4 +890,4 @@ program
     displayMetricsTrends(trends);
   });
 
-program.parse(process.argv); 
+program.parse(process.argv);

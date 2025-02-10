@@ -1,15 +1,10 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 
 import { usePathname } from 'next/navigation';
 
 import { BarChart2 } from 'lucide-react';
-
-
-
-
-
 
 interface PerformanceMetrics {
   loadTime: number | null;
@@ -33,7 +28,7 @@ export default function PerformanceMonitor() {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.altKey && event.key.toLowerCase() === 'p') {
-        setIsVisible(prev => !prev);
+        setIsVisible((prev) => !prev);
       }
     };
 
@@ -54,12 +49,12 @@ export default function PerformanceMonitor() {
     const startTime = performance.now();
 
     // Track Time to First Byte
-    const observer = new PerformanceObserver(list => {
+    const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.entryType === 'navigation') {
           const navEntry = entry as PerformanceNavigationTiming;
-          setMetrics(prev => ({
+          setMetrics((prev) => ({
             ...prev,
             ttfb: navEntry.responseStart - navEntry.requestStart,
           }));
@@ -69,11 +64,14 @@ export default function PerformanceMonitor() {
     observer.observe({ entryTypes: ['navigation'] });
 
     // Track First Contentful Paint
-    const fcpObserver = new PerformanceObserver(list => {
+    const fcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach(entry => {
-        if (entry.entryType === 'paint' && entry.name === 'first-contentful-paint') {
-          setMetrics(prev => ({
+      entries.forEach((entry) => {
+        if (
+          entry.entryType === 'paint' &&
+          entry.name === 'first-contentful-paint'
+        ) {
+          setMetrics((prev) => ({
             ...prev,
             fcp: entry.startTime,
           }));
@@ -83,10 +81,10 @@ export default function PerformanceMonitor() {
     fcpObserver.observe({ entryTypes: ['paint'] });
 
     // Track Largest Contentful Paint
-    const lcpObserver = new PerformanceObserver(list => {
+    const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const lastEntry = entries[entries.length - 1];
-      setMetrics(prev => ({
+      setMetrics((prev) => ({
         ...prev,
         lcp: lastEntry.startTime,
       }));
@@ -95,7 +93,7 @@ export default function PerformanceMonitor() {
 
     // Simulate loading percentage
     const loadInterval = setInterval(() => {
-      setMetrics(prev => {
+      setMetrics((prev) => {
         if (prev.loadPercentage >= 100) {
           clearInterval(loadInterval);
           return {
@@ -127,7 +125,7 @@ export default function PerformanceMonitor() {
   // Always show the toggle button
   const toggleButton = (
     <button
-      onClick={() => setIsVisible(prev => !prev)}
+      onClick={() => setIsVisible((prev) => !prev)}
       className="fixed bottom-6 right-20 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 z-50 border border-gray-200 dark:border-gray-700"
       title="Toggle Performance Monitor (Alt+P)"
     >
@@ -144,13 +142,21 @@ export default function PerformanceMonitor() {
       {toggleButton}
       <div className="fixed bottom-20 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 text-sm border border-gray-200 dark:border-gray-700 z-50">
         <div className="flex flex-col items-end space-y-1">
-          <div className="text-gray-600 dark:text-gray-300">Load: {metrics.loadPercentage}%</div>
+          <div className="text-gray-600 dark:text-gray-300">
+            Load: {metrics.loadPercentage}%
+          </div>
           <div className="text-gray-600 dark:text-gray-300">
             Time: {formatTime(metrics.loadTime)}s
           </div>
-          <div className="text-gray-600 dark:text-gray-300">TTFB: {formatTime(metrics.ttfb)}s</div>
-          <div className="text-gray-600 dark:text-gray-300">FCP: {formatTime(metrics.fcp)}s</div>
-          <div className="text-gray-600 dark:text-gray-300">LCP: {formatTime(metrics.lcp)}s</div>
+          <div className="text-gray-600 dark:text-gray-300">
+            TTFB: {formatTime(metrics.ttfb)}s
+          </div>
+          <div className="text-gray-600 dark:text-gray-300">
+            FCP: {formatTime(metrics.fcp)}s
+          </div>
+          <div className="text-gray-600 dark:text-gray-300">
+            LCP: {formatTime(metrics.lcp)}s
+          </div>
         </div>
       </div>
     </>

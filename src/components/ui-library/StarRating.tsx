@@ -14,7 +14,12 @@ const sizeClasses = {
   lg: 'h-6 w-6',
 };
 
-export function StarRating({ rating, className, showValue = false, size = 'md' }: StarRatingProps) {
+export function StarRating({
+  rating,
+  className,
+  showValue = false,
+  size = 'md',
+}: StarRatingProps) {
   const stars = Array.from({ length: 5 }, (_, i) => {
     const filled = i < Math.floor(rating);
     const halfFilled = i === Math.floor(rating) && rating % 1 !== 0;
@@ -37,10 +42,8 @@ export function StarRating({ rating, className, showValue = false, size = 'md' }
     <div className={cn('flex items-center gap-1', className)}>
       <div className="flex">{stars}</div>
       {showValue && (
-        <span className="ml-1 text-sm text-gray-600">
-          {rating.toFixed(1)}
-        </span>
+        <span className="ml-1 text-sm text-gray-600">{rating.toFixed(1)}</span>
       )}
     </div>
   );
-} 
+}

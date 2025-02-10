@@ -1,18 +1,27 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { CompanyWithStats } from '@/types/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui-library/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui-library/card';
 import { Badge } from '@/components/ui-library/badge';
 import { Database } from '@/types/supabase';
 
 interface CompanyCardProps {
   company: Database['public']['Tables']['companies']['Row'];
-  variant?: 'default' | 'shame';
+  variant?: 'default' | 'shame' | 'list';
   onClick?: () => void;
 }
 
-export function CompanyCard({ company, variant = 'default', onClick }: CompanyCardProps) {
+export function CompanyCard({
+  company,
+  variant = 'default',
+  onClick,
+}: CompanyCardProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow" onClick={onClick}>
       <CardHeader>

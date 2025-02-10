@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import type { Database } from '@/types/supabase';
 
 type Company = Database['public']['Tables']['companies']['Row'] & {
@@ -32,7 +32,7 @@ export default function EditCompany() {
     metadata: {
       ceo: '',
       // other metadata fields
-    }
+    },
   });
 
   useEffect(() => {
@@ -44,7 +44,11 @@ export default function EditCompany() {
 
   const fetchCompany = async (id: string) => {
     try {
-      const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single();
 
       if (error) throw error;
 
@@ -56,7 +60,7 @@ export default function EditCompany() {
           description: data.description || '',
           location: data.location || '',
           website: data.website || '',
-          metadata: data.metadata || { ceo: '' }
+          metadata: data.metadata || { ceo: '' },
         });
       }
     } catch (err) {
@@ -89,9 +93,11 @@ export default function EditCompany() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (!params?.id) return <div>Invalid company ID</div>;
@@ -110,7 +116,10 @@ export default function EditCompany() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Company Name
           </label>
           <input
@@ -125,7 +134,10 @@ export default function EditCompany() {
         </div>
 
         <div>
-          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="industry"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Industry
           </label>
           <input
@@ -140,7 +152,10 @@ export default function EditCompany() {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Description
           </label>
           <textarea
@@ -154,7 +169,10 @@ export default function EditCompany() {
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="location"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Location
           </label>
           <input
@@ -168,7 +186,10 @@ export default function EditCompany() {
         </div>
 
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="website"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Website
           </label>
           <input

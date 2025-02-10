@@ -1,6 +1,7 @@
 # Rate My Employer - Unified Project Guide
 
 ## 🚀 Project Structure
+
 ```
 src/
 ├── app/                # Next.js app router
@@ -18,6 +19,7 @@ src/
 ```
 
 ## 🔐 Security Architecture
+
 ```typescript
 // Supabase RLS Policies (from migrations)
 // Companies:
@@ -32,21 +34,31 @@ src/
 ```
 
 ## 🛠️ Core Systems
+
 ```typescript
 // src/lib/supabaseClient.ts
 export const dbQuery = {
   companies: {
-    create: async (data, userId) => { /* ... */ },  // Auto-sets timestamps
-    update: async (id, data) => { /* ... */ }       // Auto-updates timestamp
+    create: async (data, userId) => {
+      /* ... */
+    }, // Auto-sets timestamps
+    update: async (id, data) => {
+      /* ... */
+    }, // Auto-updates timestamp
   },
   reviews: {
-    create: async (data) => { /* ... */ },
-    update: async (id, data, userId) => { /* ... */ } // Owner validation
-  }
+    create: async (data) => {
+      /* ... */
+    },
+    update: async (id, data, userId) => {
+      /* ... */
+    }, // Owner validation
+  },
 };
 ```
 
 ## ✅ Testing Strategy
+
 ```
 Test Coverage Target: 85%
 Current Coverage: 7% (needs improvement)
@@ -60,8 +72,10 @@ Testing Hierarchy:
 ```
 
 ## 📦 Package Management
+
 ```markdown
 # Strict Version Control
+
 - @types/react: 18.2.0
 - @types/react-dom: 18.2.0
 - Supabase JS: ^2.39.8
@@ -69,6 +83,7 @@ Testing Hierarchy:
 ```
 
 ## 🔄 CI/CD Pipeline
+
 ```
 1. Pre-commit Hooks:
    - Type checking
@@ -87,8 +102,9 @@ Testing Hierarchy:
 ```
 
 ## 🗑️ Removed Redundant Content
+
 1. Merged 4 separate test guides into unified testing strategy
 2. Consolidated 3 different environment setup instructions
 3. Removed duplicate security policies (now in Architecture section)
 4. Eliminated overlapping contribution guidelines
-5. Removed deprecated verification_status references 
+5. Removed deprecated verification_status references

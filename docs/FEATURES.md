@@ -3,12 +3,14 @@
 ## Key Features
 
 ### 1. Authentication & Authorization
+
 - Email/password login with Supabase
 - Protected routes and middleware
 - Role-based access control (RBAC)
 - Session management
 
 ### 2. Company Reviews
+
 - Rating system (1-5 stars)
 - Detailed reviews with pros/cons
 - Employment status tracking
@@ -16,6 +18,7 @@
 - Moderation system
 
 ### 3. Company Profiles
+
 - Detailed company information
 - Industry categorization
 - Size classification
@@ -23,6 +26,7 @@
 - Verification system
 
 ### 4. Admin Dashboard
+
 - Review management
 - User management
 - Analytics dashboard
@@ -30,6 +34,7 @@
 - System health monitoring
 
 ### 5. News Integration
+
 - Automated news fetching
 - Company reputation tracking
 - Wall of Shame feature
@@ -38,6 +43,7 @@
 ## 📊 Data Models
 
 ### Company Schema
+
 ```typescript
 {
   name: string;          // 2-100 chars
@@ -51,6 +57,7 @@
 ```
 
 ### Review Schema
+
 ```typescript
 {
   content: string;       // 10-2000 chars
@@ -65,12 +72,14 @@
 ## 🔒 Security Measures
 
 ### Supabase RLS Policies
+
 - Public read access for approved content
 - Authenticated user creation rights
 - Owner-only update/delete permissions
 - Admin override capabilities
 
 ### API Security
+
 - Rate limiting on all endpoints
 - Request validation with Zod
 - CORS configuration
@@ -79,12 +88,14 @@
 ## 📈 Performance Features
 
 ### Frontend Optimization
+
 - Image optimization with next/image
 - Code splitting and lazy loading
 - Client-side caching
 - Progressive web app support
 
 ### Backend Optimization
+
 - Database query optimization
 - Connection pooling
 - Caching strategies
@@ -93,13 +104,15 @@
 ## 🔄 Automated Processes
 
 ### News Fetching
+
 - Runs twice daily (6 AM/PM UTC)
 - Targets lowest-rated companies
 - Uses SerpAPI integration
 - Automated categorization
 
 ### System Maintenance
+
 - Daily health checks
 - Weekly dependency updates
 - Monthly security audits
-- Quarterly performance reviews 
+- Quarterly performance reviews

@@ -1,12 +1,14 @@
 import { supabase } from './supabaseClient';
 
-
 async function checkDatabaseSchema() {
   // Check user metadata and roles
-  const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-  console.log('User metadata test:', { 
-    users: users?.map(u => ({ id: u.id, metadata: u.user_metadata })),
-    error: usersError 
+  const {
+    data: { users },
+    error: usersError,
+  } = await supabase.auth.admin.listUsers();
+  console.log('User metadata test:', {
+    users: users?.map((u) => ({ id: u.id, metadata: u.user_metadata })),
+    error: usersError,
   });
 
   // Check companies table

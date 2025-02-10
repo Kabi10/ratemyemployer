@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Helper function to create Supabase client
 const createClient = () => {
@@ -19,21 +19,30 @@ const createClient = () => {
         },
         async remove(name: string, options: CookieOptions) {
           const cookieStore = await cookies();
-          cookieStore.set({ name, value: '', ...options });
+          cookieStore.delete({ name, ...options });
         },
       },
     }
   );
 };
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(request: NextRequest) {
   const supabase = createClient();
+  const { searchParams } = request.nextUrl;
+  const companyId = searchParams.get('id');
+
+  if (!companyId) {
+    return NextResponse.json(
+      { error: 'Company ID is required' },
+      { status: 400 }
+    );
+  }
 
   try {
     const { data, error } = await supabase
       .from('companies')
       .select('*')
-      .eq('id', params?.id)
+      .eq('id', companyId)
       .single();
 
     if (error) throw error;
@@ -53,18 +62,24 @@ export async function GET(request: Request, { params }: any) {
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   const supabase = createClient();
+  const { searchParams } = request.nextUrl;
+  const companyId = searchParams.get('id');
   const updates = await request.json();
+
+  if (!companyId) {
+    return NextResponse.json(
+      { error: 'Company ID is required' },
+      { status: 400 }
+    );
+  }
 
   try {
     const { data, error } = await supabase
       .from('companies')
       .update(updates)
-      .eq('id', params?.id)
+      .eq('id', companyId)
       .select()
       .single();
 
@@ -85,17 +100,23 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest) {
   const supabase = createClient();
+  const { searchParams } = request.nextUrl;
+  const companyId = searchParams.get('id');
+
+  if (!companyId) {
+    return NextResponse.json(
+      { error: 'Company ID is required' },
+      { status: 400 }
+    );
+  }
 
   try {
     const { error } = await supabase
       .from('companies')
       .delete()
-      .eq('id', params?.id);
+      .eq('id', companyId);
 
     if (error) throw error;
     return NextResponse.json(null, { status: 204 });

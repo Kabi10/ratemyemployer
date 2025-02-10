@@ -20,4 +20,4 @@ export interface JoinedCompany extends Company {
   average_rating?: number;
   total_reviews?: number;
   recommendation_rate?: number;
-} 
+}

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -40,7 +40,8 @@ export function CompanyActions({ company }: CompanyActionsProps) {
       {showAddReview && (
         <div className="fixed inset-0 overflow-hidden z-50">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+            <div
+              className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
               onClick={() => setShowAddReview(false)}
             />
             <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex animate-slide-in-right">
@@ -77,7 +78,7 @@ export function CompanyActions({ company }: CompanyActionsProps) {
                               const { error } = await supabase
                                 .from('reviews')
                                 .insert({ ...data, company_id: company.id });
-                              
+
                               if (error) throw error;
                               return Promise.resolve();
                             } catch (error) {

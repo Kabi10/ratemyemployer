@@ -1,6 +1,5 @@
 import { Loader2 } from 'lucide-react';
 
-
 import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
@@ -20,7 +19,9 @@ export function LoadingSpinner({
   className,
   fullScreen = false,
 }: LoadingSpinnerProps) {
-  const spinner = <Loader2 className={cn('animate-spin', sizeClasses[size], className)} />;
+  const spinner = (
+    <Loader2 className={cn('animate-spin', sizeClasses[size], className)} />
+  );
 
   if (fullScreen) {
     return (

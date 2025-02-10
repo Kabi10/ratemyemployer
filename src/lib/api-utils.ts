@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 import { PostgrestError } from '@supabase/supabase-js';
 
-
 export interface ApiError {
   message: string;
   code?: string;
@@ -11,9 +10,7 @@ export interface ApiError {
 }
 
 export class ApiException extends Error {
-  constructor(
-    public error: ApiError
-  ) {
+  constructor(public error: ApiError) {
     super(error.message);
     this.name = 'ApiException';
   }

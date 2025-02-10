@@ -45,4 +45,4 @@ async function verifyBuild() {
   }
 }
 
-verifyBuild(); 
+verifyBuild();

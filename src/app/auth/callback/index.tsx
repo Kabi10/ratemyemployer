@@ -28,7 +28,9 @@ export default function AuthCallback() {
       }
 
       // Check if we already have a session
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: existingSession },
+      } = await supabase.auth.getSession();
       if (existingSession) {
         console.log('Already have a valid session, redirecting to home');
         router.push('/');
@@ -40,4 +42,4 @@ export default function AuthCallback() {
   }, [router]);
 
   return <div>Loading...</div>;
-} 
+}

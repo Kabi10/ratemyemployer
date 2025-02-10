@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -15,7 +15,9 @@ export default function WallOfFame() {
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
+  const [companyNews, setCompanyNews] = useState<{
+    [key: string]: NewsArticle[];
+  }>({});
 
   useEffect(() => {
     fetchTopCompanies();
@@ -37,7 +39,7 @@ export default function WallOfFame() {
         console.error('Test query error:', {
           code: testError.code,
           message: testError.message,
-          details: testError.details
+          details: testError.details,
         });
         throw testError;
       }
@@ -45,7 +47,8 @@ export default function WallOfFame() {
       // If test succeeds, try the full query
       const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
-        .select(`
+        .select(
+          `
           id,
           name,
           industry,
@@ -60,7 +63,8 @@ export default function WallOfFame() {
             rating,
             status
           )
-        `)
+        `
+        )
         .eq('reviews.status', 'approved');
 
       console.log('Full query response:', { companiesData, companiesError });
@@ -69,7 +73,7 @@ export default function WallOfFame() {
         console.error('Full query error:', {
           code: companiesError.code,
           message: companiesError.message,
-          details: companiesError.details
+          details: companiesError.details,
         });
         throw companiesError;
       }
@@ -82,13 +86,19 @@ export default function WallOfFame() {
 
       // Process companies...
       const processedCompanies = companiesData
-        .map(company => {
-          const reviews = (company.reviews || []).filter(r => r.status === 'approved');
+        .map((company) => {
+          const reviews = (company.reviews || []).filter(
+            (r) => r.status === 'approved'
+          );
           const totalReviews = reviews.length;
-          
-          const averageRating = totalReviews > 0
-            ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / totalReviews
-            : 0;
+
+          const averageRating =
+            totalReviews > 0
+              ? reviews.reduce(
+                  (sum, review) => sum + (Number(review.rating) || 0),
+                  0
+                ) / totalReviews
+              : 0;
 
           return {
             ...company,
@@ -98,18 +108,23 @@ export default function WallOfFame() {
             updated_at: company.updated_at,
           };
         })
-        .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
+        .filter(
+          (company) => company.total_reviews > 0 && company.average_rating > 4.0
+        )
         .sort((a, b) => b.average_rating - a.average_rating)
         .slice(0, 10);
 
-      console.log('Processed companies:', processedCompanies.map(c => ({
-        name: c.name,
-        avgRating: c.average_rating.toFixed(1),
-        totalReviews: c.total_reviews
-      })));
+      console.log(
+        'Processed companies:',
+        processedCompanies.map((c) => ({
+          name: c.name,
+          avgRating: c.average_rating.toFixed(1),
+          totalReviews: c.total_reviews,
+        }))
+      );
 
       setCompanies(processedCompanies);
-      
+
       if (processedCompanies.length > 0) {
         fetchNewsForTopCompanies(processedCompanies);
       }
@@ -139,7 +154,9 @@ export default function WallOfFame() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <h1 className="text-4xl font-bold text-blue-800 mb-8">
+            Wall of Fame
+          </h1>
           <div className="space-y-8">
             <div className="h-32 bg-white/50 rounded-lg animate-pulse"></div>
             <div className="h-32 bg-white/50 rounded-lg animate-pulse"></div>
@@ -153,7 +170,9 @@ export default function WallOfFame() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <h1 className="text-4xl font-bold text-blue-800 mb-8">
+            Wall of Fame
+          </h1>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
             {error}
           </div>
@@ -166,12 +185,17 @@ export default function WallOfFame() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <h1 className="text-4xl font-bold text-blue-800 mb-8">
+            Wall of Fame
+          </h1>
           <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <div className="text-center py-8">
-              <h2 className="text-xl font-semibold text-blue-900 mb-2">No Top-Rated Companies Yet</h2>
+              <h2 className="text-xl font-semibold text-blue-900 mb-2">
+                No Top-Rated Companies Yet
+              </h2>
               <p className="text-blue-700">
-                Companies with an average rating above 4.0 stars will be featured here.
+                Companies with an average rating above 4.0 stars will be
+                featured here.
               </p>
             </div>
           </div>
@@ -185,8 +209,9 @@ export default function WallOfFame() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
         <p className="text-lg text-blue-700 mb-8">
-          Celebrating companies that prioritize employee well-being, maintain excellent workplace practices, 
-          and consistently receive high ratings from their workforce.
+          Celebrating companies that prioritize employee well-being, maintain
+          excellent workplace practices, and consistently receive high ratings
+          from their workforce.
         </p>
 
         <div className="space-y-8">
@@ -200,7 +225,9 @@ export default function WallOfFame() {
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-2xl font-semibold text-blue-900">{company.name}</h2>
+                  <h2 className="text-2xl font-semibold text-blue-900">
+                    {company.name}
+                  </h2>
                   <div className="flex items-center mt-2">
                     <span className="text-lg font-medium text-blue-600">
                       Rating: {company.average_rating.toFixed(1)}
@@ -221,11 +248,17 @@ export default function WallOfFame() {
                     </div>
                   )}
                 </div>
-                <img src={company.logo_url} alt={`${company.name} logo`} className="w-16 h-16 rounded-full" />
+                <img
+                  src={company.logo_url}
+                  alt={`${company.name} logo`}
+                  className="w-16 h-16 rounded-full"
+                />
               </div>
 
               <div className="mt-4">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">Recent News</h3>
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  Recent News
+                </h3>
                 {companyNews[company.name]?.length > 0 ? (
                   <div className="space-y-3">
                     {companyNews[company.name].map((article, idx) => (
@@ -233,12 +266,18 @@ export default function WallOfFame() {
                         key={idx}
                         className="bg-blue-50 border border-blue-100 rounded-md p-4"
                       >
-                        <h4 className="font-medium text-blue-900">{article.title}</h4>
-                        <p className="text-blue-700 mt-1">{article.description}</p>
+                        <h4 className="font-medium text-blue-900">
+                          {article.title}
+                        </h4>
+                        <p className="text-blue-700 mt-1">
+                          {article.description}
+                        </p>
                         <div className="mt-2 text-sm text-blue-600">
                           <span>{article.source.name}</span>
                           <span className="mx-2">•</span>
-                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(article.publishedAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                     ))}

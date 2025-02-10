@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { Providers } from '@/app/providers';
 
@@ -8,13 +8,11 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 
 import ThemeToggle from '@/components/ThemeToggle';
 
-
-
-
-
-
-
-export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
+export default function RootLayoutClient({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <Providers>
       <div className="flex flex-col min-h-screen">

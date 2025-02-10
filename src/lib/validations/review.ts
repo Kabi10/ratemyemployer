@@ -12,7 +12,7 @@ export const reviewSchema = z.object({
   position: z.string().min(2).max(255),
   employment_status: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']),
   is_current_employee: z.boolean(),
-  company_id: z.number()
+  company_id: z.number(),
 });
 
 export type ReviewFormData = z.infer<typeof reviewSchema>;

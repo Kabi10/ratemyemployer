@@ -1,11 +1,24 @@
 import type { Database } from '@/types/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabaseClient';
-import {
-  Company,
-  Review,
-  // ReviewLike,
-} from '@/types';
+import { createClient } from '@supabase/supabase-js';
+import { Company, Review, ReviewLike } from '@/types';
+import { z } from 'zod';
+
+const CompanySchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  industry: z.string().min(2, 'Industry must be specified'),
+  website: z.string().url('Invalid website URL'),
+  description: z.string().min(10, 'Description needs at least 10 characters'),
+});
+
+const ReviewSchema = z.object({
+  company_id: z.number().positive('Invalid company reference'),
+  rating: z.number().int().min(1).max(5, 'Rating must be 1-5 stars'),
+  title: z.string().min(5, 'Title needs at least 5 characters'),
+  content: z.string().min(20, 'Review content must be at least 20 characters'),
+  pros: z.string().min(10, 'Pros list needs at least 10 characters'),
+  cons: z.string().min(10, 'Cons list needs at least 10 characters'),
+});
 
 // Response types
 export interface DatabaseResponse<T> {
@@ -23,8 +36,15 @@ export type DatabaseResult<T> = {
   error: DatabaseError | null;
 };
 
-export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT' | 'RPC' | 'AUTH';
-export type TableName = keyof Database['public']['Tables'];
+export type DatabaseOperation =
+  | 'SELECT'
+  | 'INSERT'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'UPSERT'
+  | 'RPC'
+  | 'AUTH';
+export type TableName = keyof Database['public']['Tables'] | 'review_likes';
 export type ErrorLogDetails = {
   operation: DatabaseOperation;
   table: TableName;
@@ -39,202 +59,426 @@ function ensureNumericId(id: string | number): number {
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+// Define custom types for tables not in Database type
+type ReviewLikeTable = {
+  id: string;
+  user_id: string;
+  review_id: number;
+  liked: boolean;
+  created_at: string;
+};
 
-export async function getCompanies() {
+type ExtendedDatabase = Database & {
+  public: {
+    Tables: {
+      review_likes: {
+        Row: ReviewLikeTable;
+        Insert: Omit<ReviewLikeTable, 'id' | 'created_at'>;
+        Update: Partial<Omit<ReviewLikeTable, 'id' | 'created_at'>>;
+      };
+    };
+  };
+};
+
+export const supabase = createClient(supabaseUrl, supabaseKey) as unknown as ReturnType<typeof createClient>;
+
+export async function getCompanies(): Promise<
+  DatabaseResult<Database['public']['Tables']['companies']['Row'][]>
+> {
   const { data, error } = await supabase
     .from('companies')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select('*') as { data: Company[] | null; error: PostgrestError | null };
 
-  if (error) throw error;
-  return data;
+  if (error) {
+    return { error: handleDatabaseError(error, 'SELECT', 'companies') };
+  }
+
+  return { data: data || [], error: null };
 }
 
-export async function getCompanyById(id: number) {
-  const { data, error } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-export async function getReviewsByCompanyId(companyId: number) {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('company_id', companyId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
-}
-
-export async function getCompany(id: number): Promise<Database['public']['Tables']['companies']['Row'] | null> {
-  const { data, error } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
-  if (error) throw error;
-  return data;
-}
-
-export async function getReviews(companyId?: number) {
+export async function getCompanyById(
+  id: number
+): Promise<DatabaseResult<Database['public']['Tables']['companies']['Row']>> {
   try {
-    const query = supabase
-      .from('reviews')
-      .select('*, company:companies(*)');
-
-    if (companyId) {
-      query.eq('company_id', companyId);
-    }
-
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', id)
+      .single() as { data: Company | null; error: PostgrestError | null };
 
     if (error) {
-      return { error: handleDatabaseError(error, 'SELECT', 'reviews', { company_id: companyId }) };
+      return {
+        error: handleDatabaseError(error, 'SELECT', 'companies', { id }),
+      };
     }
 
-    return { data: data as (Review & { company: Company })[], error: null };
+    return { data, error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'SELECT', 'reviews', { company_id: companyId }) };
+    return { error: handleDatabaseError(error, 'SELECT', 'companies', { id }) };
   }
 }
 
-export async function getReview(id: number) {
+export async function getReviewsByCompanyId(
+  companyId: number
+): Promise<DatabaseResult<Database['public']['Tables']['reviews']['Row'][]>> {
+  try {
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('company_id', companyId) as { data: Review[] | null; error: PostgrestError | null };
+
+    if (error) {
+      return {
+        error: handleDatabaseError(error, 'SELECT', 'reviews', {
+          company_id: companyId,
+        }),
+      };
+    }
+
+    return { data: reviews || [], error: null };
+  } catch (error) {
+    return {
+      error: handleDatabaseError(error, 'SELECT', 'reviews', {
+        company_id: companyId,
+      }),
+    };
+  }
+}
+
+export async function getCompany(
+  id: number
+): Promise<DatabaseResult<Database['public']['Tables']['companies']['Row']>> {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', id)
+      .single() as { data: Company | null; error: PostgrestError | null };
+
+    if (error) {
+      return {
+        error: handleDatabaseError(error, 'SELECT', 'companies', { id }),
+      };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { error: handleDatabaseError(error, 'SELECT', 'companies', { id }) };
+  }
+}
+
+export async function getReviews(
+  companyId?: number
+): Promise<DatabaseResult<Database['public']['Tables']['reviews']['Row'][]>> {
+  try {
+    let query = supabase.from('reviews').select('*') as { data: Review[] | null; error: PostgrestError | null };
+
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data: reviews, error } = await query;
+
+    if (error) {
+      return {
+        error: handleDatabaseError(error, 'SELECT', 'reviews', {
+          company_id: companyId,
+        }),
+      };
+    }
+
+    return { data: reviews || [], error: null };
+  } catch (error) {
+    return {
+      error: handleDatabaseError(error, 'SELECT', 'reviews', {
+        company_id: companyId,
+      }),
+    };
+  }
+}
+
+export async function getReview(
+  id: number
+): Promise<DatabaseResult<Database['public']['Tables']['reviews']['Row']>> {
   try {
     const { data, error } = await supabase
       .from('reviews')
-      .select('*, company:companies(*)')
+      .select('*')
       .eq('id', id)
-      .single();
+      .single() as { data: Review | null; error: PostgrestError | null };
 
     if (error) {
-      return { error: handleDatabaseError(error, 'SELECT', 'reviews', { review_id: id }) };
+      return { error: handleDatabaseError(error, 'SELECT', 'reviews', { id }) };
     }
 
-    return { data: data as Review & { company: Company }, error: null };
+    return { data, error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'SELECT', 'reviews', { review_id: id }) };
+    return { error: handleDatabaseError(error, 'SELECT', 'reviews', { id }) };
   }
 }
 
-export async function getLikes(reviewId: number, userId: string) {
+export async function getLikes(
+  reviewId: number,
+  userId: string
+): Promise<DatabaseResult<ReviewLikeTable>> {
   try {
     const { data, error } = await supabase
       .from('review_likes')
       .select('*')
       .eq('review_id', reviewId)
       .eq('user_id', userId)
-      .single();
+      .single() as { data: ReviewLikeTable | null; error: PostgrestError | null };
 
     if (error) {
-      return { error: handleDatabaseError(error, 'SELECT', 'review_likes', { review_id: reviewId, user_id: userId }) };
+      return {
+        error: handleDatabaseError(error, 'SELECT', 'review_likes', {
+          review_id: reviewId,
+          user_id: userId,
+        }),
+      };
     }
 
-    return { data: data as ReviewLike, error: null };
+    return { data, error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'SELECT', 'review_likes', { review_id: reviewId, user_id: userId }) };
+    return {
+      error: handleDatabaseError(error, 'SELECT', 'review_likes', {
+        review_id: reviewId,
+        user_id: userId,
+      }),
+    };
   }
 }
 
-export async function createLike(data: Omit<ReviewLike, 'id' | 'created_at'>) {
+export async function createLike(
+  data: Omit<ReviewLikeTable, 'id' | 'created_at'>
+): Promise<DatabaseResult<void>> {
   try {
-    const { error } = await supabase
-      .from('review_likes')
-      .insert([{
+    const { error } = await supabase.from('review_likes').insert([
+      {
         review_id: data.review_id,
         user_id: data.user_id,
         liked: data.liked,
-        created_at: new Date().toISOString()
-      }]);
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
-      return { error: handleDatabaseError(error, 'INSERT', 'review_likes', data) };
+      return {
+        error: handleDatabaseError(error, 'INSERT', 'review_likes', data),
+      };
     }
 
     return { error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'INSERT', 'review_likes', data) };
+    return {
+      error: handleDatabaseError(error, 'INSERT', 'review_likes', data),
+    };
   }
 }
 
-export async function updateLike(id: number, data: Partial<Omit<ReviewLike, 'id' | 'created_at'>>) {
+export async function updateLike(
+  id: number,
+  data: Partial<Omit<ReviewLikeTable, 'id' | 'created_at'>>
+): Promise<DatabaseResult<void>> {
   try {
     const { error } = await supabase
       .from('review_likes')
       .update({
         ...data,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       })
       .eq('id', id);
 
     if (error) {
-      return { error: handleDatabaseError(error, 'UPDATE', 'review_likes', { id, ...data }) };
+      return {
+        error: handleDatabaseError(error, 'UPDATE', 'review_likes', {
+          id,
+          ...data,
+        }),
+      };
     }
 
     return { error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'UPDATE', 'review_likes', { id, ...data }) };
+    return {
+      error: handleDatabaseError(error, 'UPDATE', 'review_likes', {
+        id,
+        ...data,
+      }),
+    };
   }
 }
 
-export async function deleteLike(id: number) {
+export async function deleteLike(id: number): Promise<DatabaseResult<void>> {
   try {
-    const { error } = await supabase
-      .from('review_likes')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('review_likes').delete().eq('id', id);
 
     if (error) {
-      return { error: handleDatabaseError(error, 'DELETE', 'review_likes', { id }) };
+      return {
+        error: handleDatabaseError(error, 'DELETE', 'review_likes', { id }),
+      };
     }
 
     return { error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'DELETE', 'review_likes', { id }) };
+    return {
+      error: handleDatabaseError(error, 'DELETE', 'review_likes', { id }),
+    };
   }
 }
 
-export const createCompany = async (data: any) => {
+export const createCompany = async (
+  data: any
+): Promise<
+  DatabaseResult<Database['public']['Tables']['companies']['Row']>
+> => {
   try {
-    const { data: company, error } = await supabase
+    const validatedData = CompanySchema.parse(data);
+    const { data: result, error } = await supabase
       .from('companies')
-      .insert([data]).select();
+      .insert(validatedData)
+      .select()
+      .single() as { data: Company | null; error: PostgrestError | null };
 
     if (error) {
       console.error('Supabase error:', error);
       return { error };
     }
 
-    return { data: company ? company[0] : null, error: null };
+    return { data: result ? result : null, error: null };
   } catch (error) {
     console.error('Create company error:', error);
-    return { 
-      data: null, 
-      error: { 
-        message: error instanceof Error ? error.message : 'Failed to create company' 
-      } 
+    return {
+      data: null,
+      error: {
+        message:
+          error instanceof Error ? error.message : 'Failed to create company',
+      },
     };
   }
 };
 
-export async function updateCompany(id: number, data: any) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+export async function updateCompany(
+  id: number,
+  data: any
+): Promise<DatabaseResult<void>> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError) {
-    return { error: handleDatabaseError(userError, 'AUTH', 'companies', { company_id: id }) };
+    return {
+      error: handleDatabaseError(userError, 'AUTH', 'companies', {
+        company_id: id,
+      }),
+    };
   }
 
   if (!user) {
-    return { error: handleDatabaseError(new Error('User must be authenticated to update a company'), 'AUTH', 'companies', { company_id: id }) };
+    return {
+      error: handleDatabaseError(
+        new Error('User must be authenticated to update a company'),
+        'AUTH',
+        'companies',
+        { company_id: id }
+      ),
+    };
+  }
+
+  try {
+    const validatedData = CompanySchema.partial().parse(data);
+    // Check if user owns the company
+    const { data: existingCompany, error: existingError } = await supabase
+      .from('companies')
+      .select('created_by')
+      .eq('id', id)
+      .single() as { data: Company | null; error: PostgrestError | null };
+
+    if (existingError) {
+      return {
+        error: handleDatabaseError(existingError, 'SELECT', 'companies', {
+          company_id: id,
+        }),
+      };
+    }
+
+    if (!existingCompany) {
+      return {
+        error: handleDatabaseError(
+          new Error('Company not found'),
+          'UPDATE',
+          'companies',
+          { company_id: id }
+        ),
+      };
+    }
+
+    if (existingCompany.created_by !== user.id) {
+      return {
+        error: handleDatabaseError(
+          new Error('You do not have permission to update this company'),
+          'AUTH',
+          'companies',
+          {
+            company_id: id,
+            user_id: user.id,
+            owner_id: existingCompany.created_by,
+          }
+        ),
+      };
+    }
+
+    const { error } = await supabase
+      .from('companies')
+      .update(validatedData)
+      .eq('id', id);
+
+    if (error) {
+      return {
+        error: handleDatabaseError(error, 'UPDATE', 'companies', {
+          company_id: id,
+          update_data: data,
+        }),
+      };
+    }
+
+    return { error: null };
+  } catch (error) {
+    return {
+      error: handleDatabaseError(error, 'UPDATE', 'companies', {
+        company_id: id,
+        update_data: data,
+      }),
+    };
+  }
+}
+
+export async function deleteCompany(id: number): Promise<DatabaseResult<void>> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    return {
+      error: handleDatabaseError(userError, 'AUTH', 'companies', {
+        company_id: id,
+      }),
+    };
+  }
+
+  if (!user) {
+    return {
+      error: handleDatabaseError(
+        new Error('User must be authenticated to delete a company'),
+        'AUTH',
+        'companies',
+        { company_id: id }
+      ),
+    };
   }
 
   try {
@@ -243,107 +487,95 @@ export async function updateCompany(id: number, data: any) {
       .from('companies')
       .select('created_by')
       .eq('id', id)
-      .single();
+      .single() as { data: Company | null; error: PostgrestError | null };
 
     if (existingError) {
-      return { error: handleDatabaseError(existingError, 'SELECT', 'companies', { company_id: id }) };
+      return {
+        error: handleDatabaseError(existingError, 'SELECT', 'companies', {
+          company_id: id,
+        }),
+      };
     }
 
     if (!existingCompany) {
-      return { error: handleDatabaseError(new Error('Company not found'), 'UPDATE', 'companies', { company_id: id }) };
+      return {
+        error: handleDatabaseError(
+          new Error('Company not found'),
+          'DELETE',
+          'companies',
+          { company_id: id }
+        ),
+      };
     }
 
     if (existingCompany.created_by !== user.id) {
-      return { error: handleDatabaseError(new Error('You do not have permission to update this company'), 'AUTH', 'companies', { 
-        company_id: id,
-        user_id: user.id,
-        owner_id: existingCompany.created_by
-      })};
+      return {
+        error: handleDatabaseError(
+          new Error('You do not have permission to delete this company'),
+          'AUTH',
+          'companies',
+          {
+            company_id: id,
+            user_id: user.id,
+            owner_id: existingCompany.created_by,
+          }
+        ),
+      };
     }
 
-    const { error } = await supabase
-      .from('companies')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
+    const { error } = await supabase.from('companies').delete().eq('id', id);
 
     if (error) {
-      return { error: handleDatabaseError(error, 'UPDATE', 'companies', { company_id: id, update_data: data }) };
+      return {
+        error: handleDatabaseError(error, 'DELETE', 'companies', {
+          company_id: id,
+        }),
+      };
     }
 
     return { error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'UPDATE', 'companies', { company_id: id, update_data: data }) };
-  }
-}
-
-export async function deleteCompany(id: number) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  if (userError) {
-    return { error: handleDatabaseError(userError, 'AUTH', 'companies', { company_id: id }) };
-  }
-
-  if (!user) {
-    return { error: handleDatabaseError(new Error('User must be authenticated to delete a company'), 'AUTH', 'companies', { company_id: id }) };
-  }
-
-  try {
-    // Check if user owns the company
-    const { data: existingCompany, error: existingError } = await supabase
-      .from('companies')
-      .select('created_by')
-      .eq('id', id)
-      .single();
-
-    if (existingError) {
-      return { error: handleDatabaseError(existingError, 'SELECT', 'companies', { company_id: id }) };
-    }
-
-    if (!existingCompany) {
-      return { error: handleDatabaseError(new Error('Company not found'), 'DELETE', 'companies', { company_id: id }) };
-    }
-
-    if (existingCompany.created_by !== user.id) {
-      return { error: handleDatabaseError(new Error('You do not have permission to delete this company'), 'AUTH', 'companies', { 
+    return {
+      error: handleDatabaseError(error, 'DELETE', 'companies', {
         company_id: id,
-        user_id: user.id,
-        owner_id: existingCompany.created_by
-      })};
-    }
-
-    const { error } = await supabase
-      .from('companies')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return { error: handleDatabaseError(error, 'DELETE', 'companies', { company_id: id }) };
-    }
-
-    return { error: null };
-  } catch (error) {
-    return { error: handleDatabaseError(error, 'DELETE', 'companies', { company_id: id }) };
+      }),
+    };
   }
 }
 
-export async function createReview(data: any) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+export async function createReview(data: any): Promise<DatabaseResult<void>> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError) {
-    return { error: handleDatabaseError(userError, 'AUTH' as DatabaseOperation, 'reviews', data) };
+    return {
+      error: handleDatabaseError(
+        userError,
+        'AUTH' as DatabaseOperation,
+        'reviews',
+        data
+      ),
+    };
   }
 
   if (!user) {
-    return { error: handleDatabaseError(new Error('User must be authenticated to create a review'), 'AUTH' as DatabaseOperation, 'reviews', data) };
+    return {
+      error: handleDatabaseError(
+        new Error('User must be authenticated to create a review'),
+        'AUTH' as DatabaseOperation,
+        'reviews',
+        data
+      ),
+    };
   }
 
   try {
+    const validatedData = ReviewSchema.parse(data);
     const { error } = await supabase
       .from('reviews')
-      .insert([{ ...data, user_id: user.id }]);
+      .insert([{ ...validatedData, user_id: user.id }]);
 
     if (error) {
       return { error: handleDatabaseError(error, 'INSERT', 'reviews', data) };
@@ -355,37 +587,56 @@ export async function createReview(data: any) {
   }
 }
 
-export async function updateReview(id: number, data: any) {
+export async function updateReview(
+  id: number,
+  data: any
+): Promise<DatabaseResult<void>> {
   try {
-    const { error } = await supabase
+    const validatedData = ReviewSchema.partial().parse(data);
+    const { data: result, error } = await supabase
       .from('reviews')
-      .update(data)
-      .eq('id', id);
+      .update(validatedData)
+      .eq('id', id)
+      .select()
+      .single() as { data: Review | null; error: PostgrestError | null };
 
     if (error) {
-      return { error: handleDatabaseError(error, 'UPDATE', 'reviews', { review_id: id, update_data: data }) };
+      return {
+        error: handleDatabaseError(error, 'UPDATE', 'reviews', {
+          review_id: id,
+          update_data: data,
+        }),
+      };
     }
 
-    return { error: null };
+    return { data: result ? result : null, error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'UPDATE', 'reviews', { review_id: id, update_data: data }) };
+    return {
+      error: handleDatabaseError(error, 'UPDATE', 'reviews', {
+        review_id: id,
+        update_data: data,
+      }),
+    };
   }
 }
 
-export async function deleteReview(id: number) {
+export async function deleteReview(id: number): Promise<DatabaseResult<void>> {
   try {
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
 
     if (error) {
-      return { error: handleDatabaseError(error, 'DELETE', 'reviews', { review_id: id }) };
+      return {
+        error: handleDatabaseError(error, 'DELETE', 'reviews', {
+          review_id: id,
+        }),
+      };
     }
 
     return { error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'DELETE', 'reviews', { review_id: id }) };
+    return {
+      error: handleDatabaseError(error, 'DELETE', 'reviews', { review_id: id }),
+    };
   }
 }
 
@@ -414,14 +665,14 @@ const handleDatabaseError = (
 // Update the error logging functions to use the correct operation type
 export const dbLogError = async (details: ErrorLogDetails) => {
   const { operation, table, error, details: errorDetails, user_id } = details;
-  
+
   try {
     await supabase.from('error_logs').insert({
       error_message: error.message,
       error_code: operation,
       metadata: errorDetails,
       user_id,
-      error_stack: errorDetails?.stack as string
+      error_stack: errorDetails?.stack as string,
     });
   } catch (err) {
     console.error('Failed to log error:', err);

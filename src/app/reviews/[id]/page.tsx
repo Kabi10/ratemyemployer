@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -15,8 +15,12 @@ export const dynamic = 'force-dynamic';
 export default function ReviewPage() {
   const params = useParams();
   const id = params?.id;
-  const { company, loading, error } = useCompany(id as string, { withReviews: true });
-  const review = company?.reviews?.find(r => r.id?.toString() === id) as Review | undefined;
+  const { company, loading, error } = useCompany(id as string, {
+    withReviews: true,
+  });
+  const review = company?.reviews?.find((r) => r.id?.toString() === id) as
+    | Review
+    | undefined;
 
   if (loading) {
     return (
@@ -55,7 +59,9 @@ export default function ReviewPage() {
             {company?.name}
           </Link>
           {review.created_at && (
-            <span className="text-gray-600 dark:text-gray-400 ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+            <span className="text-gray-600 dark:text-gray-400 ml-2">
+              {new Date(review.created_at).toLocaleDateString()}
+            </span>
           )}
         </div>
 
@@ -77,7 +83,9 @@ export default function ReviewPage() {
 
         <div className="prose dark:prose-invert max-w-none">
           <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">{review.title || 'Untitled Review'}</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              {review.title || 'Untitled Review'}
+            </h2>
             <p className="text-gray-700 dark:text-gray-300">{review.content}</p>
           </div>
 
@@ -87,7 +95,9 @@ export default function ReviewPage() {
                 <h3 className="text-lg font-medium text-green-600 dark:text-green-400 mb-2">
                   Pros
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">{review.pros}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {review.pros}
+                </p>
               </div>
             )}
             {review.cons && (
@@ -95,7 +105,9 @@ export default function ReviewPage() {
                 <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
                   Cons
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">{review.cons}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {review.cons}
+                </p>
               </div>
             )}
           </div>

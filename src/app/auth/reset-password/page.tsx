@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,8 +17,10 @@ export default function ResetPasswordPage() {
 
   const validatePassword = (password: string) => {
     if (password.length < 8) return 'Password must be at least 8 characters';
-    if (!/[A-Z]/.test(password)) return 'Password must contain an uppercase letter';
-    if (!/[a-z]/.test(password)) return 'Password must contain a lowercase letter';
+    if (!/[A-Z]/.test(password))
+      return 'Password must contain an uppercase letter';
+    if (!/[a-z]/.test(password))
+      return 'Password must contain a lowercase letter';
     if (!/[0-9]/.test(password)) return 'Password must contain a number';
     return null;
   };
@@ -37,7 +39,7 @@ export default function ResetPasswordPage() {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       });
 
       if (error) throw error;
@@ -48,7 +50,11 @@ export default function ResetPasswordPage() {
       }, 2000);
     } catch (error) {
       console.error('Reset password error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to reset password. Please try again.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to reset password. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -95,16 +101,10 @@ export default function ResetPasswordPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Resetting...' : 'Reset Password'}
             </Button>
           </form>
@@ -112,4 +112,4 @@ export default function ResetPasswordPage() {
       </div>
     </div>
   );
-} 
+}

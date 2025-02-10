@@ -1,7 +1,14 @@
-'use client'
+'use client';
 
 import * as React from 'react';
-import { createContext, useContext, useEffect, useState, type FC, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type FC,
+  type ReactNode,
+} from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -13,12 +20,15 @@ interface AuthContextType {
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{ 
-    error?: Error; 
-    data?: { 
-      user: User | null; 
-      session: Session | null; 
-    }; 
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{
+    error?: Error;
+    data?: {
+      user: User | null;
+      session: Session | null;
+    };
   }>;
   signOut: () => Promise<void>;
 }
@@ -34,20 +44,24 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }: { data: { session: Session | null } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      });
 
     // Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -55,7 +69,9 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           // Check admins table first
           const { data: adminData } = await supabase
@@ -65,8 +81,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             .single();
 
           // Strict check for admin role in metadata
-          const hasAdminRole = 
-            user.user_metadata?.role === 'admin' || 
+          const hasAdminRole =
+            user.user_metadata?.role === 'admin' ||
             user.app_metadata?.role === 'admin';
 
           // Log for debugging
@@ -76,7 +92,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             inAdminsTable: !!adminData,
             userMetadataRole: user.user_metadata?.role,
             appMetadataRole: user.app_metadata?.role,
-            hasAdminRole
+            hasAdminRole,
           });
 
           // User is admin ONLY if they're in admins table
@@ -105,7 +121,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       });
       if (error) throw error;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during sign in');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during sign in'
+      );
     }
   };
 
@@ -114,12 +134,16 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
       if (error) throw error;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during Google sign in');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during Google sign in'
+      );
     }
   };
 
@@ -132,8 +156,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       if (error) throw error;
       return { data };
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during sign up');
-      return { error: error instanceof Error ? error : new Error('An error occurred during sign up') };
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during sign up'
+      );
+      return {
+        error:
+          error instanceof Error
+            ? error
+            : new Error('An error occurred during sign up'),
+      };
     }
   };
 
@@ -142,7 +175,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during sign out');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during sign out'
+      );
     }
   };
 

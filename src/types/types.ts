@@ -1,4 +1,4 @@
-import { Database } from './supabase';
+import { type Database } from './supabase';
 
 // Base types from database
 type Tables = Database['public']['Tables'];
@@ -77,10 +77,17 @@ export const INDUSTRIES = [
   'Other',
 ] as const;
 
-export type Industry = typeof INDUSTRIES[number];
+export type Industry = (typeof INDUSTRIES)[number];
+
+// Add these type definitions
+export type EmploymentStatus = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERN';
+export type CompanySize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'ENTERPRISE' | 'STARTUP';
+export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 // Re-export types from supabase.ts
 export type { Database } from './supabase';
+
+// Utility exports
 
 // Add these type definitions
 declare global {
@@ -97,4 +104,4 @@ declare global {
 
 type HTMLInputElement = globalThis.HTMLInputElement;
 type HTMLTextAreaElement = globalThis.HTMLTextAreaElement;
-type HTMLButtonElement = globalThis.HTMLButtonElement; 
+type HTMLButtonElement = globalThis.HTMLButtonElement;

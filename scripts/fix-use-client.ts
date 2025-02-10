@@ -7,7 +7,11 @@ async function findFiles(dir: string): Promise<string[]> {
 
   for (const entry of entries) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+    if (
+      entry.isDirectory() &&
+      !entry.name.startsWith('.') &&
+      entry.name !== 'node_modules'
+    ) {
       files.push(...(await findFiles(path)));
     } else if (entry.isFile() && /\.(tsx?|jsx?)$/.test(entry.name)) {
       files.push(path);
@@ -19,9 +23,10 @@ async function findFiles(dir: string): Promise<string[]> {
 
 async function fixUseClientDirective(filePath: string): Promise<boolean> {
   const content = await readFile(filePath, 'utf-8');
-  
+
   // Check if file has 'use client' directive
-  const hasUseClient = content.includes("'use client'") || content.includes('"use client"');
+  const hasUseClient =
+    content.includes("'use client'") || content.includes('"use client"');
   if (!hasUseClient) return false;
 
   // Split into lines
@@ -30,16 +35,26 @@ async function fixUseClientDirective(filePath: string): Promise<boolean> {
   // Remove all 'use client' directives and empty lines at the start
   lines = lines.filter((line, index) => {
     const trimmed = line.trim();
-    if (index === 0 && (trimmed === "'use client'" || trimmed === "'use client';")) {
+    if (
+      index === 0 &&
+      (trimmed === "'use client'" || trimmed === "'use client';")
+    ) {
       return true; // Keep the first one if it's at the very top
     }
-    return trimmed !== "'use client'" && trimmed !== "'use client';" && 
-           trimmed !== '"use client"' && trimmed !== '"use client";';
+    return (
+      trimmed !== "'use client'" &&
+      trimmed !== "'use client';" &&
+      trimmed !== '"use client"' &&
+      trimmed !== '"use client";'
+    );
   });
 
   // If the first line isn't 'use client', add it
-  if (lines[0]?.trim() !== "'use client'" && lines[0]?.trim() !== "'use client';") {
-    lines.unshift("'use client';", "");
+  if (
+    lines[0]?.trim() !== "'use client'" &&
+    lines[0]?.trim() !== "'use client';"
+  ) {
+    lines.unshift("'use client';", '');
   }
 
   // Write back to file
@@ -73,4 +88,4 @@ async function main() {
   }
 }
 
-main(); 
+main();

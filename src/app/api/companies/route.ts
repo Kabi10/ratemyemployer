@@ -23,15 +23,15 @@ const createClient = async () => {
         async remove(name: string, options: CookieOptions) {
           const cookieStore = await cookies();
           cookieStore.delete({ name, ...options });
-        }
-      }
+        },
+      },
     }
   );
 };
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = await createClient();
-  const searchParams = new URL(request.url).searchParams;
+  const { searchParams } = request.nextUrl;
   const search = searchParams.get('search');
   const industry = searchParams.get('industry');
   const minRating = searchParams.get('minRating');
@@ -50,11 +50,23 @@ export async function GET(request: Request) {
     query = query.gte('average_rating', minRating);
   }
 
-  const { data, error } = await query;
+  try {
+    const { data, error } = await query;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error('Error fetching companies:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch companies' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error in GET /api/companies:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(data);
 }

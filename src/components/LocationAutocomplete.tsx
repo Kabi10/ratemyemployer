@@ -2,9 +2,7 @@ import { useLoadScript } from '@react-google-maps/api';
 
 import { useEffect, useRef, useState } from 'react';
 
-
 /// <reference types="@types/google.maps" />
-
 
 interface LocationAutocompleteProps {
   value: string;
@@ -88,7 +86,11 @@ export function LocationAutocomplete({
         aria-describedby={error ? 'location-error' : undefined}
       />
       {error && (
-        <p id="location-error" className="mt-1 text-sm text-red-600" role="alert">
+        <p
+          id="location-error"
+          className="mt-1 text-sm text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       )}

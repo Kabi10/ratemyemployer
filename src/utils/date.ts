@@ -1,5 +1,3 @@
-
-
 /**
  * Safely formats a date string or returns a fallback value if the date is invalid
  */
@@ -16,7 +14,7 @@ export function formatDate(
 
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
+
     // Check if date is valid
     if (isNaN(dateObj.getTime())) {
       return fallback;
@@ -29,7 +27,7 @@ export function formatDate(
     return dateObj.toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -50,7 +48,7 @@ function getRelativeTimeString(date: Date): string {
     week: 604800,
     day: 86400,
     hour: 3600,
-    minute: 60
+    minute: 60,
   };
 
   for (const [unit, seconds] of Object.entries(intervals)) {
@@ -75,13 +73,15 @@ export function parseDate(date: string | null | undefined): Date | null {
 /**
  * Formats a date for display in a consistent way across the application
  */
-export function formatDateDisplay(date: string | Date | null | undefined): string {
+export function formatDateDisplay(
+  date: string | Date | null | undefined
+): string {
   if (!date) return 'Date not available';
   const dateObj = typeof date === 'string' ? parseDate(date) : date;
   if (!dateObj) return 'Invalid date';
   return dateObj.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
 }

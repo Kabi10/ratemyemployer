@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 
 import { useState, useEffect } from 'react';
 
@@ -28,7 +27,7 @@ const mapSupabaseUser = (user: SupabaseUser): User => ({
   id: user.id,
   email: user.email || '',
   created_at: user.created_at,
-  app_metadata: user.app_metadata || { role: 'user' }
+  app_metadata: user.app_metadata || { role: 'user' },
 });
 
 export default withAuth(AdminUsers, { requiredRole: 'admin' });
@@ -55,7 +54,10 @@ function AdminUsers() {
 
         setUsers(users || []);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'An error occurred while fetching users';
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'An error occurred while fetching users';
         toast(message, 'error');
         setError(message);
       } finally {
@@ -70,16 +72,18 @@ function AdminUsers() {
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.admin.updateUserById(userId, {
-        user_metadata: { role: newRole }
+        user_metadata: { role: newRole },
       });
 
       if (error) throw error;
 
-      setUsers(users.map(u => 
-        u.id === userId 
-          ? { ...u, app_metadata: { ...u.app_metadata, role: newRole } }
-          : u
-      ));
+      setUsers(
+        users.map((u) =>
+          u.id === userId
+            ? { ...u, app_metadata: { ...u.app_metadata, role: newRole } }
+            : u
+        )
+      );
 
       toast('User role updated successfully', 'success');
     } catch (err) {
@@ -128,13 +132,13 @@ function AdminUsers() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {users.map(u => (
+            {users.map((u) => (
               <tr key={u.id}>
                 <td className="px-6 py-4 whitespace-nowrap">{u.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <select
                     value={u.app_metadata?.role || 'user'}
-                    onChange={e => handleRoleChange(u.id, e.target.value)}
+                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
                     className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                   >
                     <option value="user">User</option>

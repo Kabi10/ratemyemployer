@@ -20,7 +20,10 @@ export function Navbar(): JSX.Element {
     <nav className="bg-white shadow-md dark:bg-gray-900 sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-400">
+          <Link
+            href="/"
+            className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-400"
+          >
             RME
           </Link>
           <div className="hidden md:flex items-center space-x-8">
@@ -36,14 +39,14 @@ export function Navbar(): JSX.Element {
             >
               Reviews
             </Link>
-            <Link 
-              href="/shame" 
+            <Link
+              href="/shame"
               className="text-lg text-gray-700 hover:text-red-600 dark:text-gray-200 dark:hover:text-red-400 transition-colors"
             >
               Wall of Shame
             </Link>
-            <Link 
-              href="/fame" 
+            <Link
+              href="/fame"
               className="text-lg text-gray-700 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400 transition-colors"
             >
               Wall of Fame
@@ -111,11 +114,15 @@ export function Navbar(): JSX.Element {
               </Link>
             )}
           </div>
-          <button 
-            className="md:hidden p-2 text-gray-700 dark:text-gray-200" 
+          <button
+            className="md:hidden p-2 text-gray-700 dark:text-gray-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+            {isMenuOpen ? (
+              <X className="h-7 w-7" />
+            ) : (
+              <Menu className="h-7 w-7" />
+            )}
           </button>
         </div>
       </div>

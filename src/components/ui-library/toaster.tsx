@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Toast,
@@ -7,17 +7,20 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "./toast"
-import { useToast } from "./use-toast"
-import type { ToasterToast } from "./use-toast"
+} from './toast';
+import { useToast } from './use-toast';
+import type { ToasterToast } from './use-toast';
 
 interface ToasterProps {
-  position?: "top-right" | "bottom-right" | "top-left" | "bottom-left";
+  position?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
   duration?: number;
 }
 
-export function Toaster({ position = "top-right", duration = 3000 }: ToasterProps) {
-  const { toasts } = useToast()
+export function Toaster({
+  position = 'top-right',
+  duration = 3000,
+}: ToasterProps) {
+  const { toasts } = useToast();
 
   return (
     <ToastProvider>
@@ -33,5 +36,5 @@ export function Toaster({ position = "top-right", duration = 3000 }: ToasterProp
         </Toast>
       ))}
     </ToastProvider>
-  )
-} 
+  );
+}

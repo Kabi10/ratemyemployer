@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 
 import { MonthlyReview } from '@/types';
 import { useState, useEffect } from 'react';
@@ -45,25 +44,34 @@ function formatDate(dateString: string | null): string {
 }
 
 function calculateAverageRating(reviews: Review[]): number {
-  const validReviews = reviews.filter((review): review is Review & { rating: number } => 
-    typeof review.rating === 'number'
+  const validReviews = reviews.filter(
+    (review): review is Review & { rating: number } =>
+      typeof review.rating === 'number'
   );
   if (validReviews.length === 0) return 0;
-  return validReviews.reduce((acc, curr) => acc + curr.rating, 0) / validReviews.length;
+  return (
+    validReviews.reduce((acc, curr) => acc + curr.rating, 0) /
+    validReviews.length
+  );
 }
 
-function isValidReview(review: Review): review is Review & { rating: number; created_at: string } {
-  return typeof review.rating === 'number' && typeof review.created_at === 'string';
+function isValidReview(
+  review: Review
+): review is Review & { rating: number; created_at: string } {
+  return (
+    typeof review.rating === 'number' && typeof review.created_at === 'string'
+  );
 }
 
 function processMonthlyData(reviews: Review[]): MonthlyReview[] {
   const monthlyData: { [key: string]: MonthlyReview } = {};
 
   reviews
-    .filter((review): review is Review & { rating: number } => 
-      typeof review.rating === 'number' && review.created_at !== null
+    .filter(
+      (review): review is Review & { rating: number } =>
+        typeof review.rating === 'number' && review.created_at !== null
     )
-    .forEach(review => {
+    .forEach((review) => {
       const month = new Date(review.created_at!).toLocaleString('default', {
         month: 'long',
         year: 'numeric',
@@ -72,7 +80,8 @@ function processMonthlyData(reviews: Review[]): MonthlyReview[] {
       if (monthlyData[month]) {
         monthlyData[month].totalReviews++;
         monthlyData[month].totalRating += review.rating;
-        monthlyData[month].averageRating = monthlyData[month].totalRating / monthlyData[month].totalReviews;
+        monthlyData[month].averageRating =
+          monthlyData[month].totalRating / monthlyData[month].totalReviews;
       } else {
         monthlyData[month] = {
           month,
@@ -86,11 +95,14 @@ function processMonthlyData(reviews: Review[]): MonthlyReview[] {
   return Object.values(monthlyData);
 }
 
-function calculateTotalStats(reviews: { rating: number | null }[]): { totalReviews: number; averageRating: number } {
-  const validReviews = reviews.filter((review): review is { rating: number } => 
-    typeof review.rating === 'number'
+function calculateTotalStats(reviews: { rating: number | null }[]): {
+  totalReviews: number;
+  averageRating: number;
+} {
+  const validReviews = reviews.filter(
+    (review): review is { rating: number } => typeof review.rating === 'number'
   );
-  
+
   if (validReviews.length === 0) {
     return { totalReviews: 0, averageRating: 0 };
   }
@@ -132,7 +144,7 @@ export default function AdminAnalytics() {
         // Calculate rating distribution
         const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
           rating: i + 1,
-          count: totalData.filter(r => r.rating === i + 1).length,
+          count: totalData.filter((r) => r.rating === i + 1).length,
         }));
 
         setAnalytics({
@@ -188,11 +200,15 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Total Reviews</h3>
-          <p className="text-3xl font-bold text-blue-600">{analytics.totalReviews}</p>
+          <p className="text-3xl font-bold text-blue-600">
+            {analytics.totalReviews}
+          </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Average Rating</h3>
-          <p className="text-3xl font-bold text-green-600">{analytics.averageRating.toFixed(1)}</p>
+          <p className="text-3xl font-bold text-green-600">
+            {analytics.averageRating.toFixed(1)}
+          </p>
         </div>
       </div>
 
@@ -207,7 +223,12 @@ export default function AdminAnalytics() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="count" stroke="#3B82F6" name="Number of Reviews" />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#3B82F6"
+                  name="Number of Reviews"
+                />
                 <Line
                   type="monotone"
                   dataKey="averageRating"

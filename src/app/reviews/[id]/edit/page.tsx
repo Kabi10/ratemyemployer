@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -13,7 +13,7 @@ type Review = Database['public']['Tables']['reviews']['Row'];
 export default function EditReview() {
   const params = useParams() as { id: string };
   const id = parseInt(params.id);
-  
+
   if (isNaN(id)) {
     return <div>Invalid review ID</div>;
   }
@@ -39,7 +39,8 @@ export default function EditReview() {
         company_id: data.company_id,
         title: data.title || '',
         content: data.content || '',
-        rating: (data.rating !== null && data.rating !== undefined) ? data.rating : 0,
+        rating:
+          data.rating !== null && data.rating !== undefined ? data.rating : 0,
         pros: data.pros || '',
         cons: data.cons || '',
         employment_status: data.employment_status || 'Full-time',
@@ -81,7 +82,9 @@ export default function EditReview() {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error || 'Review not found'}</p>
+          <p className="text-red-700 dark:text-red-200">
+            {error || 'Review not found'}
+          </p>
         </div>
       </div>
     );
@@ -98,7 +101,12 @@ export default function EditReview() {
           pros: review.pros || '',
           cons: review.cons || '',
           position: review.position || '',
-          employment_status: (review.employment_status as "Full-time" | "Part-time" | "Contract" | "Intern") || undefined,
+          employment_status:
+            (review.employment_status as
+              | 'Full-time'
+              | 'Part-time'
+              | 'Contract'
+              | 'Intern') || undefined,
           is_current_employee: review.is_current_employee || false,
           reviewer_email: review.reviewer_email || '',
           reviewer_name: review.reviewer_name || '',

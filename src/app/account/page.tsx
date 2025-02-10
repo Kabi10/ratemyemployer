@@ -1,29 +1,31 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
-import { toast } from 'sonner'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 
 export default function AccountPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [reviews, setReviews] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/auth/login')
-        return
+        router.push('/auth/login');
+        return;
       }
-      setUser(user)
-      fetchUserReviews(user.id)
-    }
+      setUser(user);
+      fetchUserReviews(user.id);
+    };
 
-    checkUser()
-  }, [router])
+    checkUser();
+  }, [router]);
 
   const fetchUserReviews = async (userId: string) => {
     try {
@@ -31,17 +33,17 @@ export default function AccountPage() {
         .from('reviews')
         .select('*, companies(*)')
         .eq('reviewer_id', userId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
-      if (error) throw error
-      setReviews(data || [])
+      if (error) throw error;
+      setReviews(data || []);
     } catch (error) {
-      console.error('Error fetching reviews:', error)
-      toast.error('Failed to fetch your reviews')
+      console.error('Error fetching reviews:', error);
+      toast.error('Failed to fetch your reviews');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDeleteReview = async (reviewId: number) => {
     try {
@@ -49,30 +51,30 @@ export default function AccountPage() {
         .from('reviews')
         .delete()
         .eq('id', reviewId)
-        .eq('reviewer_id', user.id) // Extra safety check
+        .eq('reviewer_id', user.id); // Extra safety check
 
-      if (error) throw error
+      if (error) throw error;
 
-      setReviews(reviews.filter(review => review.id !== reviewId))
-      toast.success('Review deleted successfully')
+      setReviews(reviews.filter((review) => review.id !== reviewId));
+      toast.success('Review deleted successfully');
     } catch (error) {
-      console.error('Error deleting review:', error)
-      toast.error('Failed to delete review')
+      console.error('Error deleting review:', error);
+      toast.error('Failed to delete review');
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Your Reviews</h1>
-      
+
       {reviews.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600">You haven't written any reviews yet.</p>
@@ -109,7 +111,7 @@ export default function AccountPage() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <h4 className="font-medium text-gray-900">{review.title}</h4>
                 <div className="mt-2 space-y-4">
@@ -132,5 +134,5 @@ export default function AccountPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

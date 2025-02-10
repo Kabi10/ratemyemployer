@@ -19,6 +19,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config, { isServer }) => {
+    // Test edit
     // Add alias for '@' to point to 'src' directory
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
@@ -33,4 +34,4 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-module.exports = withBundleAnalyzer(nextConfig); 
+module.exports = withBundleAnalyzer(nextConfig);

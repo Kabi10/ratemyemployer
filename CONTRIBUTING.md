@@ -5,6 +5,7 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 ## Development Setup
 
 ### Prerequisites
+
 - Node.js >= 18.17.0
 - npm or yarn
 - Git
@@ -13,6 +14,7 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 - Google Maps API key (optional)
 
 ### Environment Setup
+
 1. Fork the repository
 2. Clone your fork:
    ```bash
@@ -31,11 +33,13 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 ## Development Workflow
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -43,6 +47,7 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 3. Make your changes following our guidelines
 
 4. Run tests:
+
    ```bash
    npm run test:all
    ```
@@ -60,6 +65,7 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 - Follow the existing code structure
 
 ### Component Guidelines
+
 - Use TypeScript for all new code
 - Implement proper error handling
 - Add appropriate loading states
@@ -70,6 +76,7 @@ Thank you for your interest in contributing to RateMyEmployer! This document pro
 ## Testing Requirements
 
 All new code should include:
+
 - Unit tests (Vitest)
 - Integration tests where appropriate
 - E2E tests for critical paths (Playwright)
@@ -85,22 +92,27 @@ All new code should include:
 5. Submit PR with detailed description
 
 ### PR Description Template
+
 ```markdown
 ## Description
+
 [Describe your changes]
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] E2E tests added/updated
 - [ ] Manual testing performed
 
 ## Checklist
+
 - [ ] My code follows the style guidelines
 - [ ] I have performed a self-review
 - [ ] I have updated the documentation
@@ -161,9 +173,11 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 5. Add unit tests for any new code
 
 ## Any Contributions You Make Will Be Under the MIT Software License
+
 In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
 
 ## Report Bugs Using GitHub's [Issue Tracker](https://github.com/yourusername/ratemyemployer/issues)
+
 We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/yourusername/ratemyemployer/issues/new).
 
 ### Write Bug Reports with Detail, Background, and Sample Code
@@ -180,20 +194,22 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 ## Use a Consistent Coding Style
 
-* Use TypeScript for all new code
-* 2 spaces for indentation rather than tabs
-* Use descriptive variable names
-* Comment your code when necessary
-* Follow the existing code style
+- Use TypeScript for all new code
+- 2 spaces for indentation rather than tabs
+- Use descriptive variable names
+- Comment your code when necessary
+- Follow the existing code style
 
 ## Code Review Process
 
 The core team looks at Pull Requests on a regular basis. After feedback has been given we expect responses within two weeks. After two weeks we may close the PR if it isn't showing any activity.
 
 ## Community
+
 - Join our [Discord channel](link-to-discord)
 - Follow us on [Twitter](link-to-twitter)
 - Read our [Blog](link-to-blog)
 
 ## References
-This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md). 
+
+This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md).

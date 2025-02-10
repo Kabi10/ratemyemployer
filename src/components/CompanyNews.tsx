@@ -36,8 +36,8 @@ export function CompanyNews({ companyName }: CompanyNewsProps) {
   return (
     <div className="space-y-4">
       {news.map((article, index) => (
-        <article 
-          key={index} 
+        <article
+          key={index}
           className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
         >
           <h3 className="font-semibold text-lg mb-2 text-red-700 dark:text-red-400">
@@ -50,7 +50,10 @@ export function CompanyNews({ companyName }: CompanyNewsProps) {
           )}
           <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
             <span className="font-medium">{article.source.name}</span>
-            <time dateTime={article.publishedAt} className="text-red-600 dark:text-red-400">
+            <time
+              dateTime={article.publishedAt}
+              className="text-red-600 dark:text-red-400"
+            >
               {new Date(article.publishedAt).toLocaleDateString()}
             </time>
           </div>

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { useState } from 'react';
@@ -14,24 +14,16 @@ import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { Button } from '@/components/ui-library/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui-library/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui-library/card';
 import { Input } from '@/components/ui-library/input';
 import { Label } from '@/components/ui-library/label';
 
 import { AuthError as CustomAuthError } from '@/types/auth';
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -49,8 +41,10 @@ export default function Auth() {
   // Password validation function
   const validatePassword = (password: string) => {
     if (password.length < 8) return 'Password must be at least 8 characters';
-    if (!/[A-Z]/.test(password)) return 'Password must contain an uppercase letter';
-    if (!/[a-z]/.test(password)) return 'Password must contain a lowercase letter';
+    if (!/[A-Z]/.test(password))
+      return 'Password must contain an uppercase letter';
+    if (!/[a-z]/.test(password))
+      return 'Password must contain a lowercase letter';
     if (!/[0-9]/.test(password)) return 'Password must contain a number';
     return null;
   };
@@ -73,7 +67,11 @@ export default function Auth() {
       setResetEmailSent(true);
     } catch (error) {
       console.error('Reset password error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to send reset email. Please try again.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to send reset email. Please try again.'
+      );
     }
   };
 
@@ -90,12 +88,14 @@ export default function Auth() {
         }
 
         const { data, error } = await signUp(email, password);
-        
+
         console.log('Signup response:', { data, error });
-        
+
         if (error) {
           if (error.message === 'Email address already taken') {
-            setError('An account with this email already exists. Please sign in instead.');
+            setError(
+              'An account with this email already exists. Please sign in instead.'
+            );
             setIsSignUp(false);
             return;
           }
@@ -114,11 +114,20 @@ export default function Auth() {
           router.push('/');
         } catch (error) {
           console.error('Sign in error:', error);
-          if (error instanceof AuthError || (error as CustomAuthError).message) {
+          if (
+            error instanceof AuthError ||
+            (error as CustomAuthError).message
+          ) {
             const authError = error as AuthError | CustomAuthError;
-            if (authError.message?.toLowerCase().includes('invalid login credentials')) {
+            if (
+              authError.message
+                ?.toLowerCase()
+                .includes('invalid login credentials')
+            ) {
               setError('Invalid email or password. Please try again.');
-            } else if (authError.message?.toLowerCase().includes('email not confirmed')) {
+            } else if (
+              authError.message?.toLowerCase().includes('email not confirmed')
+            ) {
               setError('Please confirm your email address before signing in.');
             } else {
               setError(authError.message);
@@ -152,8 +161,12 @@ export default function Auth() {
           <CardTitle>Check Your Email</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p>We&apos;ve sent a password reset link to <strong>{email}</strong></p>
-          <p>Please check your email and click the link to reset your password.</p>
+          <p>
+            We&apos;ve sent a password reset link to <strong>{email}</strong>
+          </p>
+          <p>
+            Please check your email and click the link to reset your password.
+          </p>
           <p className="text-sm text-muted-foreground">
             Can&apos;t find the email? Check your spam folder or{' '}
             <Button
@@ -216,8 +229,13 @@ export default function Auth() {
           <CardTitle>Check Your Email</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p>We&apos;ve sent a confirmation link to <strong>{email}</strong></p>
-          <p>Please check your email and click the link to complete your registration.</p>
+          <p>
+            We&apos;ve sent a confirmation link to <strong>{email}</strong>
+          </p>
+          <p>
+            Please check your email and click the link to complete your
+            registration.
+          </p>
           <p className="text-sm text-muted-foreground">
             Can&apos;t find the email? Check your spam folder or{' '}
             <Button
@@ -236,7 +254,9 @@ export default function Auth() {
   return (
     <Card className="max-w-md mx-auto mt-8">
       <CardHeader>
-        <CardTitle className="text-center">{isSignUp ? 'Sign Up' : 'Sign In'}</CardTitle>
+        <CardTitle className="text-center">
+          {isSignUp ? 'Sign Up' : 'Sign In'}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAuth} className="space-y-4">
@@ -288,7 +308,11 @@ export default function Auth() {
                 className="absolute right-0 top-0 h-full px-3"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </Button>
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
@@ -302,7 +326,9 @@ export default function Auth() {
             className="w-full"
             onClick={handleModeSwitch}
           >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            {isSignUp
+              ? 'Already have an account? Sign In'
+              : "Don't have an account? Sign Up"}
           </Button>
         </form>
       </CardContent>

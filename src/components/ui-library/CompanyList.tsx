@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem
+  SelectItem,
 } from '@/components/ui-library/select';
 import { Button } from '@/components/ui-library/button';
 import { GridIcon, ListIcon } from 'lucide-react';
@@ -28,11 +28,36 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: 'Highest Rated', value: 'rating-desc', column: 'average_rating', direction: 'desc' },
-  { label: 'Lowest Rated', value: 'rating-asc', column: 'average_rating', direction: 'asc' },
-  { label: 'Most Reviews', value: 'reviews-desc', column: 'total_reviews', direction: 'desc' },
-  { label: 'Newest', value: 'created-desc', column: 'created_at', direction: 'desc' },
-  { label: 'Oldest', value: 'created-asc', column: 'created_at', direction: 'asc' },
+  {
+    label: 'Highest Rated',
+    value: 'rating-desc',
+    column: 'average_rating',
+    direction: 'desc',
+  },
+  {
+    label: 'Lowest Rated',
+    value: 'rating-asc',
+    column: 'average_rating',
+    direction: 'asc',
+  },
+  {
+    label: 'Most Reviews',
+    value: 'reviews-desc',
+    column: 'total_reviews',
+    direction: 'desc',
+  },
+  {
+    label: 'Newest',
+    value: 'created-desc',
+    column: 'created_at',
+    direction: 'desc',
+  },
+  {
+    label: 'Oldest',
+    value: 'created-asc',
+    column: 'created_at',
+    direction: 'asc',
+  },
   { label: 'Name A-Z', value: 'name-asc', column: 'name', direction: 'asc' },
   { label: 'Name Z-A', value: 'name-desc', column: 'name', direction: 'desc' },
 ];
@@ -64,12 +89,14 @@ export function CompanyList({
   searchQuery,
   companies: initialCompanies = [],
   onCompanyClick,
-  simple = false
+  simple = false,
 }: CompanyListProps) {
   const [page, setPage] = useState(1);
   const [sortOption, setSortOption] = useState<SortOption>(SORT_OPTIONS[0]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filteredCompanies, setFilteredCompanies] = useState<CompanyWithStats[]>(initialCompanies || []);
+  const [filteredCompanies, setFilteredCompanies] = useState<
+    CompanyWithStats[]
+  >(initialCompanies || []);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -77,7 +104,7 @@ export function CompanyList({
   if (simple) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {(initialCompanies || []).map(company => (
+        {(initialCompanies || []).map((company) => (
           <CompanyCard key={company.id} company={company} />
         ))}
       </div>
@@ -93,11 +120,13 @@ export function CompanyList({
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        
+
         setFilteredCompanies(data || []);
         setIsLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch companies'));
+        setError(
+          err instanceof Error ? err : new Error('Failed to fetch companies')
+        );
         setIsLoading(false);
       }
     };
@@ -121,21 +150,23 @@ export function CompanyList({
     let filtered = [...(initialCompanies || [])];
 
     if (selectedLocation) {
-      filtered = filtered.filter(company => 
+      filtered = filtered.filter((company) =>
         company.location?.toLowerCase().includes(selectedLocation.toLowerCase())
       );
     }
 
     if (selectedIndustry) {
-      filtered = filtered.filter(company => 
-        company.industry?.toLowerCase() === selectedIndustry.toLowerCase()
+      filtered = filtered.filter(
+        (company) =>
+          company.industry?.toLowerCase() === selectedIndustry.toLowerCase()
       );
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        company.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (company) =>
+          company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          company.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -153,7 +184,14 @@ export function CompanyList({
     if (JSON.stringify(filtered) !== JSON.stringify(filteredCompanies)) {
       setFilteredCompanies(filtered);
     }
-  }, [initialCompanies, selectedLocation, selectedIndustry, searchQuery, sortOption, filteredCompanies]);
+  }, [
+    initialCompanies,
+    selectedLocation,
+    selectedIndustry,
+    searchQuery,
+    sortOption,
+    filteredCompanies,
+  ]);
 
   const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
   const paginatedCompanies = filteredCompanies.slice(
@@ -161,13 +199,16 @@ export function CompanyList({
     page * ITEMS_PER_PAGE
   );
 
-  const handleCompanyClick = useCallback((company: CompanyWithStats) => {
-    if (onCompanyClick) {
-      onCompanyClick(company);
-    } else {
-      router.push(`/companies/${company.id}`);
-    }
-  }, [onCompanyClick, router]);
+  const handleCompanyClick = useCallback(
+    (company: CompanyWithStats) => {
+      if (onCompanyClick) {
+        onCompanyClick(company);
+      } else {
+        router.push(`/companies/${company.id}`);
+      }
+    },
+    [onCompanyClick, router]
+  );
 
   if (filteredCompanies.length === 0) {
     return <div>No companies found.</div>;
@@ -181,7 +222,7 @@ export function CompanyList({
           <Select
             value={sortOption.value}
             onValueChange={(value) => {
-              const newOption = SORT_OPTIONS.find(opt => opt.value === value);
+              const newOption = SORT_OPTIONS.find((opt) => opt.value === value);
               if (newOption) setSortOption(newOption);
             }}
           >
@@ -189,7 +230,7 @@ export function CompanyList({
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
-              {SORT_OPTIONS.map(option => (
+              {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -217,7 +258,7 @@ export function CompanyList({
 
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedCompanies.map(company => (
+            {paginatedCompanies.map((company) => (
               <CompanyCard
                 key={company.id}
                 company={company}
@@ -260,4 +301,4 @@ export function CompanyList({
 
 CompanyList.defaultProps = {
   initialCompanies: [],
-}; 
+};

@@ -15,7 +15,7 @@ export default function HomePage() {
       <section className="relative h-screen min-h-[400px] flex items-center justify-center">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
           <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}

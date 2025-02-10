@@ -1,27 +1,49 @@
 import { z } from 'zod';
-import type { CompanySize, EmploymentStatus, ReviewStatus } from '@/types/database';
+import type {
+  CompanySize,
+  EmploymentStatus,
+  ReviewStatus,
+} from '@/types/types';
 
 // URL validation regex
 const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
 
 // Enums
-export const employmentStatusEnum = z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']) satisfies z.ZodType<EmploymentStatus>;
-export const reviewStatusEnum = z.enum(['pending', 'approved', 'rejected']) satisfies z.ZodType<ReviewStatus>;
-export const companySizeEnum = z.enum(['Small', 'Medium', 'Large', 'Enterprise', 'Startup']) satisfies z.ZodType<CompanySize>;
-export const rateLimitTypeEnum = z.enum(['ip', 'user']);
+export const EmploymentStatusSchema = z.enum([
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'INTERN',
+]);
+export const ReviewStatusSchema = z.enum([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+]);
+export const CompanySizeSchema = z.enum([
+  'SMALL',
+  'MEDIUM',
+  'LARGE',
+  'ENTERPRISE',
+  'STARTUP',
+]);
+export const RateLimitTypeSchema = z.enum(['IP', 'USER']);
 
 // URL validation regex (matches our database constraint)
-const urlRegex = /^https?:\/\/([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
+const urlRegex =
+  /^https?:\/\/([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
 
 // Validation Messages
 export const ERROR_MESSAGES = {
   required: 'This field is required',
   email: 'Please enter a valid email address',
   url: 'Please enter a valid website URL',
-  min: (field: string, length: number) => `${field} must be at least ${length} characters`,
-  max: (field: string, length: number) => `${field} must be less than ${length} characters`,
+  min: (field: string, length: number) =>
+    `${field} must be at least ${length} characters`,
+  max: (field: string, length: number) =>
+    `${field} must be less than ${length} characters`,
   rating: 'Rating must be between 1 and 5 stars',
-  invalidEnum: (field: string, options: readonly string[]) => 
+  invalidEnum: (field: string, options: readonly string[]) =>
     `${field} must be one of: ${options.join(', ')}`,
   name: 'Company name must be between 2 and 100 characters',
   website: 'Please enter a valid URL',
@@ -29,38 +51,53 @@ export const ERROR_MESSAGES = {
   location: 'Location must be between 2 and 150 characters',
   title: 'Title must be between 3 and 255 characters',
   content: 'Review must be at least 10 characters',
-  position: 'Position must be between 2 and 255 characters'
+  position: 'Position must be between 2 and 255 characters',
 };
 
 // Company schema
 export const companySchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(2, 'Company name must be between 2 and 100 characters')
     .max(100, 'Company name must be less than 100 characters')
-    .transform(val => val.trim()),
-  industry: z.enum(["Technology", "Healthcare", "Education", "Finance", "Manufacturing", "Retail", "Other"]),
-  location: z.string()
+    .transform((val) => val.trim()),
+  industry: z.enum([
+    'Technology',
+    'Healthcare',
+    'Education',
+    'Finance',
+    'Manufacturing',
+    'Retail',
+    'Other',
+  ]),
+  location: z
+    .string()
     .min(1, 'Location is required')
     .max(100, 'Location must be less than 100 characters'),
-  website: z.string()
+  website: z
+    .string()
     .max(255, 'Website URL must be less than 255 characters')
     .regex(URL_REGEX, 'Invalid website URL')
     .optional()
     .nullable(),
-  size: companySizeEnum.optional().nullable(),
-  ceo: z.string()
+  size: CompanySizeSchema.optional().nullable(),
+  ceo: z
+    .string()
     .max(100, 'CEO name must be less than 100 characters')
     .optional()
     .nullable(),
-  benefits: z.string()
+  benefits: z
+    .string()
     .max(1000, 'Benefits description must be less than 1000 characters')
     .optional()
     .nullable(),
-  company_values: z.string()
+  company_values: z
+    .string()
     .max(1000, 'Company values must be less than 1000 characters')
     .optional()
     .nullable(),
-  logo_url: z.string()
+  logo_url: z
+    .string()
     .regex(URL_REGEX, 'Invalid logo URL')
     .max(255, 'Logo URL must be less than 255 characters')
     .optional()
@@ -76,9 +113,9 @@ export const reviewSchema = z.object({
   pros: z.string().min(10),
   cons: z.string().min(10),
   position: z.string().min(2).max(100),
-  employment_status: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']),
+  employment_status: EmploymentStatusSchema,
   is_current_employee: z.boolean(),
-  status: z.enum(['pending', 'approved', 'rejected']).default('pending')
+  status: ReviewStatusSchema.default('PENDING'),
 });
 
 // Validation Utilities

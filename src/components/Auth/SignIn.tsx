@@ -21,7 +21,11 @@ export function SignIn() {
       await signIn(email, password);
       router.push('/');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during sign in');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during sign in'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +39,11 @@ export function SignIn() {
       await signInWithGoogle();
       // The redirect will be handled by the callback page
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during Google sign in');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred during Google sign in'
+      );
       setIsLoading(false);
     }
   };
@@ -131,4 +139,4 @@ export function SignIn() {
       </div>
     </div>
   );
-} 
+}

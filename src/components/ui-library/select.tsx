@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 
 import * as React from 'react';
 
@@ -35,7 +34,11 @@ const SelectValue = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Value>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Value>
 >(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Value ref={ref} className={cn('text-sm', className)} {...props}>
+  <SelectPrimitive.Value
+    ref={ref}
+    className={cn('text-sm', className)}
+    {...props}
+  >
     {children}
   </SelectPrimitive.Value>
 ));
@@ -110,11 +113,7 @@ const SelectGroup = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Group>
 >(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Group
-    ref={ref}
-    className={cn('', className)}
-    {...props}
-  >
+  <SelectPrimitive.Group ref={ref} className={cn('', className)} {...props}>
     {children}
   </SelectPrimitive.Group>
 ));

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { useState, useEffect } from 'react';
@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { LoadingSpinner } from '@/components/ui-library/loading-spinner';
 import { Database } from '@/types/supabase';
 import { ReviewList } from '@/components/ReviewList';
@@ -24,20 +24,22 @@ function ReviewsList() {
     async function fetchReviews() {
       try {
         console.log('Fetching reviews...');
-        
+
         const { data, error } = await supabase
           .from('reviews')
-          .select(`
+          .select(
+            `
             *,
             company:company_id (
               id,
               name
             )
-          `)
+          `
+          )
           .order('created_at', { ascending: false });
 
         console.log('Full query response:', { data, error });
-        
+
         if (error) {
           console.error('Supabase error:', error);
           throw error;
@@ -84,11 +86,16 @@ function ReviewsList() {
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400 text-lg">No reviews available yet.</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
+              No reviews available yet.
+            </p>
           </div>
         ) : (
-          reviews.map(review => (
-            <div key={review.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          reviews.map((review) => (
+            <div
+              key={review.id}
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow"
+            >
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <Link
@@ -107,21 +114,34 @@ function ReviewsList() {
               </div>
 
               <h3 className="text-lg font-semibold mb-2">{review.title}</h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">{review.content}</p>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                {review.content}
+              </p>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <h4 className="font-medium text-green-600 dark:text-green-400 mb-1">Pros</h4>
-                  <p className="text-gray-600 dark:text-gray-400">{review.pros || 'None provided'}</p>
+                  <h4 className="font-medium text-green-600 dark:text-green-400 mb-1">
+                    Pros
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {review.pros || 'None provided'}
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-red-600 dark:text-red-400 mb-1">Cons</h4>
-                  <p className="text-gray-600 dark:text-gray-400">{review.cons || 'None provided'}</p>
+                  <h4 className="font-medium text-red-600 dark:text-red-400 mb-1">
+                    Cons
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {review.cons || 'None provided'}
+                  </p>
                 </div>
               </div>
 
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Posted on {review.created_at ? new Date(review.created_at).toLocaleDateString() : 'Unknown date'}
+                Posted on{' '}
+                {review.created_at
+                  ? new Date(review.created_at).toLocaleDateString()
+                  : 'Unknown date'}
               </div>
             </div>
           ))
@@ -169,7 +189,6 @@ export default function ReviewsPage() {
 
         if (reviewsError) throw reviewsError;
         setReviews(reviewsData || []);
-
       } catch (err: any) {
         setError(err.message);
       } finally {

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -37,7 +37,8 @@ export default function CompanyPage() {
   }
 
   if (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown error occurred';
     return <ErrorDisplay message={errorMessage} />;
   }
 

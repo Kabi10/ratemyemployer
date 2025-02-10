@@ -1,6 +1,7 @@
 # 🤖 Automation System
 
 ## Core Automation Flows
+
 ```mermaid
 graph TD
     A[Code Change] --> B{Change Type}
@@ -11,6 +12,7 @@ graph TD
 ```
 
 ## Key Automation Scripts
+
 ```bash
 # Database Management
 npm run db:migrate  # Run new migrations
@@ -26,7 +28,8 @@ npm run docs:sync   # Sync with code changes
 ```
 
 ## Monitoring & Alerts
+
 - Automated error tracking
 - Performance regression detection
 - Security policy violation alerts
-- Documentation drift detection 
+- Documentation drift detection

@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 
 import { JSX } from 'react';
 import { motion } from 'framer-motion';
@@ -14,7 +13,8 @@ export default function AboutPage(): JSX.Element {
     {
       name: 'Jane Smith',
       role: 'Head of Community',
-      description: 'Dedicated to building meaningful connections between employees.',
+      description:
+        'Dedicated to building meaningful connections between employees.',
     },
     // Add more team members as needed
   ];
@@ -22,7 +22,7 @@ export default function AboutPage(): JSX.Element {
   const getInitials = (name: string): string => {
     return name
       .split(' ')
-      .map(part => part[0])
+      .map((part) => part[0])
       .join('')
       .toUpperCase();
   };
@@ -42,34 +42,48 @@ export default function AboutPage(): JSX.Element {
               About RateMyEmployer
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Empowering employees to make informed career decisions through transparent workplace reviews.
+              Empowering employees to make informed career decisions through
+              transparent workplace reviews.
             </p>
           </section>
 
           {/* Mission Section */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Our Mission</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+              Our Mission
+            </h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                At RateMyEmployer, we believe in fostering transparency in the workplace. Our platform empowers employees to share their experiences, helping others make informed career decisions while encouraging companies to maintain high standards of workplace quality.
+                At RateMyEmployer, we believe in fostering transparency in the
+                workplace. Our platform empowers employees to share their
+                experiences, helping others make informed career decisions while
+                encouraging companies to maintain high standards of workplace
+                quality.
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-300">
-                We&apos;re committed to maintaining a fair and balanced platform where both employees and employers can engage in meaningful dialogue about workplace conditions, culture, and practices.
+                We&apos;re committed to maintaining a fair and balanced platform
+                where both employees and employers can engage in meaningful
+                dialogue about workplace conditions, culture, and practices.
               </p>
             </div>
           </section>
 
           {/* Values Section */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Our Values</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+              Our Values
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
               >
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Transparency</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Transparency
+                </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  We believe honest feedback leads to positive change in the workplace.
+                  We believe honest feedback leads to positive change in the
+                  workplace.
                 </p>
               </motion.div>
 
@@ -77,9 +91,12 @@ export default function AboutPage(): JSX.Element {
                 whileHover={{ scale: 1.05 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
               >
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Integrity</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Integrity
+                </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  We maintain high standards for review quality and authenticity.
+                  We maintain high standards for review quality and
+                  authenticity.
                 </p>
               </motion.div>
 
@@ -87,9 +104,12 @@ export default function AboutPage(): JSX.Element {
                 whileHover={{ scale: 1.05 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
               >
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Privacy</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Privacy
+                </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  We protect our users&apos; identities while enabling honest discourse.
+                  We protect our users&apos; identities while enabling honest
+                  discourse.
                 </p>
               </motion.div>
 
@@ -97,7 +117,9 @@ export default function AboutPage(): JSX.Element {
                 whileHover={{ scale: 1.05 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
               >
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Community</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Community
+                </h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   We foster a supportive environment for workplace dialogue.
                 </p>
@@ -107,7 +129,9 @@ export default function AboutPage(): JSX.Element {
 
           {/* Team Section */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Our Team</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+              Our Team
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {teamMembers.map((member, index) => (
                 <motion.div
@@ -122,11 +146,17 @@ export default function AboutPage(): JSX.Element {
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{member.name}</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{member.role}</p>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {member.name}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        {member.role}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300">{member.description}</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {member.description}
+                  </p>
                 </motion.div>
               ))}
             </div>
@@ -134,7 +164,9 @@ export default function AboutPage(): JSX.Element {
 
           {/* Contact Section */}
           <section>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Get in Touch</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+              Get in Touch
+            </h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
                 Have questions or suggestions? We&apos;d love to hear from you!

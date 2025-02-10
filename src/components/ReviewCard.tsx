@@ -1,15 +1,18 @@
-'use client'
+'use client';
 
 import { JoinedReview } from '@/types/database';
 import React from 'react';
 import { formatDateDisplay } from '@/utils/date';
 import { ReviewActions } from './ReviewActions';
 
-function getRatingStars(rating: number | null): { filled: number; empty: number } {
+function getRatingStars(rating: number | null): {
+  filled: number;
+  empty: number;
+} {
   const validRating = Math.max(0, Math.min(rating || 0, 5));
   return {
     filled: validRating,
-    empty: 5 - validRating
+    empty: 5 - validRating,
   };
 }
 
@@ -35,8 +38,10 @@ export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
             {review.position || 'Position not specified'}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {review.employment_status || 'Employment status not specified'} • 
-            {review.is_current_employee ? 'Current Employee' : 'Former Employee'}
+            {review.employment_status || 'Employment status not specified'} •
+            {review.is_current_employee
+              ? 'Current Employee'
+              : 'Former Employee'}
           </p>
           {review.company && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -45,8 +50,12 @@ export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <div className="text-2xl text-yellow-400">{'★'.repeat(stars.filled)}</div>
-          <div className="text-2xl text-gray-300 dark:text-gray-600">{'★'.repeat(stars.empty)}</div>
+          <div className="text-2xl text-yellow-400">
+            {'★'.repeat(stars.filled)}
+          </div>
+          <div className="text-2xl text-gray-300 dark:text-gray-600">
+            {'★'.repeat(stars.empty)}
+          </div>
         </div>
       </div>
 
@@ -60,13 +69,17 @@ export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {review.pros && (
             <div>
-              <h4 className="font-medium text-green-600 dark:text-green-400 mb-2">Pros</h4>
+              <h4 className="font-medium text-green-600 dark:text-green-400 mb-2">
+                Pros
+              </h4>
               <p className="text-gray-600 dark:text-gray-300">{review.pros}</p>
             </div>
           )}
           {review.cons && (
             <div>
-              <h4 className="font-medium text-red-600 dark:text-red-400 mb-2">Cons</h4>
+              <h4 className="font-medium text-red-600 dark:text-red-400 mb-2">
+                Cons
+              </h4>
               <p className="text-gray-600 dark:text-gray-300">{review.cons}</p>
             </div>
           )}
@@ -81,8 +94,8 @@ export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
           )}
         </div>
         {showActions && (
-          <ReviewActions 
-            reviewId={review.id} 
+          <ReviewActions
+            reviewId={review.id}
             initialLikes={review.likes_count || 0}
             isLiked={review.is_liked || false}
           />

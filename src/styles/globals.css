@@ -33,7 +33,8 @@ body {
   min-height: 100vh;
 }
 
-header, footer {
+header,
+footer {
   background-color: #f8f9fa;
   padding: 1rem;
 }
@@ -41,4 +42,4 @@ header, footer {
 main {
   flex: 1;
   padding: 0;
-} 
+}

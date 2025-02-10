@@ -1,6 +1,7 @@
 # Build & Runtime Issues
 
 ## Common Errors
+
 ```bash
 # Supabase Connection Issues
 1. Verify .env.local contains:
@@ -14,6 +15,7 @@ npm run type:reset  # Regenerate all types
 ```
 
 ## Performance Optimization
+
 ```bash
 # Analyze bundle size
 npm run analyze
@@ -23,6 +25,7 @@ npm run profile
 ```
 
 ## Database Recovery
+
 ```sql
 -- Safe rollback procedure
 BEGIN;
@@ -30,4 +33,4 @@ SELECT plan(3);
 -- Your migration reversal
 SELECT * FROM perform_rollback();
 ROLLBACK;
-``` 
+```

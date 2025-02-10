@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem
+  SelectItem,
 } from '@/components/ui-library/select';
 
 interface SearchAndFilterProps {
@@ -33,15 +33,15 @@ const COMPANY_SIZES = [
   '201-500',
   '501-1000',
   '1001-5000',
-  '5000+'
+  '5000+',
 ];
 
-const SearchAndFilter = ({ 
-  onSearch, 
-  onIndustryChange, 
+const SearchAndFilter = ({
+  onSearch,
+  onIndustryChange,
   onLocationChange,
   selectedIndustry = '',
-  selectedLocation = ''
+  selectedLocation = '',
 }: SearchAndFilterProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [industries, setIndustries] = useState<string[]>([]);
@@ -56,9 +56,11 @@ const SearchAndFilter = ({
           .from('companies')
           .select('industry')
           .not('industry', 'is', null);
-        
+
         if (industryData) {
-          const uniqueIndustries = [...new Set(industryData.map(item => item.industry))];
+          const uniqueIndustries = [
+            ...new Set(industryData.map((item) => item.industry)),
+          ];
           setIndustries(uniqueIndustries);
         }
 
@@ -67,9 +69,11 @@ const SearchAndFilter = ({
           .from('companies')
           .select('location')
           .not('location', 'is', null);
-        
+
         if (locationData) {
-          const uniqueLocations = [...new Set(locationData.map(item => item.location))];
+          const uniqueLocations = [
+            ...new Set(locationData.map((item) => item.location)),
+          ];
           setLocations(uniqueLocations);
         }
       } catch (error) {
@@ -86,12 +90,16 @@ const SearchAndFilter = ({
     onSearch?.(query);
   };
 
-  const handleIndustryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleIndustryChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const industry = event.target.value;
     onIndustryChange?.(industry);
   };
 
-  const handleLocationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleLocationChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const location = event.target.value;
     onLocationChange?.(location);
   };
@@ -113,8 +121,10 @@ const SearchAndFilter = ({
         {/* Industry Filter */}
         <div className="w-full md:w-48">
           <Select
-            value={selectedIndustry || "all"}
-            onValueChange={(value) => onIndustryChange?.(value === "all" ? "" : value)}
+            value={selectedIndustry || 'all'}
+            onValueChange={(value) =>
+              onIndustryChange?.(value === 'all' ? '' : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All Industries" />
@@ -133,8 +143,10 @@ const SearchAndFilter = ({
         {/* Location Filter */}
         <div className="w-full md:w-48">
           <Select
-            value={selectedLocation || "all"}
-            onValueChange={(value) => onLocationChange?.(value === "all" ? "" : value)}
+            value={selectedLocation || 'all'}
+            onValueChange={(value) =>
+              onLocationChange?.(value === 'all' ? '' : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All Locations" />
