@@ -5,15 +5,10 @@ import { motion } from 'framer-motion';
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
-import type { Company, Review } from '@/types/database';
-
-interface CompanyWithStats extends Company {
-  average_rating: number;
-  total_reviews: number;
-}
+import type { Company, CompanyWithReviews } from '@/types/database';
 
 export default function WallOfFame() {
-  const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
+  const [companies, setCompanies] = useState<CompanyWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
@@ -51,13 +46,23 @@ export default function WallOfFame() {
           name,
           industry,
           location,
-          website,
           description,
           logo_url,
+          website,
+          created_at,
+          updated_at,
           reviews (
             id,
             rating,
-            status
+            pros,
+            cons,
+            position,
+            employment_status,
+            is_current_employee,
+            created_at,
+            updated_at,
+            status,
+            user_id
           )
         `)
         .eq('reviews.status', 'approved');
@@ -79,21 +84,61 @@ export default function WallOfFame() {
         return;
       }
 
-      // Process companies...
+      // Process companies and calculate ratings
       const processedCompanies = companiesData
         .map(company => {
-          const reviews = (company.reviews || []).filter(r => r.status === 'approved');
+          // Calculate average rating and total reviews
+          const reviews = (company.reviews || []).map(review => ({
+            id: review.id,
+            rating: review.rating,
+            pros: review.pros || '',
+            cons: review.cons || '',
+            position: review.position || '',
+            employment_status: review.employment_status,
+            is_current_employee: review.is_current_employee,
+            company_id: company.id,
+            user_id: review.user_id || null,
+            created_at: review.created_at,
+            updated_at: review.updated_at || null
+          }));
           const totalReviews = reviews.length;
           
+          // Log individual review ratings for this company
+          console.log(`Reviews for ${company.name}:`, reviews.map(r => ({
+            id: r.id,
+            rating: r.rating,
+            created_at: r.created_at
+          })));
+
           const averageRating = totalReviews > 0
-            ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / totalReviews
+            ? reviews.reduce((sum, review) => {
+                const rating = Number(review.rating);
+                if (isNaN(rating)) {
+                  console.warn(`Invalid rating for review ${review.id} in company ${company.name}`);
+                  return sum;
+                }
+                return sum + rating;
+              }, 0) / totalReviews
             : 0;
 
-          return {
-            ...company,
+          console.log(`Company ${company.name}: ${totalReviews} reviews, avg rating ${averageRating.toFixed(1)}`);
+
+          const processedCompany: CompanyWithReviews = {
+            id: company.id,
+            name: company.name,
+            industry: company.industry,
+            location: company.location,
+            description: company.description,
+            logo_url: company.logo_url,
+            website: company.website,
+            created_at: company.created_at,
+            updated_at: company.updated_at,
+            reviews: reviews,
             average_rating: averageRating,
             total_reviews: totalReviews
           };
+
+          return processedCompany;
         })
         .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
         .sort((a, b) => b.average_rating - a.average_rating)
@@ -118,7 +163,7 @@ export default function WallOfFame() {
     }
   };
 
-  const fetchNewsForTopCompanies = async (companies: CompanyWithStats[]) => {
+  const fetchNewsForTopCompanies = async (companies: CompanyWithReviews[]) => {
     const newsData: { [key: string]: NewsArticle[] } = {};
     for (const company of companies) {
       try {

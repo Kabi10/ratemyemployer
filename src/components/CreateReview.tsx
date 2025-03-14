@@ -21,14 +21,16 @@ interface CreateReviewProps {
 }
 
 function CreateReview({ companyId }: CreateReviewProps) {
-  const { company, isLoading, error } = useCompany(companyId);
+  const { company, loading, error } = useCompany(companyId);
+  // Convert companyId to number for ReviewForm
+  const numericCompanyId = parseInt(companyId, 10);
 
-  if (isLoading) {
+  if (loading) {
     return <div>Loading company details...</div>;
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>Error: {error}</div>;
   }
 
   if (!company) {
@@ -38,7 +40,7 @@ function CreateReview({ companyId }: CreateReviewProps) {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Write a Review for {company.name}</h1>
-      <ReviewForm companyId={companyId} />
+      <ReviewForm companyId={numericCompanyId} />
     </div>
   );
 }

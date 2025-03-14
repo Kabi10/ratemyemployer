@@ -1,9 +1,20 @@
 import { supabase } from './supabaseClient';
-import type { Database } from '@/types/supabase';
 import { fetchNewsWithKluster } from './klusterAi';
 
-type CompanyNewsInsert = Database['public']['Tables']['company_news']['Insert'];
-type CompanyNewsRow = Database['public']['Tables']['company_news']['Row'];
+// Define our own types instead of trying to access them from the Database type
+interface CompanyNewsInsert {
+  company_name: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  published_at: string;
+  source_name: string;
+  created_at?: string;
+}
+
+interface CompanyNewsRow extends CompanyNewsInsert {
+  id: number;
+}
 
 export interface NewsArticle {
   title: string;
@@ -15,15 +26,8 @@ export interface NewsArticle {
   };
 }
 
-interface DatabaseNewsArticle {
-  company_name: string;
-  title: string;
-  description: string | null;
-  url: string | null;
-  published_at: string;
-  source_name: string;
-  created_at: string;
-}
+// Use our CompanyNewsInsert type for database operations
+type DatabaseNewsArticle = CompanyNewsInsert;
 
 // Use this function to get news for multiple companies
 export async function fetchNewsForCompanies(companies: string[]): Promise<{ [company: string]: NewsArticle[] }> {

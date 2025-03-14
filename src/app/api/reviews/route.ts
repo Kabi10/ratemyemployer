@@ -11,12 +11,13 @@ import { reviewSchema } from '@/lib/schemas';
 
 export async function GET(request: Request) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
     
-    const companyId = searchParams.get('companyId');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const companyIdStr = searchParams.get('companyId');
+    const companyId = companyIdStr ? parseInt(companyIdStr, 10) : null;
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
     const offset = (page - 1) * limit;
 
     let query = supabase
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (companyId) {
+    if (typeof companyId === 'number' && !isNaN(companyId)) {
       query = query.eq('company_id', companyId);
     }
 
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -86,28 +87,28 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const supabase = createServerSupabaseClient()
-  const { id } = await request.json()
+  const supabase = await createServerSupabaseClient();
+  const { id } = await request.json();
 
   try {
     const { error } = await supabase
       .from('reviews')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      throw error
+      throw error;
     }
 
-    return new Response(null, { status: 204 })
+    return new Response(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting review:', error)
+    console.error('Error deleting review:', error);
     return new Response(
       JSON.stringify({ error: 'Failed to delete review' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       }
-    )
+    );
   }
 }

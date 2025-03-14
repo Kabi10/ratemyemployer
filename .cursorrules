@@ -1,81 +1,1418 @@
-# SonOfPromptmetheus (SoP): Global Instructions for AI Coding Agents
+# Cursor Master Rules for RateMyEmployer Project
 
-Follow these streamlined rules to ensure maintainability, clarity, progress, and prevent writing unnecessary or unintended code, ultimately saving tokens and preserving a clear handoff for another AI agent.
+## 🔄 Project Type Selection
+- [X] Business Website
+- [X] Web Application/SaaS Platform
 
-## Critical Reminders (NEVER FORGET)
+## ⚠️ MANDATORY PRE-IMPLEMENTATION CHECKLIST ⚠️
+STOP! Before writing ANY code or suggesting ANY changes:
 
-1. *Reasoning*
+1. 🔍 SEARCH FIRST (REQUIRED):
+   ```bash
+   # Document ALL search results below
+   grep_search "[feature keyword]" # Search for related functionality
+   file_search "[filename pattern]" # Search for similar files
+   list_dir "[relevant directory]" # List contents of relevant directories
+   ```
 
-   - When describing technical choices, bug explanations, or solution suggestions, always express confidence level (1-100) at the end of your analysis.  "+CL" at the end of my message is me reminding you to do so.
+2. 📝 DOCUMENT FINDINGS (REQUIRED):
+   ```markdown
+   ## Existing Files Found:
+   - [List all relevant files found with full paths]
+   - [Include file sizes and last modified dates if relevant]
+   
+   ## Existing Functionality:
+   - [Describe what already exists in detail]
+   - [Note any patterns or architectural approaches used]
+   
+   ## Gaps Identified:
+   - [List what's missing or needs enhancement]
+   - [Identify technical debt or issues in existing code]
+   
+   ## Implementation Decision Tree:
+   - Is there existing code that serves this purpose? [Yes/No]
+   - Can existing code be enhanced to meet requirements? [Yes/No]
+   - Is creating new code justified? [Yes/No, with reasoning]
+   
+   ## Proposed Approach:
+   - [ ] Enhance existing code at [file path]
+   - [ ] Create new files (requires detailed justification)
+   - [ ] Refactor existing code at [file path]
+   
+   ## Implementation Plan:
+   1. [First step with estimated effort]
+   2. [Second step with estimated effort]
+   3. [Additional steps as needed]
+   ```
 
-2. **Modular Coding**
+3. ✋ WAIT FOR APPROVAL:
+   - Present findings to user with clear options
+   - Get explicit approval for chosen approach
+   - Never proceed with new files if similar functionality exists
+   - Document approval in the implementation plan
 
-   - Always produce small, independent modules or functions.
-   - Each module should handle a distinct feature or responsibility.
+❌ IF YOU SKIP THIS CHECKLIST, YOU ARE VIOLATING THE MOST IMPORTANT RULE ❌
 
-3. **Avoid Unapproved UI Changes**
+## 📚 AI Instructions
 
-   - If you think a UI adjustment is beneficial, propose it; do not apply it automatically.
-   - Avoid accidentally breaking working features or UI design that the user was already satisfied with, while trying to work on other issues. This ensures stable functionality and minimal user dissatisfaction, preserving context for another AI agent to get up to speed with minimal analysis.
+As an AI code builder, this document serves as your complete guide for building or extending the RateMyEmployer project. The rules below define HOW you should approach implementation:
 
-4. **Record Changes Clearly**
+1. **Decision Protocol**: Before implementing any feature:
+   - First search for existing code and patterns
+   - Show clear options with tradeoffs
+   - Wait for explicit approval
+   - Document your decision-making process
 
-   - Whenever you provide new or updated code, note a **version number** and a short summary of what changed.
-   - Using a file called `plan.md` ,update tasks with `✅` (done) or `⚒️` (in progress) **only** when those statuses change or the user instructs.
-   - Update a file called `@development_status.md` only if the user explicitly asks. The content of your update is for handing off important, immediately relevant details to another AI coding agent when notified of memory constraints.
+2. **Context Management**:
+   - Maintain a mental map of the project architecture
+   - Reference existing patterns when suggesting solutions
+   - Track technical debt and refactoring opportunities
+   - Keep your internal representation of the codebase updated
 
-5. **Focus on Core Stability**
+3. **Implementation Approach**:
+   - Follow the pattern recognition guidelines
+   - Use established project patterns over introducing new ones
+   - Provide "why" explanations along with code
+   - Tag all implementation decisions with appropriate decision factors
 
-   - Strive for stable, maintainable code and reliable incremental improvements, rather than perfection or large-scale optimizations. Keep changes small and reversible.
+4. **Uncertainty Protocol**:
+   - When encountering ambiguity, present options with pros/cons
+   - Explicitly flag incomplete knowledge ("This appears to be ___, but I need more context")
+   - Use specified formats for indicating uncertainty levels
+   - Provide specific questions to resolve key uncertainties
 
-6. *Testing**
+5. **Documentation Protocol**:
+   - All documentation is consolidated in central files
+   - MCP documentation is in `MCP_DOCUMENTATION.md`
+   - Form verification is documented in the MCP documentation
+   - Use `npm run docs` to access the documentation helper
+   - Never create new documentation files without checking existing ones
+   - Update existing documentation rather than creating new files
 
-   - Always suggest building test suites alongside relevant code.
-   - Encourage the user to run or review them.
+## 🧠 RateMyEmployer Pattern Recognition Map
 
-## Development Priorities & Decision Framework
+### Universal Code Structure Patterns
+- **Server-Component Pattern**: `async function Page/Component({ params }) + await fetch/db` 
+- **Client-Interactive Pattern**: `'use client'; useState/useEffect + event handlers`
+- **Data-Fetch Pattern**: `getData` functions paired with React Server Components
+- **Layout Pattern**: Hierarchical layouts with global elements in parent layouts
+- **Review Pattern**: Form submission → validation → database storage → display
+- **Company Pattern**: Company profile → reviews → ratings → statistics
+- **Authentication Pattern**: Login/signup → session management → protected routes
+- **Supabase Pattern**: Server-side client creation → data fetching → error handling
+- **MCP Pattern**: Natural language query → Supabase operation → data display
 
-1. **Assess Necessity**
+### RateMyEmployer-Specific Implementation Patterns
+- **Auth Flow Pattern**: Supabase auth → session checking → protected routes via middleware
+- **Data Display Pattern**: Skeleton loading → data fetch → render with error boundaries
+- **Form Pattern**: Zod schema → React Hook Form → Supabase mutation → toast notification
+- **Filter Pattern**: URL-based state → server-side filtering → paginated results
+- **Rating Pattern**: User input → calculation → color-coded visual representation
+- **News Integration Pattern**: SerpAPI fetch → database storage → component display
+- **Company Search Pattern**: Debounced input → Supabase query → filtered results
+- **Review Moderation Pattern**: Admin check → status update → notification
+- **MCP Integration Pattern**: Setup → schema definition → stored procedures → UI components
 
-   - Is this module essential for basic functionality or the MVP?
-   - Can it be postponed for higher-priority tasks?
+## 📊 Project Progress Dashboard
+Overall Progress: 45% Complete
+- Setup & Configuration    ■■■■■■■■■■   100%
+- Core Features           ■■■■■□□□□□   50%
+- Admin Dashboard         ■■□□□□□□□□   20%
+- User Features           ■■■□□□□□□□   30%
+- Advanced Features       ■■■□□□□□□□   30%
+- Testing & Deployment    ■■□□□□□□□□   20%
+- Post-Launch             □□□□□□□□□□   0%
 
-2. **Estimate Complexity & Impact**
+## 🔧 RateMyEmployer Specific Rules
 
-   - Rate proposed modules by complexity and impact.
-   - Tackle easy, essential items first; defer non-essential or complex ones.
+### Business Website & Web Application Features
+- **Company Reviews System**: Implement with proper validation, moderation, and display
+  - Use `ReviewForm.tsx` pattern with Zod validation and React Hook Form
+  - Follow `ReviewCard.tsx` display pattern with rating visualization
+  - Implement moderation with status enum (pending, approved, rejected)
+  - Use toast notifications for user feedback
 
-3. **Offer Justifications**
+- **Rating Visualization**: Use consistent color-coded progress bars across the application
+  - Red for ratings < 2.5
+  - Yellow for ratings between 2.5 and 3.5
+  - Green for ratings > 3.5
+  - Use the StatCard component for consistent display
 
-   - When proposing technical choices or solutions, end with a confidence level (1–100).
-   - If a simpler approach exists, mention it before proceeding.
+- **User Authentication**: Leverage Supabase for secure authentication and session management
+  - Use middleware.ts pattern for route protection
+  - Follow Auth.tsx component pattern for login/signup
+  - Use role-based access control for admin features
+  - Store user metadata in Supabase auth
 
-## Pseudo-Versioning & Pseudo-Rollback
+- **Company Profiles**: Detailed company information with size, industry, and location data
+  - Follow CompanyProfile.tsx pattern for display
+  - Use CompanyForm.tsx pattern for data entry
+  - Implement LocationAutocomplete.tsx for address input
+  - Use industry enum for consistent categorization
 
-1. **Pseudo-version Tags**
+- **Search and Filter**: Advanced search capabilities with multiple filter options
+  - Use SearchAndFilter.tsx pattern with debounced input
+  - Implement URL-based state for shareable filters
+  - Follow CompanyList.tsx pagination pattern
+  - Use Select components from UI library
 
-   - Tag each delivered feature or major component with a unique 3-letter ID based on its most descriptive word, and include it with its matching feature/component description in @plan.md, along with a simple incremental version number (e.g., “v0.1”).
-   - Include a concise summary comment like a commit message, and attach it to the text description of each completed (✅) task in @plan.md
+- **Wall of Shame/Fame**: Highlight companies with lowest/highest ratings
+  - Follow existing pattern in shame/ and fame/ directories
+  - Use CompanyCard.tsx for consistent display
+  - Implement sorting by average_rating
+  - Display relevant company news
 
-2. **Rollback Upon Request**
+- **News Integration**: Fetch and display relevant company news
+  - Use newsApi.ts pattern for external API calls
+  - Follow CompanyNews.tsx display pattern
+  - Implement caching strategy for API calls
+  - Use error handling for failed requests
 
-   - If the user wants to revert, provide the previously tagged code for all files changed since the mentioned component ID and version number, to let the user complete a "pseudo-rollback".
+- **Admin Dashboard**: Moderation tools for reviews and company data
+  - Follow role-based access pattern in middleware.ts
+  - Use table patterns for data display
+  - Implement action buttons for approve/reject
+  - Add filtering and sorting capabilities
 
-## Practical Usage & Testing
+- **MCP Integration**: Natural language database interaction
+  - Follow setup patterns in `scripts/setup-mcp.ts`
+  - Use stored procedures from `scripts/mcp-stored-procedures.sql`
+  - Implement UI components following `MCPDemoComponent.tsx` pattern
+  - Use the interactive CLI in `scripts/run-mcp-server.js`
+  - Ensure configuration files exist in `.mcp/supabase/` directory
+  - Test functionality using the `/mcp-demo` page
+  - Run the MCP server with `npm run mcp:start` before using MCP features
+  - Use `npm run docs:mcp` to access comprehensive MCP documentation
 
-1. **Always Clarify Scope**
+## 📝 Instructions
 
-   - If the user says “Update logic only,” do not add or edit UI code.
-   - Ask for clarification if uncertain.
+- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
+- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
+- Clear old tasks if necessary.
+- Use todo markers for progress tracking:
+  - `[X]` Completed tasks
+  - `[ ]` Pending tasks
+- Update Scratchpad after completing subtasks.
+- Reflect and plan after milestones for better task management.
+- Always refer to Scratchpad before planning the next step.
+- ALWAYS CHECK FOR EXISTING FILES BEFORE CREATING NEW ONES TO AVOID DUPLICATES.
+- ALWAYS CHECK FOR EXISTING DOCUMENTATION BEFORE CREATING NEW DOCUMENTATION FILES.
 
-2. **Proactively Propose Enhancements**
+## 🎓 RateMyEmployer Lessons
 
-   - If during other analysis, you see an opportunity to make an improvement or fix a known issue, propose it in plain text.
-   - Proceed only if the user confirms, or save it in the appropriate area of @plan.md for future prioritization.
+### 🖥️ UI/UX Implementation Patterns
+- Use Shadcn UI components for consistent design
+- Maintain consistent page layouts (p-6 padding, mb-8 header spacing)
+- For loading states: use LoadingSpinner component and Suspense boundaries
+- For forms: use React Hook Form with Zod validation and disable inputs during submission
+- For filters/search: use useDebounce hook (300ms) and URL params for state
+- For ratings: use StatCard component with consistent color schemes (red < 2.5, yellow 2.5-3.5, green > 3.5)
+- For modals: use dialog component with aria attributes and focus management
+- For animations: use Framer Motion with consistent durations (300-500ms)
 
----
+### 🔄 Next.js Architecture Patterns
+- Page props params must be typed as a Promise in Next.js 14+
+- Use `createServerClient` from Supabase SSR for server components
+- Mark components using `useRouter` or `useSearchParams` with `'use client'` directive
+- Components using client-side hooks must be wrapped in Suspense
+- When using dynamic imports with `next/dynamic`, set `ssr: false` for client-only components
+- For client-side state: extract state display into client components
+- Pass search params as props from server components instead of using hooks directly
+- Handle auth properly: use middleware for protection, include callback URLs, use role-based access
 
-## Platform-Specific Guidance (ask the user if these apply or need editing in the prompt)
+### 🧪 Testing Implementation Patterns
+- Use Playwright for E2E tests with consistent selectors
+- Always use `bcryptjs` instead of `bcrypt` in tests to avoid native dependencies
+- When mocking API handlers, use inline functions instead of `.mockImplementation()`
+- For dialog components, always provide `aria-describedby` attribute to avoid accessibility warnings
+- Use `jest.spyOn` for functions that need to be restored after tests
+- Mock Next.js hooks like `useRouter` at the module level with `jest.mock('next/navigation')`
+- When mocking `useRouter`, use `jest.mocked(useRouter).mockReturnValue()` instead of casting
+- Initialize mocks with default values for consistent behavior
 
-- **Windows Only**: Use PowerShell syntax (e.g., `;` instead of `&&`).
-- **Windsurf Only**: After you believe code changes fix an issue, automatically check `@current_problems` for newly created issues.
+### 🛠️ Process Implementation Requirements
+- ALWAYS check for existing implementations before creating new files
+- Use grep_search/file_search to look for similar file names and functionality
+- Document search process in scratchpad before implementing features
+- NEVER skip the pre-implementation checklist to avoid duplicate code
+- Implement parallel components when dependencies allow
+- Use consistent patterns across similar file types
+- Create independent files first to avoid blocking dependencies
+- Leverage existing templates and patterns when available
+- Document implementation decisions for future reference
+- Split implementation from deployment for faster iteration
+- Consolidate documentation in central files rather than creating new ones
+
+### 🔐 Supabase Implementation Patterns
+- Use `supabaseServer.ts` for server-side data fetching
+- Use `supabaseClient.ts` for client-side operations
+- Always wrap Supabase calls in try/catch blocks
+- Use typed responses with Database types from schema.ts
+- Follow the pattern in database.ts for consistent data access
+- Use RLS policies for secure data access
+- Implement proper error handling with DatabaseError type
+- Use transactions for operations that modify multiple tables
+
+### 🔍 Form Testing and Supabase Verification Patterns
+- Always test form submissions with both valid and invalid data
+- Implement client-side validation with Zod before submission
+- Add server-side validation as a second layer of protection
+- Use toast notifications to provide feedback on form submission status
+- Log form submission attempts and results for debugging
+- Verify data in Supabase after submission using the Table Editor
+- Run SQL queries to check data integrity and relationships
+- Create test scripts to automate verification of database state
+- Test edge cases like minimum/maximum values and special characters
+- Implement automated tests for critical form submissions
+- Monitor form submission success rates and error patterns
+- Verify that RLS policies are correctly enforcing access controls
+- Check that timestamps and default values are correctly applied
+- Validate that foreign key relationships are maintained
+- Test form behavior under slow network conditions
+
+### 🔮 MCP Implementation Patterns
+- Use the consolidated documentation in `MCP_DOCUMENTATION.md`
+- Follow the setup process in `scripts/setup-mcp.ts`
+- Create stored procedures in `scripts/mcp-stored-procedures.sql`
+- Use the interactive CLI in `scripts/run-mcp-server.js`
+- Implement UI components following `MCPDemoComponent.tsx` pattern
+- Use the demo page at `/mcp-demo` to showcase MCP integration
+- Wrap Supabase calls in try/catch blocks with proper error handling
+- Use the documentation helper with `npm run docs` for guidance
+- Ensure the MCP server is running with `npm run mcp:start` before using MCP features
+- Verify configuration files exist in `.mcp/supabase/config.json` and `.mcp/supabase/schema.json`
+- Test stored procedures with `npm run mcp:sample-queries`
+- Use dynamic imports with `{ ssr: false }` for MCP components to avoid SSR issues
+
+## 📋 Documentation Structure
+
+### Main Documentation Files
+- `README.md`: Main project documentation
+- `MCP_DOCUMENTATION.md`: Comprehensive MCP integration documentation
+- `CONTRIBUTING.md`: Guidelines for contributing to the project
+- `SECURITY.md`: Security policy and guidelines
+- `CODE_OF_CONDUCT.md`: Code of conduct for project contributors
+- `CHANGELOG.md`: Project changelog
+
+### Directory-Specific Documentation
+- `scripts/README.md`: Documentation for utility scripts
+
+### Documentation Access
+- Use `npm run docs` to access the documentation helper
+- Use `npm run docs:mcp` to open the MCP documentation directly
+
+## 🧩 Implementation Templates
+
+### Server Component Template
+```tsx
+export async function PageComponent({ 
+  params,
+  searchParams 
+}: {
+  params: { id: string },
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  // Data fetching with Supabase
+  const { data, error } = await getDataFromSupabase(params.id, searchParams);
+  
+  // Error handling
+  if (error) {
+    return <ErrorDisplay message={error.message} />;
+  }
+  
+  if (!data) {
+    return <ErrorDisplay message="Failed to load data" />;
+  }
+  
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-8">Page Title</h1>
+      
+      {/* Suspense boundary for client components */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <ContentComponent data={data} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Client Component Template
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useToast } from '@/components/ui/use-toast';
+
+export default function InteractiveComponent({ 
+  initialData,
+  onDataChange 
+}: ComponentProps) {
+  // Local state
+  const [data, setData] = useState(initialData);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const debouncedValue = useDebounce(data, 300);
+  
+  // Event handlers
+  const handleChange = (name: string, value: string) => {
+    const newData = { ...data, [name]: value };
+    setData(newData);
+    
+    // Update URL params
+    const params = new URLSearchParams();
+    Object.entries(newData).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    
+    router.push(`?${params.toString()}`);
+    if (onDataChange) onDataChange(newData);
+  };
+  
+  // Handle submission
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      // Supabase operation
+      const { error } = await submitToSupabase(data);
+      
+      if (error) throw new Error(error.message);
+      
+      toast({
+        title: "Success",
+        description: "Operation completed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  return (
+    <div className="space-y-4">
+      {/* UI components */}
+      <Button onClick={handleSubmit} disabled={isLoading}>
+        {isLoading ? <LoadingSpinner /> : "Submit"}
+      </Button>
+    </div>
+  );
+}
+```
+
+### Review Component Template
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { reviewSchema } from '@/lib/schemas';
+
+type ReviewFormValues = z.infer<typeof reviewSchema>;
+
+export function ReviewComponent({ 
+  companyId,
+  onSubmit 
+}: {
+  companyId: string;
+  onSubmit: (data: ReviewFormValues) => Promise<void>;
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+      rating: 0,
+      title: '',
+      pros: '',
+      cons: '',
+      employment_status: 'current',
+      position: '',
+      location: '',
+      salary: '',
+      recommend: false,
+      ceo_rating: 0,
+    },
+  });
+  
+  const handleSubmit = async (data: ReviewFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        ...data,
+        companyId,
+      });
+      form.reset();
+      toast({
+        title: "Review Submitted",
+        description: "Thank you for sharing your experience!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit review",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      {/* Form fields */}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? <LoadingSpinner /> : "Submit Review"}
+      </Button>
+    </form>
+  );
+}
+```
+
+### MCP Component Template
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/types/supabase';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+type MCPComponentProps = {
+  title: string;
+  description?: string;
+  initialQuery?: string;
+};
+
+export default function MCPComponent({ 
+  title,
+  description,
+  initialQuery 
+}: MCPComponentProps) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const supabase = createClientComponentClient<Database>();
+  
+  // Example function to fetch data using MCP-generated query
+  const fetchData = async (query: string = initialQuery || '') => {
+    if (!query) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // This is where you would use the MCP-generated query
+      // For example, if the query is "Show me all companies in the Technology industry"
+      // MCP might generate something like:
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('industry', 'Technology')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      console.error('Error fetching data:', err);
+      setError(err.message || 'An error occurred while fetching data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // You can also use stored procedures created for MCP
+  const executeStoredProcedure = async (procedureName: string, params?: Record<string, any>) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase.rpc(procedureName, params || {});
+      
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      console.error(`Error executing stored procedure ${procedureName}:`, err);
+      setError(err.message || `An error occurred while executing ${procedureName}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Optional: Execute initial query on component mount
+  useEffect(() => {
+    if (initialQuery) {
+      fetchData();
+    }
+  }, [initialQuery]);
+  
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <p className="text-sm text-gray-500">{description}</p>}
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p>{error}</p>
+          </div>
+        )}
+        
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
+            </div>
+          ) : data.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {Object.keys(data[0]).map((key) => (
+                      <th 
+                        key={key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {data.map((item, index) => (
+                    <tr key={index}>
+                      {Object.values(item).map((value: any, i) => (
+                        <td key={i} className="px-6 py-4 whitespace-nowrap">
+                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-center py-8 text-gray-500">No data available</p>
+          )}
+        </div>
+        
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button 
+            onClick={() => executeStoredProcedure('get_average_ratings_by_industry')}
+            variant="outline"
+          >
+            Average Ratings by Industry
+          </Button>
+          <Button 
+            onClick={() => executeStoredProcedure('get_top_companies_by_industry', { industry_name: 'Technology' })}
+            variant="outline"
+          >
+            Top Tech Companies
+          </Button>
+          <Button 
+            onClick={() => executeStoredProcedure('get_recent_reviews_for_company', { company_id: 1 })}
+            variant="outline"
+          >
+            Recent Reviews
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Data Fetching Template
+```tsx
+// In lib/database.ts
+export async function getData(
+  filters: Record<string, string | string[] | undefined>
+): Promise<DatabaseResult<T>> {
+  try {
+    const { search, industry, location, sort, page = '1', limit = '10' } = filters;
+    
+    // Build query
+    let query = supabase
+      .from('table')
+      .select('*');
+    
+    // Apply filters
+    if (search) {
+      query = query.ilike('name', `%${search}%`);
+    }
+    
+    if (industry) {
+      query = query.eq('industry', industry);
+    }
+    
+    if (location) {
+      query = query.ilike('location', `%${location}%`);
+    }
+    
+    // Apply sorting
+    if (sort) {
+      const [field, direction] = sort.toString().split('-');
+      query = query.order(field, { ascending: direction === 'asc' });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+    
+    // Apply pagination
+    const pageNumber = parseInt(page.toString(), 10);
+    const limitNumber = parseInt(limit.toString(), 10);
+    const start = (pageNumber - 1) * limitNumber;
+    
+    query = query.range(start, start + limitNumber - 1);
+    
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) {
+      return {
+        data: null,
+        error: {
+          message: error.message,
+          details: error.details
+        }
+      };
+    }
+    
+    return {
+      data,
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to fetch data:", error);
+    return {
+      data: null,
+      error: {
+        message: error.message || "An unknown error occurred",
+        details: error
+      }
+    };
+  }
+}
+```
+
+### Supabase Data Verification Script Template
+```tsx
+// scripts/verify-form-data.ts
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
+import dotenv from 'dotenv';
+import { z } from 'zod';
+
+// Load environment variables
+dotenv.config();
+
+// Initialize Supabase client with service role key for admin access
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Define verification schemas (should match your form schemas)
+const companyVerificationSchema = z.object({
+  id: z.number(),
+  name: z.string().min(2),
+  industry: z.string(),
+  location: z.string().min(1),
+  created_at: z.string().datetime(),
+  created_by: z.string().uuid(),
+});
+
+const reviewVerificationSchema = z.object({
+  id: z.number(),
+  company_id: z.number(),
+  rating: z.number().min(1).max(5),
+  title: z.string().min(1),
+  pros: z.string().min(10),
+  cons: z.string().min(10),
+  created_at: z.string().datetime(),
+  reviewer_id: z.string().uuid(),
+});
+
+// Verification functions
+async function verifyCompanies() {
+  console.log('🔍 Verifying companies table...');
+  
+  const { data: companies, error } = await supabase
+    .from('companies')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(10);
+  
+  if (error) {
+    console.error('❌ Error fetching companies:', error);
+    return;
+  }
+  
+  if (!companies || companies.length === 0) {
+    console.log('⚠️ No companies found in the database');
+    return;
+  }
+  
+  console.log(`✅ Found ${companies.length} companies`);
+  
+  // Validate each company against schema
+  companies.forEach((company, index) => {
+    try {
+      companyVerificationSchema.parse(company);
+      console.log(`✅ Company #${index + 1} (${company.name}) is valid`);
+    } catch (validationError) {
+      console.error(`❌ Company #${index + 1} (${company.name}) validation failed:`, validationError);
+    }
+  });
+  
+  // Check for relationships
+  console.log('🔍 Checking company-review relationships...');
+  
+  for (const company of companies) {
+    const { data: reviews, error: reviewError } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('company_id', company.id)
+      .limit(5);
+    
+    if (reviewError) {
+      console.error(`❌ Error fetching reviews for company ${company.name}:`, reviewError);
+      continue;
+    }
+    
+    console.log(`✅ Company ${company.name} has ${reviews?.length || 0} reviews`);
+  }
+}
+
+async function verifyReviews() {
+  console.log('🔍 Verifying reviews table...');
+  
+  const { data: reviews, error } = await supabase
+    .from('reviews')
+    .select('*, companies(name)')
+    .order('created_at', { ascending: false })
+    .limit(10);
+  
+  if (error) {
+    console.error('❌ Error fetching reviews:', error);
+    return;
+  }
+  
+  if (!reviews || reviews.length === 0) {
+    console.log('⚠️ No reviews found in the database');
+    return;
+  }
+  
+  console.log(`✅ Found ${reviews.length} reviews`);
+  
+  // Validate each review against schema
+  reviews.forEach((review, index) => {
+    try {
+      // Extract the review data without the joined company
+      const { companies, ...reviewData } = review;
+      reviewVerificationSchema.parse(reviewData);
+      console.log(`✅ Review #${index + 1} for company ${companies?.name} is valid`);
+    } catch (validationError) {
+      console.error(`❌ Review #${index + 1} validation failed:`, validationError);
+    }
+  });
+  
+  // Check for data anomalies
+  console.log('🔍 Checking for data anomalies...');
+  
+  const { data: anomalies, error: anomalyError } = await supabase
+    .from('reviews')
+    .select('id, rating, company_id, companies(name)')
+    .or('rating.lt.1,rating.gt.5');
+  
+  if (anomalyError) {
+    console.error('❌ Error checking for anomalies:', anomalyError);
+    return;
+  }
+  
+  if (anomalies && anomalies.length > 0) {
+    console.error(`❌ Found ${anomalies.length} reviews with invalid ratings:`, anomalies);
+  } else {
+    console.log('✅ No rating anomalies found');
+  }
+}
+
+// Run verification
+async function runVerification() {
+  console.log('🚀 Starting database verification...');
+  
+  await verifyCompanies();
+  await verifyReviews();
+  
+  console.log('✅ Verification complete');
+}
+
+runVerification().catch(error => {
+  console.error('❌ Verification failed:', error);
+  process.exit(1);
+});
+```
+
+## 🛡️ Critical Standards
+
+### Technical Quality Standards
+| Category | Standards |
+|----------|-----------|
+| Type Safety | • No `any` types<br>• Explicit return types on functions<br>• Use Database types from schema.ts<br>• Proper interface definitions |
+| Error Handling | • Try/catch blocks around async operations<br>• Use DatabaseError type for consistent errors<br>• Use toast notifications for user feedback<br>• Graceful fallbacks with error components |
+| Performance | • Use useDebounce for search inputs<br>• Implement pagination for large datasets<br>• Use Suspense for loading states<br>• Optimize Supabase queries with proper filters |
+| Security | • Use Supabase RLS policies<br>• Implement middleware for route protection<br>• Validate all user inputs with Zod<br>• Use role-based access control |
+
+### Testing Coverage Requirements
+| Component Type | Minimum Coverage | Required Test Types |
+|----------------|------------------|---------------------|
+| UI Components | 80% | • Unit tests<br>• Snapshot tests |
+| Pages | 70% | • Loading states<br>• Error states<br>• Integration tests |
+| API Routes | 90% | • Input validation<br>• Auth checks<br>• Error handling |
+| Database Functions | 95% | • Success cases<br>• Error cases<br>• Edge cases |
+| Utility Functions | 95% | • Unit tests<br>• Edge cases |
+
+### Environment Configuration Standard
+```
+.env.local             # Local development variables (NOT committed)
+.env.example           # Template with all required variables (committed)
+.env.production        # Production variables template (committed)
+```
+
+### Required Environment Variables Map
+| Variable | Purpose | Required In |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase connection URL | All environments |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | All environments |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin access | Server-only contexts |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps integration | If using location features |
+| `SERP_API_KEY` | News fetching API key | If using news integration |
+| `OPENAI_API_KEY` | AI features | If using OpenAI integration |
+| `MCP_SUPABASE_URL` | Supabase URL for MCP | MCP server |
+| `MCP_SUPABASE_KEY` | Supabase service role key for MCP | MCP server |
+| `MCP_SERVER_PORT` | Port for MCP server to listen on | MCP server |
+| `MCP_LOG_LEVEL` | Logging level for MCP server | MCP server |
+
+## 📊 Technical Debt Tracking
+
+### Debt Classification System
+| Category | Definition | Resolution Priority |
+|----------|------------|---------------------|
+| Critical | Breaks functionality or security vulnerability | IMMEDIATE |
+| Major | Affects user experience or performance | HIGH |
+| Minor | Code quality or maintainability issue | MEDIUM |
+| Refactor | Improved implementation possible | LOW |
+
+### Tracking Format
+```
+## Technical Debt Item
+- **Location**: [file path]
+- **Category**: [Critical/Major/Minor/Refactor]
+- **Description**: [Brief description of the issue]
+- **Impact**: [How it affects the system]
+- **Resolution Path**: [Steps to fix]
+- **Estimated Effort**: [T-shirt size: XS/S/M/L/XL]
+```
+
+## 🔍 Code Quality Metrics
+
+### Performance Budgets
+- Page Load: < 3s on 4G
+- First Contentful Paint: < 1.5s
+- Bundle Size: < 200KB initial JS
+- API Response: < 300ms
+- Core Web Vitals minimum:
+  - LCP: < 2.5s
+  - FID: < 100ms
+  - CLS: < 0.1
+
+### Code Complexity Limits
+- Function complexity: < 15 cognitive complexity
+- File size: < 400 lines
+- Function length: < 50 lines
+- Component props: < 10 props
+- Nesting depth: < 4 levels in JSX
+
+## 🧪 Form and Supabase Data Verification Guide
+
+### Testing Methodology
+| Testing Type | Purpose | Tools | Priority |
+|--------------|---------|-------|----------|
+| Manual Form Testing | Verify UI/UX and basic functionality | Browser | HIGH |
+| Automated Form Testing | Validate form behavior at scale | Playwright/Jest | MEDIUM |
+| Database Verification | Confirm data integrity in Supabase | Supabase CLI/UI | HIGH |
+| End-to-End Testing | Test complete user flows | Playwright | MEDIUM |
+| Schema Validation | Ensure data matches expected schema | Zod/TypeScript | HIGH |
+
+### Form Testing Checklist
+- **Validation Testing**:
+  - [ ] Test all required fields (should prevent submission when empty)
+  - [ ] Test field-specific validations (email format, URL format, etc.)
+  - [ ] Test min/max length constraints
+  - [ ] Test numeric range constraints (ratings 1-5)
+  - [ ] Test enum constraints (dropdown options)
+
+- **UI/UX Testing**:
+  - [ ] Verify error messages are clear and helpful
+  - [ ] Confirm loading states display correctly
+  - [ ] Test form reset functionality
+  - [ ] Verify success messages appear
+  - [ ] Test keyboard navigation and accessibility
+
+- **Edge Case Testing**:
+  - [ ] Test with minimum valid input
+  - [ ] Test with maximum valid input
+  - [ ] Test with special characters
+  - [ ] Test with different locales/languages
+  - [ ] Test with slow network conditions
+
+### Supabase Data Verification Methods
+
+#### 1. Using Supabase Studio
+1. **Access Supabase Studio**:
+   ```bash
+   npx supabase start
+   # Open http://localhost:54323 in browser
+   ```
+
+2. **Table Inspector**:
+   - Navigate to the Table Editor
+   - Select the relevant table (companies, reviews, etc.)
+   - Verify new records appear after form submission
+   - Check that all fields contain expected values
+
+3. **SQL Editor**:
+   - Run queries to verify data integrity:
+   ```sql
+   -- Check for recent submissions
+   SELECT * FROM reviews ORDER BY created_at DESC LIMIT 10;
+   
+   -- Verify relationships
+   SELECT r.*, c.name as company_name 
+   FROM reviews r
+   JOIN companies c ON r.company_id = c.id
+   ORDER BY r.created_at DESC LIMIT 10;
+   
+   -- Check for data anomalies
+   SELECT * FROM reviews WHERE rating < 1 OR rating > 5;
+   ```
+
+#### 2. Programmatic Verification
+1. **Create Test Script**:
+   ```typescript
+   // scripts/verify-data.ts
+   import { createClient } from '@supabase/supabase-js';
+   import { Database } from '@/types/supabase';
+   
+   async function verifyData() {
+     const supabase = createClient<Database>(
+       process.env.NEXT_PUBLIC_SUPABASE_URL!,
+       process.env.SUPABASE_SERVICE_ROLE_KEY!
+     );
+     
+     // Verify companies table
+     const { data: companies, error: companiesError } = await supabase
+       .from('companies')
+       .select('*')
+       .order('created_at', { ascending: false })
+       .limit(10);
+       
+     if (companiesError) {
+       console.error('Error fetching companies:', companiesError);
+     } else {
+       console.log('Recent companies:', companies);
+     }
+     
+     // Verify reviews table
+     const { data: reviews, error: reviewsError } = await supabase
+       .from('reviews')
+       .select('*, companies(name)')
+       .order('created_at', { ascending: false })
+       .limit(10);
+       
+     if (reviewsError) {
+       console.error('Error fetching reviews:', reviewsError);
+     } else {
+       console.log('Recent reviews:', reviews);
+     }
+   }
+   
+   verifyData();
+   ```
+
+2. **Run Verification**:
+   ```bash
+   npx tsx scripts/verify-data.ts
+   ```
+
+#### 3. Automated Testing
+1. **Create Test Suite**:
+   ```typescript
+   // __tests__/form-submission.test.ts
+   import { test, expect } from '@playwright/test';
+   
+   test.describe('Form Submission Tests', () => {
+     test('should submit company form and store in database', async ({ page }) => {
+       // Login first
+       await page.goto('/auth/login');
+       await page.fill('input[name="email"]', 'test@example.com');
+       await page.fill('input[name="password"]', 'password123');
+       await page.click('button[type="submit"]');
+       
+       // Navigate to company form
+       await page.goto('/companies/new');
+       
+       // Fill form
+       await page.fill('input[name="name"]', 'Test Company');
+       await page.fill('input[name="industry"]', 'Technology');
+       await page.fill('input[name="location"]', 'Test Location');
+       await page.fill('input[name="website"]', 'https://testcompany.com');
+       
+       // Submit form
+       await page.click('button[type="submit"]');
+       
+       // Verify success message
+       await expect(page.locator('text=successfully')).toBeVisible();
+       
+       // Verify in database (requires API endpoint or direct DB access)
+       // This would typically be done via an admin API
+     });
+   });
+   ```
+
+### Monitoring Form Submissions
+
+#### 1. Client-Side Monitoring
+```typescript
+// Add to form submission handlers
+try {
+  // Track submission attempt
+  console.log('Form submission started:', formData);
+  
+  const result = await submitForm(formData);
+  
+  // Track successful submission
+  console.log('Form submission succeeded:', result);
+} catch (error) {
+  // Track failed submission
+  console.error('Form submission failed:', error, formData);
+}
+```
+
+#### 2. Server-Side Logging
+```typescript
+// Add to API routes or server actions
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    console.log('Received form data:', data);
+    
+    // Process data...
+    const result = await processData(data);
+    
+    console.log('Successfully processed data:', result);
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('Error processing form data:', error);
+    return Response.json({ error: 'Failed to process data' }, { status: 500 });
+  }
+}
+```
+
+### Data Integrity Verification Checklist
+- [ ] Verify primary keys are correctly assigned
+- [ ] Confirm foreign key relationships are maintained
+- [ ] Check that timestamps (created_at, updated_at) are set correctly
+- [ ] Verify enum values match expected options
+- [ ] Confirm numeric constraints are enforced (ratings 1-5)
+- [ ] Check that text fields respect length constraints
+- [ ] Verify that required fields are never null
+- [ ] Confirm that default values are applied correctly
+
+### MCP Verification Methods
+
+#### 1. Verifying MCP Configuration
+1. **Check Configuration Files**:
+   ```bash
+   # Verify schema.json exists and is valid
+   cat .mcp/supabase/schema.json | jq
+   
+   # Verify config.json exists and is valid
+   cat .mcp/supabase/config.json | jq
+   
+   # Verify stored procedures file exists
+   cat .mcp/supabase/procedures.sql
+   ```
+
+2. **Verify MCP Server**:
+   - Start the MCP server with `npm run mcp:start`
+   - Check that the server starts without errors
+   - Verify that the server is listening on the expected port
+
+3. **Test Sample Queries**:
+   - Run `npm run mcp:sample-queries` to execute sample queries
+   - Verify that the queries return the expected results
+   - Check for any error messages in the console
+
+#### 2. Testing MCP in the Application
+1. **Component Testing**:
+   - Navigate to the `/mcp-demo` page
+   - Click on the "Fetch Companies" button
+   - Verify that companies are displayed in the table
+   - Click on the "Fetch Low-Rated Reviews" button
+   - Verify that low-rated reviews are displayed
+   - Click on the "Fetch Industry Ratings" button
+   - Check the console for the average ratings by industry
+
+2. **Stored Procedure Testing**:
+   ```typescript
+   // Test stored procedures in the browser console
+   const supabase = createClientComponentClient();
+   
+   // Test get_average_ratings_by_industry
+   supabase.rpc('get_average_ratings_by_industry')
+     .then(({ data, error }) => {
+       if (error) console.error('Error:', error);
+       else console.log('Average ratings by industry:', data);
+     });
+   
+   // Test get_top_companies_by_industry
+   supabase.rpc('get_top_companies_by_industry', { industry_name: 'Technology' })
+     .then(({ data, error }) => {
+       if (error) console.error('Error:', error);
+       else console.log('Top tech companies:', data);
+     });
+   ```
+
+3. **Error Handling Testing**:
+   - Test with invalid parameters
+   - Verify that errors are properly caught and displayed
+   - Check that the application doesn't crash when errors occur
+
+#### 3. Monitoring MCP Usage
+1. **Server Logs**:
+   - Monitor the MCP server logs for errors or warnings
+   - Check for any performance issues or slow queries
+
+2. **Client-Side Monitoring**:
+   ```typescript
+   // Add to MCP component
+   const executeQuery = async (query: string) => {
+     console.time('MCP Query Execution');
+     try {
+       // Execute query
+       console.log('Executing MCP query:', query);
+       const result = await executeQueryFunction(query);
+       console.log('MCP query result:', result);
+     } catch (error) {
+       console.error('MCP query error:', error);
+     } finally {
+       console.timeEnd('MCP Query Execution');
+     }
+   };
+   ```
+
+3. **Performance Metrics**:
+   - Track query execution time
+   - Monitor memory usage of the MCP server
+   - Identify slow or resource-intensive queries
+
+### MCP Error Handling Guidelines
+
+#### 1. Client-Side Error Handling
+- **Graceful Degradation**: Always provide fallback UI when MCP queries fail
+- **Specific Error Messages**: Display user-friendly error messages based on error types
+- **Retry Mechanism**: Implement exponential backoff for transient errors
+- **Error Boundaries**: Wrap MCP components in React Error Boundaries to prevent cascading failures
+- **Error Logging**: Log detailed error information to the console for debugging
+
+```tsx
+// Example of proper MCP error handling
+try {
+  const result = await executeMCPQuery(query);
+  // Process result
+} catch (error) {
+  // Categorize errors
+  if (error.code === 'PGRST301') {
+    // Handle stored procedure not found
+    setError('The requested analysis is not available');
+    console.error('Stored procedure not found:', error);
+  } else if (error.code?.startsWith('PGRST')) {
+    // Handle other Postgrest errors
+    setError('Database query error');
+    console.error('Postgrest error:', error);
+  } else if (error.message?.includes('network')) {
+    // Handle network errors
+    setError('Network error - please check your connection');
+    console.error('Network error:', error);
+  } else {
+    // Handle unknown errors
+    setError('An unexpected error occurred');
+    console.error('Unknown error:', error);
+  }
+  
+  // Optional: Report to monitoring service
+  reportError('mcp_query_error', { query, error });
+}
+```
+
+#### 2. Server-Side Error Handling
+- **Validate Input**: Validate all parameters before executing stored procedures
+- **Proper Status Codes**: Return appropriate HTTP status codes for different error types
+- **Structured Error Responses**: Use consistent error response format
+- **Transaction Management**: Use transactions to ensure data consistency
+- **Logging**: Log all errors with context for debugging
+
+```sql
+-- Example of proper error handling in stored procedures
+CREATE OR REPLACE FUNCTION get_company_reviews(company_id_param INTEGER)
+RETURNS TABLE (
+  id INTEGER,
+  title TEXT,
+  rating NUMERIC,
+  created_at TIMESTAMP
+) AS $$
+BEGIN
+  -- Validate input
+  IF company_id_param IS NULL THEN
+    RAISE EXCEPTION 'company_id cannot be null' USING ERRCODE = 'MCINV';
+  END IF;
+  
+  -- Check if company exists
+  IF NOT EXISTS (SELECT 1 FROM companies WHERE id = company_id_param) THEN
+    RAISE EXCEPTION 'company with id % not found', company_id_param USING ERRCODE = 'MCNFD';
+  END IF;
+  
+  -- Return data
+  RETURN QUERY
+  SELECT r.id, r.title, r.rating, r.created_at
+  FROM reviews r
+  WHERE r.company_id = company_id_param
+  ORDER BY r.created_at DESC;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### 3. Error Code Standards
+| Error Code | Description | Handling Strategy |
+|------------|-------------|-------------------|
+| `MCINV` | Invalid input parameters | Display specific validation error |
+| `MCNFD` | Resource not found | Show "not found" message with suggestions |
+| `MCPERM` | Permission denied | Prompt for authentication or explain access limits |
+| `MCLIM` | Rate or resource limit exceeded | Suggest trying again later |
+| `MCNET` | Network or connection error | Suggest checking connection and retry |
+| `MCUNK` | Unknown or unexpected error | Log details and show generic error message |
+
+## 📋 Scratchpad
+
+### RateMyEmployer Implementation Plans
+
+#### Phase 1: Core Features (50% Complete)
+[X] 1.1. Company Reviews System
+    [X] Review form with validation
+    [X] Review display components
+    [X] Rating calculation and visualization
+    [ ] Review moderation tools
+
+[X] 1.2. Company Profiles
+    [X] Company detail pages
+    [X] Company statistics and metrics
+    [X] Company search and filtering
+    [X] Company creation and editing
+
+[X] 1.3. User Authentication
+    [X] Login and registration
+    [X] User profiles
+    [ ] Permission management
+    [X] Protected routes
+
+#### Phase 2: Advanced Features (40% Complete)
+[ ] 2.1. Wall of Shame/Fame
+    [X] Automated ranking system
+    [ ] News integration
+    [ ] Visual presentation
+    [ ] Filtering and sorting
+
+[ ] 2.2. Admin Dashboard
+    [ ] Review moderation
+    [ ] User management
+    [ ] Content management
+    [ ] Analytics and reporting
+
+[ ] 2.3. Performance Optimization
+    [ ] Image optimization
+    [ ] Code splitting
+    [ ] Caching strategies
+    [ ] Bundle size reduction
+
+[X] 2.4. Form and Supabase Data Verification
+    [X] Form field validation testing
+    [X] Supabase data storage verification
+    [X] Error handling and edge case testing
+    [X] Data integrity checks
+    [X] Form submission monitoring
+    [X] Database schema validation
+
+[X] 2.5. MCP Integration
+    [X] MCP server configuration
+    [X] Database schema definition
+    [X] Stored procedures implementation
+    [X] Sample queries creation
+    [X] UI components development
+    [X] Documentation consolidation
+    [X] Interactive CLI development
+    [X] MCP demo page implementation
+    [X] Package.json scripts configuration
+    [X] Configuration files setup
+
+#### Phase 3: Enhancement Features (0% Complete)
+[ ] 3.1. Social Features
+    [ ] User comments on reviews
+    [ ] Helpful votes on reviews
+    [ ] User reputation system
+    [ ] Social sharing
+
+[ ] 3.2. Advanced Analytics
+    [ ] Salary insights
+    [ ] Industry trends
+    [ ] Company comparisons
+    [ ] Geographic analysis
+
+[ ] 3.3. Mobile Optimization
+    [ ] Responsive design improvements
+    [ ] Touch-friendly interfaces
+    [ ] Mobile-specific features
+    [ ] Performance optimizations
+
+## 🔧 Development Environment Setup
+(From the original cursorrules file)
+
+### Environment Setup
+- Node.js: v20.0.0 or higher
+- npm: v10.0.0 or higher
+- TypeScript: v5.3 or higher
+- Next.js: v15.1 or higher
+
+### Supabase Configuration
+- Create a Supabase account and set up a new project
+- Configure the database schema to match application requirements
+- Implement Row-Level Security (RLS) policies to secure data access
+- Generate types: `npx supabase gen types typescript --project-id "your-project-id" > src/types/supabase.ts`

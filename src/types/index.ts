@@ -1,4 +1,5 @@
 import type { Database } from './supabase';
+import { UserProfile } from './database';
 
 
 // src/types/index.ts
@@ -8,11 +9,11 @@ type Enums = Database['public']['Enums'];
 
 export type CompanyRow = Tables['companies']['Row'];
 export type ReviewRow = Tables['reviews']['Row'];
-export type UserProfileRow = Tables['user_profiles']['Row'];
+export type UserProfileRow = UserProfile;
 
 export type EmploymentStatus = typeof EMPLOYMENT_STATUSES[number];
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
-export type VerificationStatus = Enums['verification_status'];
+export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
 // Constants
 export const INDUSTRIES = [
@@ -28,12 +29,12 @@ export const INDUSTRIES = [
 // Types
 export type Industry = typeof INDUSTRIES[number];
 export type Role = 'user' | 'admin' | 'moderator';
-export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
+export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise' | 'Startup';
 
 // Database-derived types
 export type Company = Database['public']['Tables']['companies']['Row'];
 export type Review = Database['public']['Tables']['reviews']['Row'];
-export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Profile = UserProfile;
 
 // Analytics types
 export type AdminStats = {

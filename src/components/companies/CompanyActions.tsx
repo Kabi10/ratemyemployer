@@ -11,9 +11,10 @@ import type { Company } from '@/types/database';
 
 interface CompanyActionsProps {
   company: Company;
+  isAdmin?: boolean;
 }
 
-export function CompanyActions({ company }: CompanyActionsProps) {
+export function CompanyActions({ company, isAdmin = false }: CompanyActionsProps) {
   const [showAddReview, setShowAddReview] = useState(false);
   const { user } = useAuth();
   const router = useRouter();

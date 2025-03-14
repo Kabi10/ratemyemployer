@@ -29,10 +29,7 @@ export default function EditCompany() {
     description: '',
     location: '',
     website: '',
-    metadata: {
-      ceo: '',
-      // other metadata fields
-    }
+    metadata: undefined as Record<string, any> | undefined
   });
 
   useEffect(() => {
@@ -50,14 +47,22 @@ export default function EditCompany() {
 
       if (data) {
         setCompany(data);
-        setFormData({
+        const formValues = {
           name: data.name || '',
           industry: data.industry || '',
           description: data.description || '',
           location: data.location || '',
           website: data.website || '',
-          metadata: data.metadata || { ceo: '' }
-        });
+        };
+        
+        if (data.metadata) {
+          setFormData({
+            ...formValues,
+            metadata: data.metadata
+          });
+        } else {
+          setFormData(formValues);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch company');
@@ -75,9 +80,14 @@ export default function EditCompany() {
     setError(null);
 
     try {
+      const dataToUpdate = { ...formData };
+      if (dataToUpdate.metadata === undefined) {
+        delete dataToUpdate.metadata;
+      }
+
       const { error } = await supabase
         .from('companies')
-        .update(formData)
+        .update(dataToUpdate)
         .eq('id', id);
 
       if (error) throw error;

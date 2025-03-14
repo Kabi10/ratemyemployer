@@ -14,6 +14,7 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 - Data validation and sanitization
 - Role-based access control
 - Company news integration
+- Model Context Protocol (MCP) integration for natural language database queries
 
 ## Tech Stack
 
@@ -26,6 +27,7 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 - React Hook Form
 - Zod for validation
 - Playwright for E2E testing
+- Cursor MCP for natural language database interaction
 
 ## Prerequisites
 
@@ -79,6 +81,13 @@ src/
 ├── hooks/          # Custom hooks
 ├── lib/            # Utilities and configurations
 └── types/          # TypeScript types
+
+scripts/
+├── mcp-sample-queries.ts    # Sample MCP queries
+├── mcp-stored-procedures.sql # SQL stored procedures for MCP
+├── run-mcp-server.js        # Interactive MCP server runner
+├── setup-mcp.ts             # MCP setup script
+└── setup-stored-procedures.ts # MCP stored procedures setup
 
 tests/
 ├── e2e/            # End-to-end tests
@@ -163,4 +172,36 @@ You can manually trigger the news fetch workflow:
 1. Go to the "Actions" tab in your repository
 2. Select "Fetch Company News" workflow
 3. Click "Run workflow"
-4. Select the branch and click "Run workflow" 
+4. Select the branch and click "Run workflow"
+
+## Model Context Protocol (MCP) Integration
+
+RateMyEmployer includes integration with the Model Context Protocol (MCP), which enables natural language interaction with the Supabase database through AI tools like Cursor.
+
+### Key Features
+
+- Query the database using plain English instead of SQL
+- Generate complex queries without writing SQL
+- Analyze company ratings, review trends, and user activity
+- Integrate AI-powered queries into your application
+
+### Getting Started with MCP
+
+1. Set up the MCP server:
+   ```bash
+   npm run mcp:setup
+   ```
+
+2. Start the MCP server:
+   ```bash
+   npm run mcp:start
+   ```
+   
+   Or use the interactive runner:
+   ```bash
+   npm run mcp:runner
+   ```
+
+3. Visit the MCP demo page at `/mcp-demo` to see it in action
+
+For comprehensive documentation on the MCP integration, see [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md). 

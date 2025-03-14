@@ -40,10 +40,9 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     resolver: zodResolver(companySchema),
     defaultValues: {
       name: initialData?.name || '',
-      industry: initialData?.industry || '',
+      industry: initialData?.industry || undefined,
       location: initialData?.location || '',
       website: initialData?.website || '',
-      description: initialData?.description || '',
     },
   });
 
@@ -124,7 +123,7 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
         <label className="block text-sm font-medium mb-2">Industry</label>
         <Select
           value={watch('industry')}
-          onValueChange={(value) => setValue('industry', value as CompanyIndustry)}
+          onValueChange={(value) => setValue('industry', value as "Technology" | "Healthcare" | "Education" | "Finance" | "Manufacturing" | "Retail" | "Other")}
         >
           {/* options */}
         </Select>
@@ -148,16 +147,6 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
         <label className="block text-sm font-medium mb-2">Website</label>
         <Input {...register('website')} type="url" />
         {errors.website && <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Description</label>
-        <textarea
-          {...register('description')}
-          rows={3}
-          className="w-full p-3 border rounded-lg"
-        />
-        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>

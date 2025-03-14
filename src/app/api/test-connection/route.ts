@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabaseServer';
 
 export async function GET() {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase.from('companies').select('count').single();
 
     if (error) throw error;

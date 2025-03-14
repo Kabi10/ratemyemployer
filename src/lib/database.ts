@@ -9,7 +9,14 @@ import {
   ReviewInsert,
   ReviewUpdate,
   CompanyWithReviews,
-} from '@/types';
+  DatabaseError,
+  DatabaseResult,
+  DatabaseOperation,
+  TableName,
+  ErrorLogDetails,
+  GetReviewsOptions,
+  GetCompaniesOptions
+} from '@/types/database';
 
 // Response types
 export interface DatabaseResponse<T> {
@@ -24,26 +31,6 @@ export interface ReviewLike {
   created_at: string;
   liked: boolean;
 }
-
-export interface DatabaseError {
-  message: string;
-  details?: unknown;
-}
-
-export type DatabaseResult<T> = {
-  data?: T | null;
-  error: DatabaseError | null;
-};
-
-export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT' | 'RPC' | 'AUTH';
-export type TableName = keyof Database['public']['Tables'] | 'review_likes';
-export type ErrorLogDetails = {
-  operation: DatabaseOperation;
-  table: TableName;
-  error: Error;
-  details?: Record<string, any>;
-  user_id?: string;
-};
 
 // Helper function to ensure ID is a number
 function ensureNumericId(id: string | number): number {
@@ -75,25 +62,42 @@ export async function getCompany(id: number) {
   }
 }
 
-export async function getReviews(companyId?: number) {
+export async function getReviews(options?: GetReviewsOptions): Promise<DatabaseResult<(Review & { company: Company })[]>> {
   try {
     const query = supabase
       .from('reviews')
       .select('*, company:companies(*)');
 
-    if (companyId) {
-      query.eq('company_id', companyId);
+    if (options?.companyId) {
+      query.eq('company_id', typeof options.companyId === 'string' ? parseInt(options.companyId, 10) : options.companyId);
+    }
+
+    if (options?.status) {
+      query.eq('status', options.status);
+    }
+
+    if (options?.orderBy) {
+      query.order(options.orderBy, { ascending: options.orderDirection === 'asc' });
+    } else {
+      query.order('created_at', { ascending: false });
+    }
+
+    if (options?.page && options?.limit) {
+      const start = (options.page - 1) * options.limit;
+      query.range(start, start + options.limit - 1);
+    } else if (options?.limit) {
+      query.limit(options.limit);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      return { error: handleDatabaseError(error, 'SELECT', 'reviews', { company_id: companyId }) };
+      return { data: null, error: handleDatabaseError(error, 'SELECT', 'reviews', { options }) };
     }
 
     return { data: data as (Review & { company: Company })[], error: null };
   } catch (error) {
-    return { error: handleDatabaseError(error, 'SELECT', 'reviews', { company_id: companyId }) };
+    return { data: null, error: handleDatabaseError(error, 'SELECT', 'reviews', { options }) };
   }
 }
 
@@ -384,24 +388,27 @@ export async function deleteReview(id: number) {
 }
 
 // Helper function to handle database errors
-const handleDatabaseError = async <T>(
+const handleDatabaseError = (
   error: any,
   operation: DatabaseOperation,
   table: TableName,
   details?: Record<string, any>
-): Promise<DatabaseResult<T>> => {
+): DatabaseError => {
   const errorMessage = error?.message || error?.toString() || 'Unknown error';
   
-  await dbLogError({
+  // Log the error asynchronously but don't wait for it
+  dbLogError({
     operation,
     table,
-    error: new Error(errorMessage),
+    error: errorMessage,
     details,
+  }).catch(logError => {
+    console.error('Failed to log error:', logError);
   });
   
   return {
-    data: null,
-    error: new Error(errorMessage),
+    message: errorMessage,
+    details: details || error
   };
 };
 
@@ -411,7 +418,7 @@ export const dbLogError = async (details: ErrorLogDetails) => {
   
   try {
     await supabase.from('error_logs').insert({
-      error_message: error.message,
+      error_message: error,
       error_code: operation,
       metadata: errorDetails,
       user_id,

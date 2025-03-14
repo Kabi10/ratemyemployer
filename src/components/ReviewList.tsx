@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { formatDateDisplay } from '@/utils/date';
 import { ReviewCard } from './ReviewCard';
+import { ReviewForm } from './ReviewForm';
 import { List } from './ui/List';
 import type { Review } from '@/types/database';
 
@@ -63,8 +64,8 @@ export const ReviewList = ({
       <h3>Reviews</h3>
       {showReviewForm && (
         <ReviewForm 
-          companyId={companyId}
-          onClose={() => setShowReviewForm(false)}
+          companyId={parseInt(companyId, 10)}
+          onSuccess={() => setShowReviewForm(false)}
         />
       )}
       <div className="reviews-list">

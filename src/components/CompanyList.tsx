@@ -127,17 +127,29 @@ export const CompanyList = ({
 
         // Calculate average ratings and total reviews
         const companiesWithStats = data.map(company => {
+          console.log('Company object:', company);
+          
           const reviews = company.reviews || [];
           const totalReviews = reviews.length;
           const averageRating = totalReviews > 0
             ? reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / totalReviews
             : 0;
 
+          // Create a new object with all required properties
           return {
-            ...company,
+            id: company.id,
+            name: company.name,
+            industry: company.industry,
+            location: company.location,
+            website: company.website,
+            logo_url: company.logo_url,
+            created_at: company.created_at,
+            updated_at: company.updated_at,
+            description: null,
+            metadata: null,
             average_rating: averageRating,
             total_reviews: totalReviews,
-            reviews: undefined // Remove the reviews array as we don't need it anymore
+            reviews: []
           };
         });
 

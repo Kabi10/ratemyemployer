@@ -9,7 +9,7 @@ import { CompanyCard } from '@/components/CompanyCard';
 
 
 export function FeaturedCompanies() {
-  const { companies, isLoading, error } = useCompanies({
+  const { companies, loading, error } = useCompanies({
     limit: 3,
     withStats: true,
   });
@@ -18,12 +18,12 @@ export function FeaturedCompanies() {
     return (
       <section className="py-12">
         <h2 className="text-3xl font-bold mb-8 text-center">Featured Companies</h2>
-        <div className="text-red-500 text-center">{error.message}</div>
+        <div className="text-red-500 text-center">{error}</div>
       </section>
     );
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <section className="py-12">
         <h2 className="text-3xl font-bold mb-8 text-center">Featured Companies</h2>

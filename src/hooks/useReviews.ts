@@ -38,8 +38,8 @@ export const useReviews = (options: GetReviewsOptions = {}): UseReviewsResult =>
           setError(result.error.message || 'Failed to fetch reviews');
           setReviews(null);
         } else {
-          setReviews(result.data);
-          setTotalCount(result.data?.length);
+          setReviews(result.data ? result.data as JoinedReview[] : null);
+          setTotalCount(result.data?.length || 0);
           setError(null);
         }
       } catch (err) {

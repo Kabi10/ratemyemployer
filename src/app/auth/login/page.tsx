@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, Lock, Mail } from 'lucide-react'
@@ -289,8 +289,8 @@ function LoginContent() {
 
 export default function LoginPage(): JSX.Element {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Suspense fallback={<div>Loading...</div>}>
       <LoginContent />
-    </div>
+    </Suspense>
   )
 }

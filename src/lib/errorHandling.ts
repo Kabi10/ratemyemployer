@@ -1,7 +1,8 @@
 import { supabase } from './supabaseClient';
-import type { Database } from '@/types/supabase';
+import { ErrorLogInsert } from '@/types/database';
 
-type ErrorLog = Database['public']['Tables']['error_logs']['Insert'];
+// Use our mock type instead of trying to access it from the Database type
+type ErrorLog = ErrorLogInsert;
 
 export const logError = async (details: ErrorLog) => {
   try {

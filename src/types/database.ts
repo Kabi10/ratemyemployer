@@ -5,21 +5,32 @@ import { PostgrestError } from '@supabase/supabase-js';
 export interface Company {
   id: number
   name: string
-  industry: string
-  location?: string | null
-  website?: string | null
-  description?: string | null
-  logo_url?: string | null
-  average_rating?: number | null
-  total_reviews?: number | null
+  industry: string | null
+  location: string | null
+  website: string | null
+  description: string | null
+  logo_url: string | null
+  average_rating: number | null
+  total_reviews: number | null
   created_at: string
   updated_at: string
-  metadata?: Record<string, any> | null
+  metadata?: Record<string, any> | null | string | any
+  recommendation_rate?: number | null
+  size?: string | null
+  created_by?: string | null
+  ceo_rating?: number | null
+  work_life_balance?: number | null
+  compensation_rating?: number | null
+  career_growth?: number | null
+  culture_rating?: number | null
+  [key: string]: any
 }
 
 export interface Review {
   id: number;
   rating: number;
+  title?: string;
+  content?: string;
   pros: string;
   cons: string;
   position: string;
@@ -27,29 +38,51 @@ export interface Review {
   is_current_employee: boolean;
   company_id: number;
   user_id: string | null;
+  reviewer_name?: string;
   created_at: string;
   updated_at: string | null;
 }
 
-export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
-export type ErrorLog = Database['public']['Tables']['error_logs']['Row'];
+// Mock types for missing tables in the Database type
+// These will be used as fallbacks when the actual tables don't exist in the Database type
+interface MockUserProfile {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  email: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+interface MockErrorLog {
+  id: number;
+  message: string;
+  details: any;
+  created_at: string;
+  user_id: string | null;
+}
+
+// Use the actual Database types if they exist, otherwise use our mock types
+export type UserProfile = MockUserProfile;
+export type ErrorLog = MockErrorLog;
 
 // Insert types
 export type CompanyInsert = Omit<Company, 'id' | 'created_at' | 'updated_at'>;
 export type ReviewInsert = Omit<Review, 'id' | 'created_at' | 'updated_at'>;
-export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert'];
-export type ErrorLogInsert = Database['public']['Tables']['error_logs']['Insert'];
+export type UserProfileInsert = Omit<MockUserProfile, 'id' | 'created_at' | 'updated_at'>;
+export type ErrorLogInsert = Omit<MockErrorLog, 'id' | 'created_at'>;
 
 // Update types
 export type CompanyUpdate = Partial<CompanyInsert>;
 export type ReviewUpdate = Partial<ReviewInsert>;
-export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
+export type UserProfileUpdate = Partial<Omit<MockUserProfile, 'id' | 'created_at' | 'updated_at'>>;
 
 // Enum types
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 export type RateLimitType = 'ip' | 'user';
 export type EmploymentStatus = 'Full-time' | 'Part-time' | 'Contract' | 'Intern';
-export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise';
+export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise' | 'Startup';
 
 // ID types
 export type CompanyId = Company['id'];
@@ -100,6 +133,8 @@ export interface GetCompaniesOptions {
   orderDirection?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  withStats?: boolean;
+  withReviews?: boolean;
 }
 
 export interface GetReviewsOptions {
@@ -108,6 +143,10 @@ export interface GetReviewsOptions {
   orderDirection?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  companyId?: number | string;
+  userId?: string;
+  withCompany?: boolean;
+  withLikes?: boolean;
 }
 
 // Helper types for Supabase
@@ -153,7 +192,10 @@ export type WithCompany = {
 export type JoinedReview = Review & {
   company?: Company;
   likes?: number;
+  likes_count?: number;
   user_liked?: boolean;
+  is_liked?: boolean;
+  user_profiles?: UserProfile;
 };
 
 export type JoinedCompany = Company & {

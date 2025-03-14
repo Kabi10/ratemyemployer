@@ -21,8 +21,23 @@ interface ReviewCardProps {
   onEdit?: (reviewId: number) => void;
 }
 
-export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
+export function ReviewCard({ review, showActions = true, onReport, onEdit }: ReviewCardProps) {
   const stars = getRatingStars(review.rating);
+
+  // Handle report and edit clicks
+  const handleReportClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (onReport) {
+      onReport(review.id);
+    }
+  };
+
+  const handleEditClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (onEdit) {
+      onEdit(review.id);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-4">
@@ -85,6 +100,8 @@ export function ReviewCard({ review, showActions = true }: ReviewCardProps) {
             reviewId={review.id} 
             initialLikes={review.likes_count || 0}
             isLiked={review.is_liked || false}
+            onReportClick={handleReportClick}
+            onEditClick={handleEditClick}
           />
         )}
       </div>

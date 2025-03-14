@@ -1,11 +1,10 @@
-import type { Database } from '@/types/supabase';
+import { Company } from '@/types/database';
 import { StatCard } from '@/components/ui/StatCard';
-
-type Company = Database['public']['Tables']['companies']['Row'];
 
 export function CompanyStats({ company }: { company: Company }) {
   const rating = company.average_rating || 0;
   const totalReviews = company.total_reviews || 0;
+  const recommendationRate = company.recommendation_rate ?? 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -21,7 +20,7 @@ export function CompanyStats({ company }: { company: Company }) {
       />
       <StatCard
         label="Recommendation Rate"
-        value={company.recommendation_rate || 0}
+        value={recommendationRate}
         type="percentage"
       />
     </div>

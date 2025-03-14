@@ -6,12 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon } from '@radix-ui/react-icons';
-import { fetchAndStoreCompanyNews, fetchNewsForCompanies } from '@/lib/newsApi';
+import { fetchCompanyNews, fetchNewsForCompanies, NewsArticle } from '@/lib/newsApi';
 import { fetchNewsWithKluster } from '@/lib/klusterAi';
-import type { Company, Review } from '@/types/database';
+import type { Company, Review, CompanyWithReviews } from '@/types/database';
 
-interface CompanyWithShameData extends Company {
-  reviews?: Review[];
+interface CompanyWithShameData extends CompanyWithReviews {
   shame_score?: number;
   score_breakdown?: {
     base_score: number;
@@ -19,16 +18,7 @@ interface CompanyWithShameData extends Company {
     recent_negative_count: number;
     recent_bonus: number;
   };
-}
-
-interface NewsArticle {
-  title: string;
-  description: string;
-  url: string;
-  source: {
-    name: string;
-  };
-  publishedAt: string;
+  recent_reviews?: Review[];
 }
 
 export default function WallOfShame() {
@@ -81,6 +71,9 @@ export default function WallOfShame() {
             location,
             description,
             logo_url,
+            website,
+            created_at,
+            updated_at,
             reviews (
               id,
               rating,
@@ -89,9 +82,13 @@ export default function WallOfShame() {
               position,
               employment_status,
               is_current_employee,
-              created_at
+              created_at,
+              updated_at,
+              status,
+              user_id
             )
-          `);
+          `)
+          .eq('reviews.status', 'approved');
 
         if (companiesError) {
           console.error('Error fetching companies:', companiesError);
@@ -114,7 +111,19 @@ export default function WallOfShame() {
         const processedCompanies = companiesData
           .map(company => {
             // Calculate average rating and total reviews
-            const reviews = company.reviews || [];
+            const reviews = (company.reviews || []).map(review => ({
+              id: review.id,
+              rating: review.rating,
+              pros: review.pros || '',
+              cons: review.cons || '',
+              position: review.position || '',
+              employment_status: review.employment_status,
+              is_current_employee: review.is_current_employee,
+              company_id: company.id,
+              user_id: review.user_id || null,
+              created_at: review.created_at,
+              updated_at: review.updated_at || null
+            }));
             const totalReviews = reviews.length;
             
             // Log individual review ratings for this company
@@ -137,11 +146,22 @@ export default function WallOfShame() {
 
             console.log(`Company ${company.name}: ${totalReviews} reviews, avg rating ${averageRating.toFixed(1)}`);
 
-            return {
-              ...company,
+            const processedCompany: CompanyWithShameData = {
+              id: company.id,
+              name: company.name,
+              industry: company.industry,
+              location: company.location,
+              description: company.description,
+              logo_url: company.logo_url,
+              website: company.website,
+              created_at: company.created_at,
+              updated_at: company.updated_at,
+              reviews: reviews,
               average_rating: averageRating,
               total_reviews: totalReviews
             };
+
+            return processedCompany;
           })
           .filter(company => company.total_reviews > 0); // Only include companies with reviews
 
@@ -461,27 +481,47 @@ export default function WallOfShame() {
                   ) : companyNews[company.name]?.length > 0 ? (
                     <div className="space-y-3">
                       {companyNews[company.name].map((article, i) => (
-                        <a
-                          key={i}
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block bg-gray-50 dark:bg-gray-800 p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <div className="flex justify-between items-start gap-2">
-                            <h4 className="font-medium text-sm">{article.title}</h4>
-                            <ExternalLinkIcon className="h-4 w-4 flex-shrink-0 mt-1" />
+                        article.url ? (
+                          <a
+                            key={i}
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block bg-gray-50 dark:bg-gray-800 p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="font-medium text-sm">{article.title}</h4>
+                              <ExternalLinkIcon className="h-4 w-4 flex-shrink-0 mt-1" />
+                            </div>
+                            {article.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {article.description}
+                              </p>
+                            )}
+                            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                              <span>{article.source.name}</span>
+                              <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                            </div>
+                          </a>
+                        ) : (
+                          <div
+                            key={i}
+                            className="block bg-gray-50 dark:bg-gray-800 p-3 rounded"
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="font-medium text-sm">{article.title}</h4>
+                            </div>
+                            {article.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {article.description}
+                              </p>
+                            )}
+                            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                              <span>{article.source.name}</span>
+                              <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                            </div>
                           </div>
-                          {article.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {article.description}
-                            </p>
-                          )}
-                          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-                            <span>{article.source.name}</span>
-                            <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                          </div>
-                        </a>
+                        )
                       ))}
                     </div>
                   ) : (

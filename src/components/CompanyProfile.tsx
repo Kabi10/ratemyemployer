@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import type { Database } from '@/types/supabase';
-
+import { Company } from '@/types/database';
 import { StatCard } from './ui/StatCard';
-
-type Company = Database['public']['Tables']['companies']['Row'];
 
 function formatRating(rating: number | null): number {
   return rating ?? 0;
@@ -29,7 +26,7 @@ export function CompanyStats({ company }: { company: Company }) {
       />
       <StatCard
         label="Would Recommend"
-        value={formatPercentage(company.recommendation_rate)}
+        value={formatPercentage(company.recommendation_rate ?? 0)}
         type="percentage"
       />
       <StatCard 
@@ -39,7 +36,7 @@ export function CompanyStats({ company }: { company: Company }) {
       />
       <StatCard 
         label="CEO Rating" 
-        value={company.ceo || 'Not Available'} 
+        value={formatRating(company.ceo_rating ?? 0)} 
         type="rating" 
       />
     </div>

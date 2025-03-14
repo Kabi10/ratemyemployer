@@ -10,14 +10,12 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { Button } from '@/components/ui/button';
 
-// app/companies/[id]/page.tsx
-
 export default function CompanyPage() {
   const { id } = useParams() as { id: string };
-  const { company, isLoading, error } = useCompany(id);
+  const { company, loading, error } = useCompany(id);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -26,8 +24,7 @@ export default function CompanyPage() {
   }
 
   if (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return <ErrorDisplay message={errorMessage} />;
+    return <ErrorDisplay message={typeof error === 'string' ? error : 'An error occurred'} />;
   }
 
   if (!company) {
@@ -73,10 +70,10 @@ export default function CompanyPage() {
                 Rating
               </h3>
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {company.rating?.toFixed(1) || 'N/A'}
+                {company.average_rating?.toFixed(1) || 'N/A'}
               </div>
               <p className="text-gray-600 dark:text-gray-400">
-                Based on {company.review_count || 0} reviews
+                Based on {company.total_reviews || 0} reviews
               </p>
             </div>
 
@@ -112,7 +109,7 @@ export default function CompanyPage() {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-              {company.id && <ReviewList companyId={company.id} />}
+              {company.id && <ReviewList companyId={String(company.id)} />}
             </div>
           </div>
 
