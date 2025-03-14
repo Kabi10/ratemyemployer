@@ -1,24 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
 import type { Company, CompanyWithReviews } from '@/types/database';
+import { EnhancedCompanyCard } from '@/components/EnhancedCompanyCard';
+import { CompanyFilters, CompanyFilters as CompanyFiltersType } from '@/components/CompanyFilters';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy } from 'lucide-react';
 
 export default function WallOfFame() {
   const [companies, setCompanies] = useState<CompanyWithReviews[]>([]);
+  const [filteredCompanies, setFilteredCompanies] = useState<CompanyWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
+  const [industries, setIndustries] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('all');
 
-  useEffect(() => {
-    fetchTopCompanies();
-  }, []);
-
+  // Fetch companies with high ratings
   const fetchTopCompanies = async () => {
     try {
+      setLoading(true);
       console.log('Starting companies fetch...');
 
       // First, test a simple query
@@ -48,29 +53,23 @@ export default function WallOfFame() {
           location,
           description,
           logo_url,
-          website,
-          created_at,
-          updated_at,
+          website_url,
+          size,
+          founded_year,
           reviews (
             id,
             rating,
+            title,
             pros,
             cons,
-            position,
-            employment_status,
-            is_current_employee,
-            created_at,
-            updated_at,
-            status,
-            user_id
+            recommend,
+            created_at
           )
         `)
-        .eq('reviews.status', 'approved');
-
-      console.log('Full query response:', { companiesData, companiesError });
+        .order('id', { ascending: true });
 
       if (companiesError) {
-        console.error('Full query error:', {
+        console.error('Companies query error:', {
           code: companiesError.code,
           message: companiesError.message,
           details: companiesError.details
@@ -78,91 +77,65 @@ export default function WallOfFame() {
         throw companiesError;
       }
 
-      if (!companiesData) {
+      if (!companiesData || companiesData.length === 0) {
         console.log('No companies found');
         setCompanies([]);
+        setFilteredCompanies([]);
         return;
       }
 
-      // Process companies and calculate ratings
-      const processedCompanies = companiesData
-        .map(company => {
-          // Calculate average rating and total reviews
-          const reviews = (company.reviews || []).map(review => ({
-            id: review.id,
-            rating: review.rating,
-            pros: review.pros || '',
-            cons: review.cons || '',
-            position: review.position || '',
-            employment_status: review.employment_status,
-            is_current_employee: review.is_current_employee,
-            company_id: company.id,
-            user_id: review.user_id || null,
-            created_at: review.created_at,
-            updated_at: review.updated_at || null
-          }));
-          const totalReviews = reviews.length;
-          
-          // Log individual review ratings for this company
-          console.log(`Reviews for ${company.name}:`, reviews.map(r => ({
-            id: r.id,
-            rating: r.rating,
-            created_at: r.created_at
-          })));
+      console.log(`Found ${companiesData.length} companies`);
 
-          const averageRating = totalReviews > 0
-            ? reviews.reduce((sum, review) => {
-                const rating = Number(review.rating);
-                if (isNaN(rating)) {
-                  console.warn(`Invalid rating for review ${review.id} in company ${company.name}`);
-                  return sum;
-                }
-                return sum + rating;
-              }, 0) / totalReviews
-            : 0;
+      // Process companies to calculate average ratings and other metrics
+      const processedCompanies: CompanyWithReviews[] = companiesData.map(company => {
+        const reviews = company.reviews || [];
+        const validRatings = reviews.filter(review => review.rating >= 1 && review.rating <= 5);
+        
+        const averageRating = validRatings.length > 0
+          ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
+          : 0;
+        
+        const recommendCount = reviews.filter(review => review.recommend).length;
+        const recommendPercentage = reviews.length > 0
+          ? Math.round((recommendCount / reviews.length) * 100)
+          : 0;
+        
+        return {
+          ...company,
+          average_rating: averageRating,
+          recommend_percentage: recommendPercentage
+        };
+      });
 
-          console.log(`Company ${company.name}: ${totalReviews} reviews, avg rating ${averageRating.toFixed(1)}`);
+      // Sort by average rating (highest first)
+      const sortedCompanies = processedCompanies
+        .filter(company => company.average_rating > 0)
+        .sort((a, b) => b.average_rating - a.average_rating);
 
-          const processedCompany: CompanyWithReviews = {
-            id: company.id,
-            name: company.name,
-            industry: company.industry,
-            location: company.location,
-            description: company.description,
-            logo_url: company.logo_url,
-            website: company.website,
-            created_at: company.created_at,
-            updated_at: company.updated_at,
-            reviews: reviews,
-            average_rating: averageRating,
-            total_reviews: totalReviews
-          };
-
-          return processedCompany;
-        })
-        .filter(company => company.total_reviews > 0 && company.average_rating > 4.0)
-        .sort((a, b) => b.average_rating - a.average_rating)
-        .slice(0, 10);
-
-      console.log('Processed companies:', processedCompanies.map(c => ({
-        name: c.name,
-        avgRating: c.average_rating.toFixed(1),
-        totalReviews: c.total_reviews
-      })));
-
-      setCompanies(processedCompanies);
+      // Get top 10 companies
+      const topCompanies = sortedCompanies.slice(0, 10);
       
-      if (processedCompanies.length > 0) {
-        fetchNewsForTopCompanies(processedCompanies);
-      }
-    } catch (err) {
-      console.error('Error in fetchTopCompanies:', err);
+      // Extract unique industries
+      const uniqueIndustries = Array.from(
+        new Set(processedCompanies.map(company => company.industry).filter(Boolean))
+      ) as string[];
+      
+      setIndustries(uniqueIndustries);
+      setCompanies(topCompanies);
+      setFilteredCompanies(topCompanies);
+      
+      // Fetch news for top companies
+      fetchNewsForTopCompanies(topCompanies);
+      
+    } catch (err: any) {
+      console.error('Error fetching companies:', err);
       setError('Failed to fetch top companies');
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch news for top companies
   const fetchNewsForTopCompanies = async (companies: CompanyWithReviews[]) => {
     const newsData: { [key: string]: NewsArticle[] } = {};
     for (const company of companies) {
@@ -176,15 +149,80 @@ export default function WallOfFame() {
     }
     setCompanyNews(newsData);
   };
+  
+  // Handle filter changes
+  const handleFiltersChange = useCallback((filters: CompanyFiltersType) => {
+    let filtered = [...companies];
+    
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(company => 
+        company.name.toLowerCase().includes(searchLower) ||
+        (company.description && company.description.toLowerCase().includes(searchLower)) ||
+        (company.industry && company.industry.toLowerCase().includes(searchLower)) ||
+        (company.location && company.location.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply industry filter
+    if (filters.industry) {
+      filtered = filtered.filter(company => company.industry === filters.industry);
+    }
+    
+    // Apply sorting
+    switch (filters.sortBy) {
+      case 'rating-desc':
+        filtered.sort((a, b) => b.average_rating - a.average_rating);
+        break;
+      case 'rating-asc':
+        filtered.sort((a, b) => a.average_rating - b.average_rating);
+        break;
+      case 'reviews-desc':
+        filtered.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0));
+        break;
+      case 'name-asc':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+    
+    setFilteredCompanies(filtered);
+  }, [companies]);
+  
+  // Handle tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    if (value === 'all') {
+      setFilteredCompanies(companies);
+    } else {
+      const filtered = companies.filter(company => company.industry === value);
+      setFilteredCompanies(filtered);
+    }
+  };
+
+  useEffect(() => {
+    fetchTopCompanies();
+  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center mb-8"
+          >
+            <Trophy className="h-8 w-8 text-amber-500 mr-3" />
+            <h1 className="text-4xl font-bold text-blue-800">Wall of Fame</h1>
+          </motion.div>
+          
           <div className="space-y-8">
-            <div className="h-32 bg-white/50 rounded-lg animate-pulse"></div>
-            <div className="h-32 bg-white/50 rounded-lg animate-pulse"></div>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-64 bg-white/50 rounded-lg animate-pulse"></div>
+            ))}
           </div>
         </div>
       </div>
@@ -195,7 +233,10 @@ export default function WallOfFame() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
+          <div className="flex items-center mb-8">
+            <Trophy className="h-8 w-8 text-amber-500 mr-3" />
+            <h1 className="text-4xl font-bold text-blue-800">Wall of Fame</h1>
+          </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
             {error}
           </div>
@@ -208,14 +249,15 @@ export default function WallOfFame() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
-            <div className="text-center py-8">
-              <h2 className="text-xl font-semibold text-blue-900 mb-2">No Top-Rated Companies Yet</h2>
-              <p className="text-blue-700">
-                Companies with an average rating above 4.0 stars will be featured here.
-              </p>
-            </div>
+          <div className="flex items-center mb-8">
+            <Trophy className="h-8 w-8 text-amber-500 mr-3" />
+            <h1 className="text-4xl font-bold text-blue-800">Wall of Fame</h1>
+          </div>
+          <div className="bg-white rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-2">No Top-Rated Companies Yet</h2>
+            <p className="text-gray-600">
+              As more reviews are added, top-rated companies will appear here.
+            </p>
           </div>
         </div>
       </div>
@@ -225,73 +267,59 @@ export default function WallOfFame() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-blue-800 mb-8">Wall of Fame</h1>
-        <p className="text-lg text-blue-700 mb-8">
-          Celebrating companies that prioritize employee well-being, maintain excellent workplace practices, 
-          and consistently receive high ratings from their workforce.
-        </p>
-
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center mb-8"
+        >
+          <Trophy className="h-8 w-8 text-amber-500 mr-3" />
+          <h1 className="text-4xl font-bold text-blue-800">Wall of Fame</h1>
+        </motion.div>
+        
+        <div className="mb-8">
+          <p className="text-lg text-blue-700 mb-4">
+            Discover the highest-rated employers based on employee reviews. These companies have earned their place on our Wall of Fame through exceptional workplace practices and employee satisfaction.
+          </p>
+        </div>
+        
+        <CompanyFilters 
+          industries={industries}
+          onFiltersChange={handleFiltersChange}
+        />
+        
+        {industries.length > 0 && (
+          <Tabs defaultValue="all" className="mb-8" onValueChange={handleTabChange}>
+            <TabsList className="mb-4 flex flex-wrap h-auto">
+              <TabsTrigger value="all">All Industries</TabsTrigger>
+              {industries.slice(0, 5).map(industry => (
+                <TabsTrigger key={industry} value={industry}>
+                  {industry}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
+        
         <div className="space-y-8">
-          {companies.map((company, index) => (
-            <motion.div
-              key={company.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-blue-900">{company.name}</h2>
-                  <div className="flex items-center mt-2">
-                    <span className="text-lg font-medium text-blue-600">
-                      Rating: {company.average_rating.toFixed(1)}
-                    </span>
-                    <span className="mx-2 text-blue-300">•</span>
-                    <span className="text-blue-600">
-                      {company.total_reviews} reviews
-                    </span>
-                  </div>
-                  {company.industry && (
-                    <div className="mt-1 text-blue-600">
-                      Industry: {company.industry}
-                    </div>
-                  )}
-                  {company.location && (
-                    <div className="mt-1 text-blue-600">
-                      Location: {company.location}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">Recent News</h3>
-                {companyNews[company.name]?.length > 0 ? (
-                  <div className="space-y-3">
-                    {companyNews[company.name].map((article, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-blue-50 border border-blue-100 rounded-md p-4"
-                      >
-                        <h4 className="font-medium text-blue-900">{article.title}</h4>
-                        <p className="text-blue-700 mt-1">{article.description}</p>
-                        <div className="mt-2 text-sm text-blue-600">
-                          <span>{article.source.name}</span>
-                          <span className="mx-2">•</span>
-                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-blue-600 italic">
-                    No recent news available for this company.
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          ))}
+          {filteredCompanies.length === 0 ? (
+            <div className="bg-white rounded-lg p-8 text-center">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">No Companies Match Your Filters</h2>
+              <p className="text-gray-600">
+                Try adjusting your search criteria to see more results.
+              </p>
+            </div>
+          ) : (
+            filteredCompanies.map((company, index) => (
+              <EnhancedCompanyCard
+                key={company.id}
+                company={company}
+                rank={index + 1}
+                news={companyNews[company.name] || []}
+                isWallOfFame={true}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
