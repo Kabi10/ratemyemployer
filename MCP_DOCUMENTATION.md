@@ -48,11 +48,12 @@ This integration uses Cursor's MCP implementation to connect directly to your Su
 
 - **`scripts/setup-mcp.ts`**: Sets up the MCP server configuration
 - **`scripts/setup-stored-procedures.ts`**: Sets up stored procedures for the MCP server
-- **`scripts/run-mcp-server.js`**: Interactive CLI for running the MCP server
+- **`scripts/mcp-database-fixes.ts`**: Fixes database schema and stored procedures for MCP
 
 ### 3. SQL Components
 
-- **`scripts/mcp-stored-procedures.sql`**: Contains SQL stored procedures for common queries
+- **`scripts/mcp-stored-procedures.sql`**: Contains the SQL for stored procedures
+- **`scripts/mcp-database-fixes.sql`**: Contains SQL fixes for the database schema
 
 ### 4. Sample Queries
 
@@ -365,40 +366,110 @@ if (error) {
 }
 ```
 
-## ❓ Troubleshooting
+## 🔧 Troubleshooting
 
-### MCP Server Won't Start
+### Common Issues
 
-If the MCP server fails to start:
+#### 1. Missing Database Columns
 
-1. Check that your environment variables are correctly set
-2. Verify that your Supabase instance is accessible
-3. Make sure the Cursor CLI is installed (`npm install -g @cursor/cli`)
-4. Check for error messages in the console
+If you encounter errors related to missing columns like `average_rating` or `total_reviews`, you need to run the database fixes script:
 
-### Connection Issues
+```bash
+npm run mcp:fix-database
+```
 
-If MCP can't connect to your database:
+This script will:
+- Add the missing columns to the companies table
+- Update the columns with calculated values based on reviews
+- Create the necessary stored procedures
 
-1. Verify your Supabase URL and service role key
-2. Check that your Supabase database is running
-3. Ensure your IP is allowed in Supabase's network restrictions
+#### 2. Missing exec_sql Function
 
-### Schema Mismatch Errors
+If you see errors like "Could not find the function public.exec_sql", run the database fixes script:
 
-If you encounter schema mismatch errors:
+```bash
+npm run mcp:fix-database
+```
 
-1. Run `npm run mcp:setup` to regenerate the schema
-2. Ensure your database schema matches the schema in `.mcp/supabase/schema.json`
+If that doesn't work, you'll need to execute the SQL script directly in the Supabase SQL Editor:
 
-### Query Errors
+1. Open the Supabase dashboard
+2. Navigate to the SQL Editor
+3. Copy the contents of `scripts/mcp-database-fixes.sql`
+4. Execute the script
 
-If your natural language queries aren't working:
+**Important Note**: Due to limitations in the Supabase JavaScript client, some operations can only be performed directly in the SQL Editor. If you encounter persistent errors with the TypeScript approach, using the SQL script directly is the recommended solution.
 
-1. Start with simpler queries to test the connection
-2. Check the MCP server logs for error messages
-3. Verify that the tables and fields you're querying exist in your database
-4. Try running the sample queries to see working examples
+#### 3. Stored Procedure Errors
+
+If stored procedures are not working correctly, try:
+
+1. Running the database fixes script:
+   ```bash
+   npm run mcp:fix-database
+   ```
+
+2. Then re-run the stored procedures setup:
+   ```bash
+   npm run mcp:setup-procedures
+   ```
+
+3. Restart the MCP server:
+   ```bash
+   npm run mcp:start
+   ```
+
+### Verifying the Setup
+
+To verify that the MCP integration is working correctly:
+
+1. Run the sample queries:
+   ```bash
+   npm run mcp:sample-queries
+   ```
+
+2. Check the MCP demo page:
+   ```bash
+   npm run dev
+   # Navigate to http://localhost:3000/mcp-demo
+   ```
+
+3. Test stored procedures directly:
+   ```sql
+   -- In Supabase SQL Editor
+   SELECT * FROM get_average_ratings_by_industry();
+   ```
+
+### Database Schema Requirements
+
+For the MCP integration to work correctly, the database schema must include:
+
+1. **Companies Table**:
+   - `id`: Primary key
+   - `name`: Company name
+   - `industry`: Industry category
+   - `location`: Company location
+   - `average_rating`: Average rating (calculated from reviews)
+   - `total_reviews`: Total number of reviews
+
+2. **Reviews Table**:
+   - `id`: Primary key
+   - `company_id`: Foreign key to companies table
+   - `rating`: Numeric rating (1-5)
+   - `title`: Review title
+   - `pros`: Pros text
+   - `cons`: Cons text
+   - `created_at`: Timestamp
+
+3. **Required Functions**:
+   - `exec_sql(sql text)`: Helper function for executing dynamic SQL
+   - `get_average_ratings_by_industry()`: Returns average ratings by industry
+   - `get_companies_with_no_reviews()`: Returns companies with no reviews
+   - `get_top_companies_by_industry(industry_name TEXT)`: Returns top companies in an industry
+   - `get_recent_reviews_for_company(company_id_param INTEGER)`: Returns recent reviews for a company
+   - `get_review_submission_trends()`: Returns review submission trends by month
+   - `search_companies(search_term TEXT)`: Searches for companies by name, industry, or location
+   - `get_rating_distribution()`: Returns the distribution of ratings
 
 ## 🔧 Advanced Configuration
 

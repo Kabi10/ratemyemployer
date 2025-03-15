@@ -1,0 +1,16 @@
+# Creating New Files
+
+Before creating a new file, make sure there isn't a duplicate file that already does what you intend to.
+
+## File Creation Guidelines
+
+1. **Search First**: Use `file_search` and `grep_search` to look for similar files or functionality
+2. **Check Archive**: Look in the `/archive` directory for previously archived files that might be relevant
+3. **Verify MCP Procedures**: Ensure MCP procedures are maintained in both required locations
+4. **Document Search Process**: Record your search findings before proceeding with file creation
+5. **Follow Patterns**: Adhere to the File Management and Cleanup Patterns in the .cursorrules file
+6. **Use Consistent Naming**: Follow the project's naming conventions for new files
+7. **Avoid Duplication**: Never create a new file if existing code can be enhanced instead
+8. **Proper Location**: Place files in the appropriate directory based on their function
+9. **Documentation**: Update relevant documentation when creating new files
+10. **Commit Message**: Include clear reasoning for new file creation in commit messages

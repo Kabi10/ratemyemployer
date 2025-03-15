@@ -243,6 +243,19 @@ Overall Progress: 45% Complete
 - Split implementation from deployment for faster iteration
 - Consolidate documentation in central files rather than creating new ones
 
+### 📂 File Management and Cleanup Patterns
+- Store SQL migrations in the `/supabase/migrations` directory with proper naming conventions
+- Archive outdated schema dumps instead of keeping them in the root directory
+- Maintain duplicate MCP procedure files in both `.mcp/supabase/procedures.sql` and `scripts/mcp-stored-procedures.sql`
+- Use the `/archive` directory for files that might be needed for reference but are no longer actively used
+- Remove temporary build artifacts and log files before committing
+- Check for duplicate files by comparing file sizes, last modified dates, and content
+- Use PowerShell commands for file comparison and cleanup on Windows environments
+- Document all cleanup actions in commit messages for future reference
+- Verify application functionality after cleanup operations
+- Keep documentation files organized and up-to-date
+- Regularly clean up temporary files to maintain a tidy codebase
+
 ### 🔐 Supabase Implementation Patterns
 - Use `supabaseServer.ts` for server-side data fetching
 - Use `supabaseClient.ts` for client-side operations
@@ -1324,6 +1337,14 @@ $$ LANGUAGE plpgsql;
 ## 📋 Scratchpad
 
 ### RateMyEmployer Implementation Plans
+
+#### Phase 0: Project Cleanup and Organization (100% Complete)
+[X] 0.1. File Cleanup
+    [X] Move outdated schema dump files to archive directory
+    [X] Verify MCP stored procedures files
+    [X] Remove temporary files
+    [X] Archive outdated documentation
+    [X] Update .cursorrules with file management guidelines
 
 #### Phase 1: Core Features (50% Complete)
 [X] 1.1. Company Reviews System

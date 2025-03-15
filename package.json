@@ -19,6 +19,7 @@
     "mcp:sample-queries": "tsx scripts/mcp-sample-queries.ts",
     "mcp:setup-procedures": "tsx scripts/setup-stored-procedures.ts",
     "mcp:runner": "node scripts/run-mcp-server.js",
+    "mcp:fix-database": "tsx scripts/mcp-database-fixes.ts",
     "docs:mcp": "start MCP_DOCUMENTATION.md || open MCP_DOCUMENTATION.md || xdg-open MCP_DOCUMENTATION.md",
     "docs": "node scripts/docs-helper.js"
   },

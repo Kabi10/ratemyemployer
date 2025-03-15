@@ -11,6 +11,8 @@ This directory contains various utility scripts for the RateMyEmployer project.
 | `run-mcp-server.js` | Interactive CLI for running the MCP server |
 | `mcp-sample-queries.ts` | Contains sample queries for the MCP server |
 | `mcp-stored-procedures.sql` | Contains SQL stored procedures for common queries |
+| `mcp-database-fixes.ts` | Fixes database schema and stored procedures for MCP |
+| `mcp-database-fixes.sql` | SQL script for fixing database schema (for direct execution in Supabase SQL Editor) |
 
 ## Form Verification Scripts
 
@@ -38,6 +40,9 @@ Most scripts can be run using npm:
 ```bash
 # Run the MCP setup script
 npm run mcp:setup
+
+# Run the MCP database fixes script
+npm run mcp:fix-database
 
 # Run the documentation helper
 npm run docs
