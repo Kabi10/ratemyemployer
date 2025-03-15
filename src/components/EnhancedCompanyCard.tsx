@@ -19,11 +19,19 @@ import {
   Users, 
   ChevronDown, 
   ChevronUp,
-  ExternalLink
+  ExternalLink,
+  Briefcase,
+  TrendingUp,
+  TrendingDown,
+  ThumbsUp,
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import { CompanyNewsSection } from '@/components/CompanyNewsSection';
 import { NewsArticle } from '@/lib/newsApi';
 import type { CompanyWithReviews } from '@/types/database';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EnhancedCompanyCardProps {
   company: CompanyWithReviews;
@@ -39,12 +47,20 @@ export function EnhancedCompanyCard({
   isWallOfFame = true
 }: EnhancedCompanyCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Determine color based on rating
   const getRatingColor = (rating: number) => {
     if (rating < 2.5) return 'text-red-500';
     if (rating < 3.5) return 'text-amber-500';
     return 'text-green-500';
+  };
+  
+  // Determine progress bar color based on rating
+  const getProgressColor = (rating: number) => {
+    if (rating < 2.5) return 'bg-red-500';
+    if (rating < 3.5) return 'bg-amber-500';
+    return 'bg-green-500';
   };
   
   // Determine background color based on rank and type
@@ -77,6 +93,53 @@ export function EnhancedCompanyCard({
         {badges[rank as 1 | 2 | 3].text}
       </Badge>
     );
+  };
+
+  // Calculate trend indicator
+  const getTrendIndicator = () => {
+    // This would ideally be calculated based on historical data
+    // For now, we'll use a simple comparison with the industry average
+    const industryAvg = 3.2; // This should come from actual data
+    const diff = company.average_rating - industryAvg;
+    
+    if (diff > 0.5) {
+      return (
+        <div className="flex items-center text-green-500">
+          <TrendingUp className="h-4 w-4 mr-1" />
+          <span className="text-xs">Above Industry Avg</span>
+        </div>
+      );
+    } else if (diff < -0.5) {
+      return (
+        <div className="flex items-center text-red-500">
+          <TrendingDown className="h-4 w-4 mr-1" />
+          <span className="text-xs">Below Industry Avg</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center text-gray-500">
+        <span className="text-xs">Industry Average</span>
+      </div>
+    );
+  };
+  
+  // Format the founded date
+  const getFoundedDate = () => {
+    if (!company.founded_year) return 'Unknown';
+    return company.founded_year;
+  };
+  
+  // Get company size display
+  const getCompanySize = () => {
+    return company.size || 'Unknown';
+  };
+  
+  // Get salary range
+  const getSalaryRange = () => {
+    // This would ideally come from actual data
+    return company.salary_range || 'Not reported';
   };
   
   return (
@@ -121,51 +184,169 @@ export function EnhancedCompanyCard({
                     {company.location}
                   </span>
                 )}
+                {company.website && (
+                  <a 
+                    href={company.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    Visit Website
+                  </a>
+                )}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         
         <CardContent className="pb-2">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-              <div className={`text-2xl font-bold ${getRatingColor(company.average_rating)}`}>
-                {company.average_rating.toFixed(1)}
-              </div>
-              <div className="flex items-center mt-1">
-                <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                <span className="text-sm text-gray-600">Average Rating</span>
-              </div>
-            </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="ratings">Ratings</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
             
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {company.reviews?.length || 0}
+            <TabsContent value="overview">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
+                  <div className={`text-2xl font-bold ${getRatingColor(company.average_rating)}`}>
+                    {company.average_rating.toFixed(1)}
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                    <span className="text-sm text-gray-600">Average Rating</span>
+                  </div>
+                  {getTrendIndicator()}
+                </div>
+                
+                <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {company.reviews?.length || 0}
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <Users className="h-4 w-4 text-blue-400 mr-1" />
+                    <span className="text-sm text-gray-600">Reviews</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg col-span-2 md:col-span-1">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {company.recommend_percentage ? `${company.recommend_percentage}%` : 'N/A'}
+                  </div>
+                  <div className="text-sm text-gray-600 text-center mt-1">
+                    Would Recommend
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center mt-1">
-                <Users className="h-4 w-4 text-blue-400 mr-1" />
-                <span className="text-sm text-gray-600">Reviews</span>
-              </div>
-            </div>
+              
+              {company.description && (
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  {company.description}
+                </p>
+              )}
+            </TabsContent>
             
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg col-span-2 md:col-span-1">
-              <div className="text-2xl font-bold text-purple-600">
-                {company.recommend_percentage ? `${company.recommend_percentage}%` : 'N/A'}
+            <TabsContent value="ratings">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Overall Rating</span>
+                    <span className={getRatingColor(company.average_rating)}>
+                      {company.average_rating.toFixed(1)}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={company.average_rating * 20} 
+                    className="h-2"
+                    indicatorClassName={getProgressColor(company.average_rating)}
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Work/Life Balance</span>
+                    <span className={getRatingColor(company.work_life_balance || 0)}>
+                      {company.work_life_balance?.toFixed(1) || 'N/A'}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(company.work_life_balance || 0) * 20} 
+                    className="h-2"
+                    indicatorClassName={getProgressColor(company.work_life_balance || 0)}
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Compensation</span>
+                    <span className={getRatingColor(company.compensation || 0)}>
+                      {company.compensation?.toFixed(1) || 'N/A'}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(company.compensation || 0) * 20} 
+                    className="h-2"
+                    indicatorClassName={getProgressColor(company.compensation || 0)}
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Career Growth</span>
+                    <span className={getRatingColor(company.career_growth || 0)}>
+                      {company.career_growth?.toFixed(1) || 'N/A'}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(company.career_growth || 0) * 20} 
+                    className="h-2"
+                    indicatorClassName={getProgressColor(company.career_growth || 0)}
+                  />
+                </div>
               </div>
-              <div className="text-sm text-gray-600 text-center mt-1">
-                Would Recommend
+            </TabsContent>
+            
+            <TabsContent value="details">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center">
+                  <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                  <div>
+                    <div className="text-gray-500">Size</div>
+                    <div>{getCompanySize()}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                  <div>
+                    <div className="text-gray-500">Founded</div>
+                    <div>{getFoundedDate()}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <ThumbsUp className="h-4 w-4 mr-2 text-gray-400" />
+                  <div>
+                    <div className="text-gray-500">CEO Approval</div>
+                    <div>{company.ceo_approval ? `${company.ceo_approval}%` : 'N/A'}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
+                  <div>
+                    <div className="text-gray-500">Salary Range</div>
+                    <div>{getSalaryRange()}</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          {company.description && (
-            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-              {company.description}
-            </p>
-          )}
+            </TabsContent>
+          </Tabs>
           
           {expanded && (
             <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">Latest News</h3>
               <CompanyNewsSection 
                 companyName={company.name} 
                 initialNews={news}

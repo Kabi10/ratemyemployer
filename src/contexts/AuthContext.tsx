@@ -4,6 +4,7 @@ import * as React from 'react';
 import { createContext, useContext, useEffect, useState, type FC, type ReactNode } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
+import { Role } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +12,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   isAdmin: boolean;
+  isModerator: boolean;
+  getUserRole: () => Role;
+  hasRole: (requiredRole: Role) => boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ 
@@ -31,6 +35,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
+  const [userRole, setUserRole] = useState<Role>('user');
 
   useEffect(() => {
     // Check active session
@@ -53,26 +59,65 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkUserRole = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // Check if user is in admins table or has admin role
+        if (!user) {
+          setIsAdmin(false);
+          setIsModerator(false);
+          setUserRole('user');
+          return;
+        }
+
+        // Get user metadata
+        const { data: userData } = await supabase.auth.getUser();
+        const role = userData?.user?.user_metadata?.role as Role || 'user';
+        
+        setIsAdmin(role === 'admin');
+        setIsModerator(role === 'moderator' || role === 'admin');
+        setUserRole(role);
+        
+        // Also check admins table for backward compatibility
+        if (!isAdmin) {
           const { data: adminData } = await supabase
             .from('admins')
             .select('*')
             .eq('user_id', user.id)
             .single();
           
-          setIsAdmin(!!adminData);
+          if (adminData) {
+            setIsAdmin(true);
+            setIsModerator(true);
+            setUserRole('admin');
+          }
         }
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        console.error('Error checking user role:', error);
       }
     };
 
-    checkAdminStatus();
-  }, []);
+    checkUserRole();
+  }, [user, isAdmin]);
+
+  // Get user role
+  const getUserRole = (): Role => {
+    return userRole;
+  };
+  
+  // Check if user has required role
+  const hasRole = (requiredRole: Role): boolean => {
+    if (!user) return false;
+    
+    switch (requiredRole) {
+      case 'admin':
+        return isAdmin;
+      case 'moderator':
+        return isModerator;
+      case 'user':
+        return true;
+      default:
+        return false;
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -131,6 +176,9 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         isLoading,
         error,
         isAdmin,
+        isModerator,
+        getUserRole,
+        hasRole,
         signIn,
         signInWithGoogle,
         signUp,

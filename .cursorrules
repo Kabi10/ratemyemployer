@@ -114,12 +114,12 @@ As an AI code builder, this document serves as your complete guide for building 
 - **MCP Integration Pattern**: Setup → schema definition → stored procedures → UI components
 
 ## 📊 Project Progress Dashboard
-Overall Progress: 45% Complete
+Overall Progress: 60% Complete
 - Setup & Configuration    ■■■■■■■■■■   100%
-- Core Features           ■■■■■□□□□□   50%
-- Admin Dashboard         ■■□□□□□□□□   20%
-- User Features           ■■■□□□□□□□   30%
-- Advanced Features       ■■■□□□□□□□   30%
+- Core Features           ■■■■■■■■□□   80%
+- Admin Dashboard         ■■■■□□□□□□   40%
+- User Features           ■■■■■□□□□□   50%
+- Advanced Features       ■■■■□□□□□□   40%
 - Testing & Deployment    ■■□□□□□□□□   20%
 - Post-Launch             □□□□□□□□□□   0%
 
@@ -157,10 +157,12 @@ Overall Progress: 45% Complete
   - Use Select components from UI library
 
 - **Wall of Shame/Fame**: Highlight companies with lowest/highest ratings
-  - Follow existing pattern in shame/ and fame/ directories
-  - Use CompanyCard.tsx for consistent display
-  - Implement sorting by average_rating
-  - Display relevant company news
+  - Use shared `WallOfCompanies` component for both Wall of Fame and Wall of Shame
+  - Implement enhanced filtering with industry, location, size, and rating range
+  - Use tabbed interface for different data views
+  - Display company statistics with visual indicators
+  - Integrate news section with company cards
+  - Use consistent color coding for ratings visualization
 
 - **News Integration**: Fetch and display relevant company news
   - Use newsApi.ts pattern for external API calls
@@ -184,19 +186,12 @@ Overall Progress: 45% Complete
   - Run the MCP server with `npm run mcp:start` before using MCP features
   - Use `npm run docs:mcp` to access comprehensive MCP documentation
 
-## 📝 Instructions
-
-- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
-- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
-- Clear old tasks if necessary.
-- Use todo markers for progress tracking:
-  - `[X]` Completed tasks
-  - `[ ]` Pending tasks
-- Update Scratchpad after completing subtasks.
-- Reflect and plan after milestones for better task management.
-- Always refer to Scratchpad before planning the next step.
-- ALWAYS CHECK FOR EXISTING FILES BEFORE CREATING NEW ONES TO AVOID DUPLICATES.
-- ALWAYS CHECK FOR EXISTING DOCUMENTATION BEFORE CREATING NEW DOCUMENTATION FILES.
+- **Permission Management System**: Implement role-based access control for different parts of the application
+  - Use `withAuth` HOC pattern for protecting components based on roles
+  - Implement role hierarchy (admin > moderator > user)
+  - Use middleware.ts for route protection at the page level
+  - Create a dedicated permission-denied page for unauthorized access attempts
+  - Use the AuthContext to manage and check user roles
 
 ## 🎓 RateMyEmployer Lessons
 
@@ -296,6 +291,42 @@ Overall Progress: 45% Complete
 - Verify configuration files exist in `.mcp/supabase/config.json` and `.mcp/supabase/schema.json`
 - Test stored procedures with `npm run mcp:sample-queries`
 - Use dynamic imports with `{ ssr: false }` for MCP components to avoid SSR issues
+
+### 🔐 Permission Management Patterns
+- Use role hierarchy with clear precedence (admin > moderator > user)
+- Implement `withAuth` HOC for component-level protection
+- Use middleware for route-level protection
+- Create dedicated permission denied page with clear messaging
+- Store user roles in Supabase auth metadata
+- Check permissions client-side for UI adjustments
+- Check permissions server-side for data access control
+- Use consistent error handling for unauthorized actions
+- Implement role-based navigation visibility
+- Cache permission checks where appropriate for performance
+
+### 🏆 Wall of Shame/Fame Implementation Patterns
+- Use shared components between Wall of Fame and Wall of Shame
+- Implement enhanced filtering with multiple criteria
+- Use tabs for industry-specific views
+- Display statistics cards with visual indicators
+- Integrate news section with company cards
+- Use consistent color coding for ratings
+- Implement responsive design for mobile viewing
+- Use skeleton loading states for better UX
+- Cache company data where appropriate
+- Implement proper error handling and fallbacks
+
+### 📋 Review Moderation Implementation Patterns
+- Track moderation history for audit purposes
+- Add moderation notes for internal communication
+- Implement bulk moderation actions for efficiency
+- Use modals for detailed content viewing
+- Implement filtering by moderation status
+- Use consistent status indicators
+- Notify users of moderation decisions
+- Implement pagination for large datasets
+- Use optimistic UI updates for better UX
+- Implement proper error handling and recovery
 
 ## 📋 Documentation Structure
 
@@ -882,558 +913,3 @@ runVerification().catch(error => {
   console.error('❌ Verification failed:', error);
   process.exit(1);
 });
-```
-
-## 🛡️ Critical Standards
-
-### Technical Quality Standards
-| Category | Standards |
-|----------|-----------|
-| Type Safety | • No `any` types<br>• Explicit return types on functions<br>• Use Database types from schema.ts<br>• Proper interface definitions |
-| Error Handling | • Try/catch blocks around async operations<br>• Use DatabaseError type for consistent errors<br>• Use toast notifications for user feedback<br>• Graceful fallbacks with error components |
-| Performance | • Use useDebounce for search inputs<br>• Implement pagination for large datasets<br>• Use Suspense for loading states<br>• Optimize Supabase queries with proper filters |
-| Security | • Use Supabase RLS policies<br>• Implement middleware for route protection<br>• Validate all user inputs with Zod<br>• Use role-based access control |
-
-### Testing Coverage Requirements
-| Component Type | Minimum Coverage | Required Test Types |
-|----------------|------------------|---------------------|
-| UI Components | 80% | • Unit tests<br>• Snapshot tests |
-| Pages | 70% | • Loading states<br>• Error states<br>• Integration tests |
-| API Routes | 90% | • Input validation<br>• Auth checks<br>• Error handling |
-| Database Functions | 95% | • Success cases<br>• Error cases<br>• Edge cases |
-| Utility Functions | 95% | • Unit tests<br>• Edge cases |
-
-### Environment Configuration Standard
-```
-.env.local             # Local development variables (NOT committed)
-.env.example           # Template with all required variables (committed)
-.env.production        # Production variables template (committed)
-```
-
-### Required Environment Variables Map
-| Variable | Purpose | Required In |
-|----------|---------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase connection URL | All environments |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | All environments |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin access | Server-only contexts |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps integration | If using location features |
-| `SERP_API_KEY` | News fetching API key | If using news integration |
-| `OPENAI_API_KEY` | AI features | If using OpenAI integration |
-| `MCP_SUPABASE_URL` | Supabase URL for MCP | MCP server |
-| `MCP_SUPABASE_KEY` | Supabase service role key for MCP | MCP server |
-| `MCP_SERVER_PORT` | Port for MCP server to listen on | MCP server |
-| `MCP_LOG_LEVEL` | Logging level for MCP server | MCP server |
-
-## 📊 Technical Debt Tracking
-
-### Debt Classification System
-| Category | Definition | Resolution Priority |
-|----------|------------|---------------------|
-| Critical | Breaks functionality or security vulnerability | IMMEDIATE |
-| Major | Affects user experience or performance | HIGH |
-| Minor | Code quality or maintainability issue | MEDIUM |
-| Refactor | Improved implementation possible | LOW |
-
-### Tracking Format
-```
-## Technical Debt Item
-- **Location**: [file path]
-- **Category**: [Critical/Major/Minor/Refactor]
-- **Description**: [Brief description of the issue]
-- **Impact**: [How it affects the system]
-- **Resolution Path**: [Steps to fix]
-- **Estimated Effort**: [T-shirt size: XS/S/M/L/XL]
-```
-
-## 🔍 Code Quality Metrics
-
-### Performance Budgets
-- Page Load: < 3s on 4G
-- First Contentful Paint: < 1.5s
-- Bundle Size: < 200KB initial JS
-- API Response: < 300ms
-- Core Web Vitals minimum:
-  - LCP: < 2.5s
-  - FID: < 100ms
-  - CLS: < 0.1
-
-### Code Complexity Limits
-- Function complexity: < 15 cognitive complexity
-- File size: < 400 lines
-- Function length: < 50 lines
-- Component props: < 10 props
-- Nesting depth: < 4 levels in JSX
-
-## 🧪 Form and Supabase Data Verification Guide
-
-### Testing Methodology
-| Testing Type | Purpose | Tools | Priority |
-|--------------|---------|-------|----------|
-| Manual Form Testing | Verify UI/UX and basic functionality | Browser | HIGH |
-| Automated Form Testing | Validate form behavior at scale | Playwright/Jest | MEDIUM |
-| Database Verification | Confirm data integrity in Supabase | Supabase CLI/UI | HIGH |
-| End-to-End Testing | Test complete user flows | Playwright | MEDIUM |
-| Schema Validation | Ensure data matches expected schema | Zod/TypeScript | HIGH |
-
-### Form Testing Checklist
-- **Validation Testing**:
-  - [ ] Test all required fields (should prevent submission when empty)
-  - [ ] Test field-specific validations (email format, URL format, etc.)
-  - [ ] Test min/max length constraints
-  - [ ] Test numeric range constraints (ratings 1-5)
-  - [ ] Test enum constraints (dropdown options)
-
-- **UI/UX Testing**:
-  - [ ] Verify error messages are clear and helpful
-  - [ ] Confirm loading states display correctly
-  - [ ] Test form reset functionality
-  - [ ] Verify success messages appear
-  - [ ] Test keyboard navigation and accessibility
-
-- **Edge Case Testing**:
-  - [ ] Test with minimum valid input
-  - [ ] Test with maximum valid input
-  - [ ] Test with special characters
-  - [ ] Test with different locales/languages
-  - [ ] Test with slow network conditions
-
-### Supabase Data Verification Methods
-
-#### 1. Using Supabase Studio
-1. **Access Supabase Studio**:
-   ```bash
-   npx supabase start
-   # Open http://localhost:54323 in browser
-   ```
-
-2. **Table Inspector**:
-   - Navigate to the Table Editor
-   - Select the relevant table (companies, reviews, etc.)
-   - Verify new records appear after form submission
-   - Check that all fields contain expected values
-
-3. **SQL Editor**:
-   - Run queries to verify data integrity:
-   ```sql
-   -- Check for recent submissions
-   SELECT * FROM reviews ORDER BY created_at DESC LIMIT 10;
-   
-   -- Verify relationships
-   SELECT r.*, c.name as company_name 
-   FROM reviews r
-   JOIN companies c ON r.company_id = c.id
-   ORDER BY r.created_at DESC LIMIT 10;
-   
-   -- Check for data anomalies
-   SELECT * FROM reviews WHERE rating < 1 OR rating > 5;
-   ```
-
-#### 2. Programmatic Verification
-1. **Create Test Script**:
-   ```typescript
-   // scripts/verify-data.ts
-   import { createClient } from '@supabase/supabase-js';
-   import { Database } from '@/types/supabase';
-   
-   async function verifyData() {
-     const supabase = createClient<Database>(
-       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-       process.env.SUPABASE_SERVICE_ROLE_KEY!
-     );
-     
-     // Verify companies table
-     const { data: companies, error: companiesError } = await supabase
-       .from('companies')
-       .select('*')
-       .order('created_at', { ascending: false })
-       .limit(10);
-       
-     if (companiesError) {
-       console.error('Error fetching companies:', companiesError);
-     } else {
-       console.log('Recent companies:', companies);
-     }
-     
-     // Verify reviews table
-     const { data: reviews, error: reviewsError } = await supabase
-       .from('reviews')
-       .select('*, companies(name)')
-       .order('created_at', { ascending: false })
-       .limit(10);
-       
-     if (reviewsError) {
-       console.error('Error fetching reviews:', reviewsError);
-     } else {
-       console.log('Recent reviews:', reviews);
-     }
-   }
-   
-   verifyData();
-   ```
-
-2. **Run Verification**:
-   ```bash
-   npx tsx scripts/verify-data.ts
-   ```
-
-#### 3. Automated Testing
-1. **Create Test Suite**:
-   ```typescript
-   // __tests__/form-submission.test.ts
-   import { test, expect } from '@playwright/test';
-   
-   test.describe('Form Submission Tests', () => {
-     test('should submit company form and store in database', async ({ page }) => {
-       // Login first
-       await page.goto('/auth/login');
-       await page.fill('input[name="email"]', 'test@example.com');
-       await page.fill('input[name="password"]', 'password123');
-       await page.click('button[type="submit"]');
-       
-       // Navigate to company form
-       await page.goto('/companies/new');
-       
-       // Fill form
-       await page.fill('input[name="name"]', 'Test Company');
-       await page.fill('input[name="industry"]', 'Technology');
-       await page.fill('input[name="location"]', 'Test Location');
-       await page.fill('input[name="website"]', 'https://testcompany.com');
-       
-       // Submit form
-       await page.click('button[type="submit"]');
-       
-       // Verify success message
-       await expect(page.locator('text=successfully')).toBeVisible();
-       
-       // Verify in database (requires API endpoint or direct DB access)
-       // This would typically be done via an admin API
-     });
-   });
-   ```
-
-### Monitoring Form Submissions
-
-#### 1. Client-Side Monitoring
-```typescript
-// Add to form submission handlers
-try {
-  // Track submission attempt
-  console.log('Form submission started:', formData);
-  
-  const result = await submitForm(formData);
-  
-  // Track successful submission
-  console.log('Form submission succeeded:', result);
-} catch (error) {
-  // Track failed submission
-  console.error('Form submission failed:', error, formData);
-}
-```
-
-#### 2. Server-Side Logging
-```typescript
-// Add to API routes or server actions
-export async function POST(request: Request) {
-  try {
-    const data = await request.json();
-    console.log('Received form data:', data);
-    
-    // Process data...
-    const result = await processData(data);
-    
-    console.log('Successfully processed data:', result);
-    return Response.json({ success: true });
-  } catch (error) {
-    console.error('Error processing form data:', error);
-    return Response.json({ error: 'Failed to process data' }, { status: 500 });
-  }
-}
-```
-
-### Data Integrity Verification Checklist
-- [ ] Verify primary keys are correctly assigned
-- [ ] Confirm foreign key relationships are maintained
-- [ ] Check that timestamps (created_at, updated_at) are set correctly
-- [ ] Verify enum values match expected options
-- [ ] Confirm numeric constraints are enforced (ratings 1-5)
-- [ ] Check that text fields respect length constraints
-- [ ] Verify that required fields are never null
-- [ ] Confirm that default values are applied correctly
-
-### MCP Verification Methods
-
-#### 1. Verifying MCP Configuration
-1. **Check Configuration Files**:
-   ```bash
-   # Verify schema.json exists and is valid
-   cat .mcp/supabase/schema.json | jq
-   
-   # Verify config.json exists and is valid
-   cat .mcp/supabase/config.json | jq
-   
-   # Verify stored procedures file exists
-   cat .mcp/supabase/procedures.sql
-   ```
-
-2. **Verify MCP Server**:
-   - Start the MCP server with `npm run mcp:start`
-   - Check that the server starts without errors
-   - Verify that the server is listening on the expected port
-
-3. **Test Sample Queries**:
-   - Run `npm run mcp:sample-queries` to execute sample queries
-   - Verify that the queries return the expected results
-   - Check for any error messages in the console
-
-#### 2. Testing MCP in the Application
-1. **Component Testing**:
-   - Navigate to the `/mcp-demo` page
-   - Click on the "Fetch Companies" button
-   - Verify that companies are displayed in the table
-   - Click on the "Fetch Low-Rated Reviews" button
-   - Verify that low-rated reviews are displayed
-   - Click on the "Fetch Industry Ratings" button
-   - Check the console for the average ratings by industry
-
-2. **Stored Procedure Testing**:
-   ```typescript
-   // Test stored procedures in the browser console
-   const supabase = createClientComponentClient();
-   
-   // Test get_average_ratings_by_industry
-   supabase.rpc('get_average_ratings_by_industry')
-     .then(({ data, error }) => {
-       if (error) console.error('Error:', error);
-       else console.log('Average ratings by industry:', data);
-     });
-   
-   // Test get_top_companies_by_industry
-   supabase.rpc('get_top_companies_by_industry', { industry_name: 'Technology' })
-     .then(({ data, error }) => {
-       if (error) console.error('Error:', error);
-       else console.log('Top tech companies:', data);
-     });
-   ```
-
-3. **Error Handling Testing**:
-   - Test with invalid parameters
-   - Verify that errors are properly caught and displayed
-   - Check that the application doesn't crash when errors occur
-
-#### 3. Monitoring MCP Usage
-1. **Server Logs**:
-   - Monitor the MCP server logs for errors or warnings
-   - Check for any performance issues or slow queries
-
-2. **Client-Side Monitoring**:
-   ```typescript
-   // Add to MCP component
-   const executeQuery = async (query: string) => {
-     console.time('MCP Query Execution');
-     try {
-       // Execute query
-       console.log('Executing MCP query:', query);
-       const result = await executeQueryFunction(query);
-       console.log('MCP query result:', result);
-     } catch (error) {
-       console.error('MCP query error:', error);
-     } finally {
-       console.timeEnd('MCP Query Execution');
-     }
-   };
-   ```
-
-3. **Performance Metrics**:
-   - Track query execution time
-   - Monitor memory usage of the MCP server
-   - Identify slow or resource-intensive queries
-
-### MCP Error Handling Guidelines
-
-#### 1. Client-Side Error Handling
-- **Graceful Degradation**: Always provide fallback UI when MCP queries fail
-- **Specific Error Messages**: Display user-friendly error messages based on error types
-- **Retry Mechanism**: Implement exponential backoff for transient errors
-- **Error Boundaries**: Wrap MCP components in React Error Boundaries to prevent cascading failures
-- **Error Logging**: Log detailed error information to the console for debugging
-
-```tsx
-// Example of proper MCP error handling
-try {
-  const result = await executeMCPQuery(query);
-  // Process result
-} catch (error) {
-  // Categorize errors
-  if (error.code === 'PGRST301') {
-    // Handle stored procedure not found
-    setError('The requested analysis is not available');
-    console.error('Stored procedure not found:', error);
-  } else if (error.code?.startsWith('PGRST')) {
-    // Handle other Postgrest errors
-    setError('Database query error');
-    console.error('Postgrest error:', error);
-  } else if (error.message?.includes('network')) {
-    // Handle network errors
-    setError('Network error - please check your connection');
-    console.error('Network error:', error);
-  } else {
-    // Handle unknown errors
-    setError('An unexpected error occurred');
-    console.error('Unknown error:', error);
-  }
-  
-  // Optional: Report to monitoring service
-  reportError('mcp_query_error', { query, error });
-}
-```
-
-#### 2. Server-Side Error Handling
-- **Validate Input**: Validate all parameters before executing stored procedures
-- **Proper Status Codes**: Return appropriate HTTP status codes for different error types
-- **Structured Error Responses**: Use consistent error response format
-- **Transaction Management**: Use transactions to ensure data consistency
-- **Logging**: Log all errors with context for debugging
-
-```sql
--- Example of proper error handling in stored procedures
-CREATE OR REPLACE FUNCTION get_company_reviews(company_id_param INTEGER)
-RETURNS TABLE (
-  id INTEGER,
-  title TEXT,
-  rating NUMERIC,
-  created_at TIMESTAMP
-) AS $$
-BEGIN
-  -- Validate input
-  IF company_id_param IS NULL THEN
-    RAISE EXCEPTION 'company_id cannot be null' USING ERRCODE = 'MCINV';
-  END IF;
-  
-  -- Check if company exists
-  IF NOT EXISTS (SELECT 1 FROM companies WHERE id = company_id_param) THEN
-    RAISE EXCEPTION 'company with id % not found', company_id_param USING ERRCODE = 'MCNFD';
-  END IF;
-  
-  -- Return data
-  RETURN QUERY
-  SELECT r.id, r.title, r.rating, r.created_at
-  FROM reviews r
-  WHERE r.company_id = company_id_param
-  ORDER BY r.created_at DESC;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-#### 3. Error Code Standards
-| Error Code | Description | Handling Strategy |
-|------------|-------------|-------------------|
-| `MCINV` | Invalid input parameters | Display specific validation error |
-| `MCNFD` | Resource not found | Show "not found" message with suggestions |
-| `MCPERM` | Permission denied | Prompt for authentication or explain access limits |
-| `MCLIM` | Rate or resource limit exceeded | Suggest trying again later |
-| `MCNET` | Network or connection error | Suggest checking connection and retry |
-| `MCUNK` | Unknown or unexpected error | Log details and show generic error message |
-
-## 📋 Scratchpad
-
-### RateMyEmployer Implementation Plans
-
-#### Phase 0: Project Cleanup and Organization (100% Complete)
-[X] 0.1. File Cleanup
-    [X] Move outdated schema dump files to archive directory
-    [X] Verify MCP stored procedures files
-    [X] Remove temporary files
-    [X] Archive outdated documentation
-    [X] Update .cursorrules with file management guidelines
-
-#### Phase 1: Core Features (50% Complete)
-[X] 1.1. Company Reviews System
-    [X] Review form with validation
-    [X] Review display components
-    [X] Rating calculation and visualization
-    [ ] Review moderation tools
-
-[X] 1.2. Company Profiles
-    [X] Company detail pages
-    [X] Company statistics and metrics
-    [X] Company search and filtering
-    [X] Company creation and editing
-
-[X] 1.3. User Authentication
-    [X] Login and registration
-    [X] User profiles
-    [ ] Permission management
-    [X] Protected routes
-
-#### Phase 2: Advanced Features (40% Complete)
-[ ] 2.1. Wall of Shame/Fame
-    [X] Automated ranking system
-    [ ] News integration
-    [ ] Visual presentation
-    [ ] Filtering and sorting
-
-[ ] 2.2. Admin Dashboard
-    [ ] Review moderation
-    [ ] User management
-    [ ] Content management
-    [ ] Analytics and reporting
-
-[ ] 2.3. Performance Optimization
-    [ ] Image optimization
-    [ ] Code splitting
-    [ ] Caching strategies
-    [ ] Bundle size reduction
-
-[X] 2.4. Form and Supabase Data Verification
-    [X] Form field validation testing
-    [X] Supabase data storage verification
-    [X] Error handling and edge case testing
-    [X] Data integrity checks
-    [X] Form submission monitoring
-    [X] Database schema validation
-
-[X] 2.5. MCP Integration
-    [X] MCP server configuration
-    [X] Database schema definition
-    [X] Stored procedures implementation
-    [X] Sample queries creation
-    [X] UI components development
-    [X] Documentation consolidation
-    [X] Interactive CLI development
-    [X] MCP demo page implementation
-    [X] Package.json scripts configuration
-    [X] Configuration files setup
-
-#### Phase 3: Enhancement Features (0% Complete)
-[ ] 3.1. Social Features
-    [ ] User comments on reviews
-    [ ] Helpful votes on reviews
-    [ ] User reputation system
-    [ ] Social sharing
-
-[ ] 3.2. Advanced Analytics
-    [ ] Salary insights
-    [ ] Industry trends
-    [ ] Company comparisons
-    [ ] Geographic analysis
-
-[ ] 3.3. Mobile Optimization
-    [ ] Responsive design improvements
-    [ ] Touch-friendly interfaces
-    [ ] Mobile-specific features
-    [ ] Performance optimizations
-
-## 🔧 Development Environment Setup
-(From the original cursorrules file)
-
-### Environment Setup
-- Node.js: v20.0.0 or higher
-- npm: v10.0.0 or higher
-- TypeScript: v5.3 or higher
-- Next.js: v15.1 or higher
-
-### Supabase Configuration
-- Create a Supabase account and set up a new project
-- Configure the database schema to match application requirements
-- Implement Row-Level Security (RLS) policies to secure data access
-- Generate types: `npx supabase gen types typescript --project-id "your-project-id" > src/types/supabase.ts`

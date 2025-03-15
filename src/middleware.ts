@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { Role } from '@/types';
 
 /**
  * src/middleware.ts
  * Next.js middleware for route protection and authentication
  * Handles route protection and role-based access using Supabase user metadata
  */
-
-
-
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -46,6 +42,9 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
+  // Get user role from session
+  const userRole = session?.user?.user_metadata?.role as Role || 'user';
+
   // Protected routes that require authentication
   const protectedPaths = [
     '/dashboard',
@@ -53,33 +52,64 @@ export async function middleware(req: NextRequest) {
     '/settings',
     '/admin',
     '/api/protected',
+    '/reviews/new',
+    '/reviews/edit',
+    '/companies/new',
+    '/companies/edit',
   ];
 
-  // Routes that require admin role
-  const adminPaths = [
-    '/admin/users',
-    '/admin/reviews',
-    '/admin/companies',
-    '/admin/analytics'
+  // Routes that require specific roles
+  const roleRestrictedPaths = [
+    { path: '/admin', requiredRole: 'admin' as Role },
+    { path: '/admin/users', requiredRole: 'admin' as Role },
+    { path: '/admin/reviews', requiredRole: 'moderator' as Role },
+    { path: '/admin/companies', requiredRole: 'moderator' as Role },
+    { path: '/admin/analytics', requiredRole: 'admin' as Role },
+    { path: '/admin/settings', requiredRole: 'admin' as Role },
+    { path: '/admin/background-check', requiredRole: 'admin' as Role },
   ];
   
   const isProtectedPath = protectedPaths.some(path => req.nextUrl.pathname.startsWith(path));
-  const isAdminPath = adminPaths.some(path => req.nextUrl.pathname.startsWith(path));
+  
+  // Find if current path requires a specific role
+  const roleRestriction = roleRestrictedPaths.find(({ path }) => 
+    req.nextUrl.pathname.startsWith(path)
+  );
 
   // Check authentication for protected routes
-  if (isProtectedPath || isAdminPath) {
+  if (isProtectedPath) {
     if (!session) {
       const redirectUrl = new URL('/auth/login', req.url);
       redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
       return NextResponse.redirect(redirectUrl);
     }
-    // Check admin role for admin routes
-    if (isAdminPath && session.user.user_metadata?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', req.url));
+    
+    // Check role restrictions if applicable
+    if (roleRestriction) {
+      const hasRequiredRole = hasRole(userRole, roleRestriction.requiredRole);
+      
+      if (!hasRequiredRole) {
+        // Redirect to permission denied page
+        return NextResponse.redirect(new URL('/permission-denied', req.url));
+      }
     }
   }
 
   return res;
+}
+
+// Helper function to check if a user role meets the required role
+function hasRole(userRole: Role, requiredRole: Role): boolean {
+  switch (requiredRole) {
+    case 'admin':
+      return userRole === 'admin';
+    case 'moderator':
+      return userRole === 'moderator' || userRole === 'admin';
+    case 'user':
+      return true; // All authenticated users have at least 'user' role
+    default:
+      return false;
+  }
 }
 
 export const config = {

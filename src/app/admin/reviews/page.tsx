@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { ModerationHistoryModal } from '@/components/modals/ModerationHistoryModal';
 
 import { supabase } from '@/lib/supabaseClient';
 import { formatDateDisplay } from '@/utils/date';
@@ -28,12 +29,21 @@ interface Review {
   status: string | null;
   position: string | null;
   employment_status: string | null;
+  moderation_note?: string | null;
+  moderated_at?: string | null;
+  moderated_by?: string | null;
   company: {
     id: number;
     name: string;
     industry: string | null;
     location: string | null;
   } | null;
+}
+
+interface ModerationAction {
+  reviewId: number;
+  action: 'approve' | 'reject';
+  note: string;
 }
 
 function AdminReviewsPage() {
@@ -46,6 +56,13 @@ function AdminReviewsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
+  const [moderationNote, setModerationNote] = useState<string>('');
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [moderationHistory, setModerationHistory] = useState<any[]>([]);
+  const [selectedReviewForHistory, setSelectedReviewForHistory] = useState<Review | null>(null);
   
   // Filters
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
@@ -53,12 +70,11 @@ function AdminReviewsPage() {
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
   const itemsPerPage = 10;
 
-  // Fetch reviews with filters and pagination
+  // Fetch reviews with enhanced filters and sorting
   useEffect(() => {
     async function fetchReviews() {
       setIsLoading(true);
       try {
-        // Build query
         let query = supabase
           .from('reviews')
           .select(`
@@ -68,6 +84,11 @@ function AdminReviewsPage() {
               name,
               industry,
               location
+            ),
+            moderated_by:profiles (
+              id,
+              full_name,
+              email
             )
           `, { count: 'exact' });
         
@@ -78,20 +99,25 @@ function AdminReviewsPage() {
         
         // Apply search filter
         if (searchQuery) {
-          query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%,company.name.ilike.%${searchQuery}%`);
+          query = query.or(`
+            title.ilike.%${searchQuery}%,
+            content.ilike.%${searchQuery}%,
+            pros.ilike.%${searchQuery}%,
+            cons.ilike.%${searchQuery}%,
+            company.name.ilike.%${searchQuery}%
+          `);
         }
+        
+        // Apply sorting
+        query = query.order(sortField, { ascending: sortOrder === 'asc' });
         
         // Apply pagination
         const start = (currentPage - 1) * itemsPerPage;
-        query = query
-          .order('created_at', { ascending: false })
-          .range(start, start + itemsPerPage - 1);
+        query = query.range(start, start + itemsPerPage - 1);
         
         const { data, error: fetchError, count } = await query;
 
-        if (fetchError) {
-          throw fetchError;
-        }
+        if (fetchError) throw fetchError;
 
         if (data) {
           setReviews(data as Review[]);
@@ -106,16 +132,112 @@ function AdminReviewsPage() {
 
     fetchReviews();
     
-    // Update URL with filters
+    // Update URL with filters and sorting
     const params = new URLSearchParams();
     if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
     if (searchQuery) params.set('search', searchQuery);
     if (currentPage > 1) params.set('page', currentPage.toString());
+    if (sortField !== 'created_at') params.set('sort', sortField);
+    if (sortOrder !== 'desc') params.set('order', sortOrder);
     
     const url = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
     window.history.replaceState({}, '', url);
-    
-  }, [statusFilter, searchQuery, currentPage]);
+  }, [statusFilter, searchQuery, currentPage, sortField, sortOrder]);
+
+  // Handle bulk moderation
+  const handleBulkModeration = async (action: 'approve' | 'reject') => {
+    if (selectedReviews.length === 0) {
+      toast({
+        title: "No Reviews Selected",
+        description: "Please select at least one review to moderate.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error: updateError } = await supabase
+        .from('reviews')
+        .update({ 
+          status: action,
+          moderation_note: moderationNote || null,
+          moderated_at: new Date().toISOString(),
+          moderated_by: user?.id
+        })
+        .in('id', selectedReviews);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setReviews(reviews.map(review => 
+        selectedReviews.includes(review.id)
+          ? { 
+              ...review, 
+              status: action,
+              moderation_note: moderationNote,
+              moderated_at: new Date().toISOString(),
+              moderated_by: user?.id
+            }
+          : review
+      ));
+      
+      // Clear selection and note
+      setSelectedReviews([]);
+      setModerationNote('');
+      
+      toast({
+        title: `Reviews ${action}ed`,
+        description: `Successfully ${action}ed ${selectedReviews.length} reviews.`,
+        variant: "default",
+      });
+    } catch (err) {
+      console.error(`Error ${action}ing reviews:`, err);
+      toast({
+        title: "Error",
+        description: `Failed to ${action} the selected reviews. Please try again.`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Toggle review selection
+  const toggleReviewSelection = (reviewId: number) => {
+    setSelectedReviews(prev => 
+      prev.includes(reviewId)
+        ? prev.filter(id => id !== reviewId)
+        : [...prev, reviewId]
+    );
+  };
+
+  // Fetch moderation history
+  const fetchModerationHistory = async (review: Review) => {
+    try {
+      const { data, error } = await supabase
+        .from('moderation_history')
+        .select(`
+          *,
+          moderator:profiles (
+            id,
+            full_name,
+            email
+          )
+        `)
+        .eq('review_id', review.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setModerationHistory(data || []);
+      setSelectedReviewForHistory(review);
+    } catch (err) {
+      console.error('Error fetching moderation history:', err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch moderation history.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle review status updates
   const handleUpdateReviewStatus = async (reviewId: number, newStatus: 'approved' | 'rejected') => {
@@ -214,8 +336,58 @@ function AdminReviewsPage() {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={sortField} onValueChange={setSortField}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at">Date Created</SelectItem>
+                <SelectItem value="rating">Rating</SelectItem>
+                <SelectItem value="moderated_at">Date Moderated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </Button>
           </div>
         </div>
+        
+        {/* Bulk actions */}
+        {selectedReviews.length > 0 && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-4 flex items-center gap-4">
+            <span className="text-sm font-medium">
+              {selectedReviews.length} reviews selected
+            </span>
+            <Input
+              placeholder="Add moderation note..."
+              value={moderationNote}
+              onChange={(e) => setModerationNote(e.target.value)}
+              className="max-w-md"
+            />
+            <Button
+              variant="default"
+              onClick={() => handleBulkModeration('approve')}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Approve Selected
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleBulkModeration('reject')}
+            >
+              Reject Selected
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedReviews([])}
+            >
+              Clear Selection
+            </Button>
+          </div>
+        )}
         
         <div className="space-y-4">
           {reviews.length > 0 ? (
@@ -223,15 +395,23 @@ function AdminReviewsPage() {
               <Card key={review.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {review.title || 'Untitled Review'}
-                      </CardTitle>
-                      <CardDescription>
-                        {review.company?.name || 'Unknown Company'} • 
-                        {review.position || 'Position not specified'} • 
-                        {getStatusBadge(review.status)}
-                      </CardDescription>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedReviews.includes(review.id)}
+                        onChange={() => toggleReviewSelection(review.id)}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <div>
+                        <CardTitle className="text-lg">
+                          {review.title || 'Untitled Review'}
+                        </CardTitle>
+                        <CardDescription>
+                          {review.company?.name || 'Unknown Company'} • 
+                          {review.position || 'Position not specified'} • 
+                          {getStatusBadge(review.status)}
+                        </CardDescription>
+                      </div>
                     </div>
                     <div className="text-sm font-medium">
                       Rating: {review.rating || 'N/A'}/5
@@ -262,49 +442,58 @@ function AdminReviewsPage() {
                     Posted on {formatDateDisplay(review.created_at)}
                   </div>
                 </CardContent>
-                <CardFooter className="bg-gray-50 flex justify-end space-x-2 pt-3 pb-3">
-                  {review.status === 'pending' && (
-                    <>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleUpdateReviewStatus(review.id, 'rejected')}
-                      >
-                        Reject
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        onClick={() => handleUpdateReviewStatus(review.id, 'approved')}
-                      >
-                        Approve
-                      </Button>
-                    </>
-                  )}
-                  {review.status === 'rejected' && (
-                    <Button 
-                      variant="outline" 
+                <CardFooter className="flex justify-between items-center pt-4 border-t">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>Created: {formatDateDisplay(review.created_at)}</span>
+                    {review.moderated_at && (
+                      <>
+                        <span>•</span>
+                        <span>
+                          Moderated: {formatDateDisplay(review.moderated_at)}
+                        </span>
+                      </>
+                    )}
+                    {review.moderation_note && (
+                      <>
+                        <span>•</span>
+                        <span>
+                          Note: {review.moderation_note}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fetchModerationHistory(review)}
+                    >
+                      History
+                    </Button>
+                    <Button
+                      variant="default"
                       size="sm"
                       onClick={() => handleUpdateReviewStatus(review.id, 'approved')}
+                      disabled={review.status === 'approved'}
+                      className="bg-green-600 hover:bg-green-700"
                     >
-                      Mark as Approved
+                      Approve
                     </Button>
-                  )}
-                  {review.status === 'approved' && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="destructive"
                       size="sm"
                       onClick={() => handleUpdateReviewStatus(review.id, 'rejected')}
+                      disabled={review.status === 'rejected'}
                     >
-                      Mark as Rejected
+                      Reject
                     </Button>
-                  )}
+                  </div>
                 </CardFooter>
               </Card>
             ))
           ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <p className="text-gray-600">No reviews found matching your criteria.</p>
+            <div className="text-center py-8 text-gray-500">
+              No reviews found matching your criteria
             </div>
           )}
         </div>
@@ -356,8 +545,15 @@ function AdminReviewsPage() {
           </Pagination>
         )}
       </div>
+      
+      <ModerationHistoryModal
+        isOpen={!!selectedReviewForHistory}
+        onClose={() => setSelectedReviewForHistory(null)}
+        history={moderationHistory}
+        reviewTitle={selectedReviewForHistory?.title || 'Untitled Review'}
+      />
     </AdminLayout>
   );
 }
 
-export default withAuth(AdminReviewsPage);
+export default withAuth(AdminReviewsPage, { requiredRole: 'moderator' });

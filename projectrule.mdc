@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # Creating New Files
 
 Before creating a new file, make sure there isn't a duplicate file that already does what you intend to.

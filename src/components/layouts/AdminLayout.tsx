@@ -1,141 +1,143 @@
 'use client'
 
-import { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { withAuth } from '@/lib/auth/withAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   LayoutDashboard, 
   Users, 
-  BarChart3, 
-  FileText, 
   Building2, 
+  FileText, 
   Settings, 
-  LogOut,
-  Menu,
+  BarChart3, 
+  Shield, 
+  Menu, 
   X,
-  ClipboardList
+  LogOut
 } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-function AdminLayoutBase({ children }: AdminLayoutProps): JSX.Element {
+function AdminLayoutBase({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { signOut, getUserRole } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const userRole = getUserRole();
+  
+  const isAdmin = userRole === 'admin';
+  const isModerator = userRole === 'moderator' || isAdmin;
 
-  const navItems = [
-    { href: '/admin', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5 mr-3" /> },
-    { href: '/admin/reviews', label: 'Reviews', icon: <FileText className="w-5 h-5 mr-3" /> },
-    { href: '/admin/companies', label: 'Companies', icon: <Building2 className="w-5 h-5 mr-3" /> },
-    { href: '/admin/users', label: 'Users', icon: <Users className="w-5 h-5 mr-3" /> },
-    { href: '/admin/analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5 mr-3" /> },
-    { href: '/admin/background-check', label: 'Background Check', icon: <ClipboardList className="w-5 h-5 mr-3" /> },
-    { href: '/admin/settings', label: 'Settings', icon: <Settings className="w-5 h-5 mr-3" /> },
+  const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, current: pathname === '/admin', visible: true },
+    { name: 'Reviews', href: '/admin/reviews', icon: FileText, current: pathname === '/admin/reviews', visible: true },
+    { name: 'Companies', href: '/admin/companies', icon: Building2, current: pathname === '/admin/companies', visible: true },
+    { name: 'Users', href: '/admin/users', icon: Users, current: pathname === '/admin/users', visible: isAdmin },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3, current: pathname === '/admin/analytics', visible: isAdmin },
+    { name: 'Background Checks', href: '/admin/background-check', icon: Shield, current: pathname === '/admin/background-check', visible: isAdmin },
+    { name: 'Settings', href: '/admin/settings', icon: Settings, current: pathname === '/admin/settings', visible: isAdmin },
   ];
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="bg-white dark:bg-gray-800 shadow"
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={toggleSidebar}
+          className="bg-white dark:bg-gray-800 shadow-md"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
 
-      {/* Sidebar backdrop for mobile */}
+      {/* Sidebar for mobile */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={toggleSidebar}
         />
       )}
 
       {/* Sidebar */}
       <div 
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <Link href="/admin" className="flex items-center">
-              <span className="text-xl font-bold text-gray-800 dark:text-white">Admin Dashboard</span>
+          <div className="flex items-center justify-between px-4 h-16 border-b dark:border-gray-700">
+            <Link href="/admin" className="text-xl font-bold text-gray-800 dark:text-white">
+              Admin Panel
             </Link>
+            <div className="lg:hidden">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSidebar}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
           
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-              return (
+          <ScrollArea className="flex-1 py-4">
+            <nav className="space-y-1 px-2">
+              {navigation.filter(item => item.visible).map((item) => (
                 <Link
-                  key={item.href}
+                  key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                    isActive 
-                      ? 'bg-gray-100 dark:bg-gray-700 text-primary dark:text-primary-foreground font-medium' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                    ${item.current 
+                      ? 'bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                  `}
                 >
-                  {item.icon}
-                  {item.label}
+                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  {item.name}
                 </Link>
-              );
-            })}
-          </nav>
+              ))}
+            </nav>
+          </ScrollArea>
           
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={handleSignOut}
-              className="flex items-center w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          <div className="p-4 border-t dark:border-gray-700">
+            <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Role: {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+            </div>
+            <Separator className="my-2" />
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-red-600 dark:text-red-400"
+              onClick={signOut}
             >
-              <LogOut className="w-5 h-5 mr-3" />
-              Sign Out
-            </button>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-white dark:bg-gray-800 shadow z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              <div className="lg:hidden">
-                {/* Spacer for mobile */}
-              </div>
-              <div className="flex items-center">
-                {/* Add user profile or other header elements here */}
-              </div>
-            </div>
-          </div>
-        </header>
-        
-        <main className="flex-1 py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          {children}
         </main>
       </div>
     </div>
   );
 }
 
-export const AdminLayout = withAuth(AdminLayoutBase);
+// Export with auth protection, requiring at least moderator role
+export const AdminLayout = withAuth(AdminLayoutBase, { requiredRole: 'moderator' });
