@@ -69,6 +69,15 @@ npm run start
 
 # Run linting
 npm run lint
+
+# MCP related commands
+npm run mcp:setup        # Set up MCP for the first time
+npm run mcp:start        # Start the MCP server
+npm run mcp:runner       # Run the interactive MCP CLI
+npm run mcp:update-schema # Update MCP schema from Supabase
+
+# Database migrations
+npm run migrations:run   # Run database migrations
 ```
 
 ## Project Structure
@@ -87,6 +96,8 @@ scripts/
 ├── mcp-stored-procedures.sql # SQL stored procedures for MCP
 ├── run-mcp-server.js        # Interactive MCP server runner
 ├── setup-mcp.ts             # MCP setup script
+├── update-mcp-schema.ts     # Update MCP schema from Supabase
+├── run-migrations.ts        # Run database migrations
 └── setup-stored-procedures.ts # MCP stored procedures setup
 
 tests/
@@ -204,6 +215,16 @@ RateMyEmployer includes integration with the Model Context Protocol (MCP), which
 
 3. Visit the MCP demo page at `/mcp-demo` to see it in action
 
+### Updating MCP Schema
+
+If your Supabase schema changes, you can update the MCP schema:
+
+```bash
+npm run mcp:update-schema
+```
+
+This will fetch the latest schema from your Supabase instance and update the MCP configuration files.
+
 ### Statistics Module
 
 As an alternative to PostgreSQL stored procedures, we've implemented a TypeScript-based statistics module in `src/lib/statistics.ts`. This module provides:
@@ -230,4 +251,34 @@ const industryStats = await getIndustryStatistics();
 
 For more details, see the [statistics module documentation](src/lib/README.md).
 
-For comprehensive documentation on the MCP integration, see [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md). 
+For comprehensive documentation on the MCP integration, see [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md).
+
+## Database Migrations
+
+RateMyEmployer uses database migrations to manage schema changes. The migrations are stored in the `supabase/migrations` directory.
+
+### Running Migrations
+
+To run database migrations:
+
+```bash
+npm run migrations:run
+```
+
+This will apply any pending migrations to your Supabase instance.
+
+### Creating New Migrations
+
+1. Create a new SQL file in the `supabase/migrations` directory with a timestamp prefix
+2. Write your migration SQL in the file
+3. Run the migrations using the command above
+
+### Migration Best Practices
+
+- Always test migrations in a development environment first
+- Back up your database before running migrations in production
+- Keep migrations small and focused on specific changes
+- Include both "up" and "down" migrations when possible
+- Document complex migrations with comments
+
+For more details on database management, see the [Database Guide](docs/DATABASE_GUIDE.md). 
