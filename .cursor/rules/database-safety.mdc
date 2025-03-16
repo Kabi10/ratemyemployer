@@ -1,0 +1,33 @@
+---
+description: Critical database safety protocols
+globs: src/lib/database.ts,src/lib/supabaseClient.ts,src/lib/supabaseServer.ts,scripts/mcp-*.ts,scripts/setup-*.ts
+alwaysApply: true
+---
+
+# 🛅 CRITICAL DATABASE SAFETY PROTOCOL
+
+Before making ANY changes to the database, follow these protocols:
+
+1. **Read and Understand**: Meticulously read and understand the current database schema, including tables, columns, data types, and constraints.
+
+2. **Identify Dependencies**: Carefully identify all dependencies and relationships between tables and other database objects.
+
+3. **Security Measures**: Review existing security measures (e.g., access controls, encryption, input sanitization) and ensure they are adequate.
+
+4. **Code-Level Fixes First**: Always prioritize fixing issues at the code level before resorting to database modifications.
+
+5. **No Disabling Security**: NEVER disable or drop security features without explicit approval and a very compelling reason.
+
+6. **Explicit Approval for Destructive Operations**: Require explicit approval for ANY destructive operations (e.g., DROP, DELETE, TRUNCATE). Always present a clear explanation of the risks and benefits before requesting approval.
+
+7. **Rollback Plan**: For every database change, have a detailed rollback plan in place, ready to be executed if anything goes wrong.
+
+## Supabase Implementation Patterns
+- Use `supabaseServer.ts` for server-side data fetching
+- Use `supabaseClient.ts` for client-side operations
+- Always wrap Supabase calls in try/catch blocks
+- Use typed responses with Database types from schema.ts
+- Follow the pattern in database.ts for consistent data access
+- Use RLS policies for secure data access
+- Implement proper error handling with DatabaseError type
+- Use transactions for operations that modify multiple tables 

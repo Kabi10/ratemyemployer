@@ -21,17 +21,26 @@
     "mcp:runner": "node scripts/run-mcp-server.js",
     "mcp:fix-database": "tsx scripts/mcp-database-fixes.ts",
     "docs:mcp": "start MCP_DOCUMENTATION.md || open MCP_DOCUMENTATION.md || xdg-open MCP_DOCUMENTATION.md",
-    "docs": "node scripts/docs-helper.js"
+    "docs": "node scripts/docs-helper.js",
+    "check:pre-implementation": "node scripts/check-pre-implementation.js",
+    "ai:init": "node scripts/init-ai-session.js",
+    "ai:verify": "node scripts/verify-rule-compliance.js",
+    "ai:setup-hooks": "cp .git/hooks/pre-commit.rule-check .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-checkbox": "^1.1.4",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-scroll-area": "^1.2.3",
     "@radix-ui/react-select": "^2.1.5",
+    "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slider": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-switch": "^1.1.3",
     "@radix-ui/react-toast": "^1.2.5",
     "@react-google-maps/api": "^2.20.5",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
@@ -83,7 +92,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "tsx": "^4.7.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.3",
     "uuid": "^9.0.1"
   }

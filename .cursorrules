@@ -53,6 +53,99 @@ STOP! Before writing ANY code or suggesting ANY changes:
 
 ❌ IF YOU SKIP THIS CHECKLIST, YOU ARE VIOLATING THE MOST IMPORTANT RULE ❌
 
+## 🔒 Enforcement Mechanisms
+
+The pre-implementation checklist is enforced through multiple mechanisms:
+
+1. **Pre-Implementation Templates**: Use `templates/pre-implementation-checklist.md` as a starting point for documenting your pre-implementation process.
+
+2. **Documentation Storage**: Store all pre-implementation documentation in the `implementations/` directory with a naming convention of `[feature-name]-pre-implementation.md`.
+
+3. **Automated Checks**:
+   - **Git Pre-Commit Hook**: Prevents commits of new files without evidence of pre-implementation documentation.
+   - **GitHub Actions Workflow**: Verifies that new files in PRs have corresponding pre-implementation documentation.
+   - **Compliance Checker**: Run `npm run check:pre-implementation` to check if recent files have documentation.
+
+4. **VS Code Integration**:
+   - Use the "Check Pre-Implementation Documentation" task to verify compliance.
+   - Use the "Create Pre-Implementation Documentation" task to create new documentation from the template.
+
+5. **Code Review Requirements**:
+   - All PRs must reference the pre-implementation documentation.
+   - Reviewers should verify that the implementation follows the approved plan.
+
+To create new pre-implementation documentation:
+```bash
+# Copy the template to the implementations directory
+cp templates/pre-implementation-checklist.md implementations/[feature-name]-pre-implementation.md
+
+# Edit the new file
+code implementations/[feature-name]-pre-implementation.md
+```
+
+## �� Table of Contents
+1. [AI Instructions](#-ai-instructions)
+2. [Pattern Recognition Map](#-ratemyemployer-pattern-recognition-map)
+3. [Project Progress Dashboard](#-project-progress-dashboard)
+4. [RateMyEmployer Specific Rules](#-ratemyemployer-specific-rules)
+5. [Implementation Lessons](#-ratemyemployer-lessons)
+6. [Documentation Structure](#-documentation-structure)
+7. [Implementation Templates](#-implementation-templates)
+8. [MVP Implementation Plan](#-mvp-implementation-plan)
+
+## 🔍 Quick Reference
+
+### Common Commands
+```bash
+# Search for functionality
+grep_search "feature keyword"
+
+# Find files by name
+file_search "filename pattern"
+
+# List directory contents
+list_dir "directory path"
+
+# Run MCP server
+npm run mcp:start
+
+# Access documentation
+npm run docs
+npm run docs:mcp
+```
+
+### Key File Locations
+- **Database Access**: `src/lib/database.ts`, `src/lib/supabaseClient.ts`, `src/lib/supabaseServer.ts`
+- **Authentication**: `src/middleware.ts`, `src/components/Auth.tsx`
+- **Core Components**: `src/components/ReviewForm.tsx`, `src/components/CompanyForm.tsx`
+- **MCP Integration**: `scripts/setup-mcp.ts`, `scripts/mcp-stored-procedures.sql`
+
+### Getting Started
+1. **Setup Environment**:
+   ```bash
+   npm install
+   cp .env.example .env  # Then edit .env with your credentials
+   ```
+
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Before Implementing Features**:
+   - Always check existing code with `grep_search` and `file_search`
+   - Follow the pre-implementation checklist above
+   - Reference existing patterns in similar components
+   - Use the MVP Implementation Plan as a guide for priorities
+
+4. **Testing Your Changes**:
+   ```bash
+   npm run test
+   npm run test:e2e
+   ```
+
+---
+
 ## 📚 AI Instructions
 
 As an AI code builder, this document serves as your complete guide for building or extending the RateMyEmployer project. The rules below define HOW you should approach implementation:
@@ -347,569 +440,79 @@ Overall Progress: 60% Complete
 
 ## 🧩 Implementation Templates
 
-### Server Component Template
-```tsx
-export async function PageComponent({ 
-  params,
-  searchParams 
-}: {
-  params: { id: string },
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  // Data fetching with Supabase
-  const { data, error } = await getDataFromSupabase(params.id, searchParams);
-  
-  // Error handling
-  if (error) {
-    return <ErrorDisplay message={error.message} />;
-  }
-  
-  if (!data) {
-    return <ErrorDisplay message="Failed to load data" />;
-  }
-  
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-8">Page Title</h1>
-      
-      {/* Suspense boundary for client components */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <ContentComponent data={data} />
-      </Suspense>
-    </div>
-  );
-}
-```
+Implementation templates are available in the following locations:
 
-### Client Component Template
-```tsx
-'use client';
+- **Server Components**: See `src/app/page.tsx` for reference implementation
+- **Client Components**: See `src/components/HomeClient.tsx` for reference implementation
+- **Review Components**: See `src/components/ReviewForm.tsx` for reference implementation
+- **MCP Components**: See `src/components/MCPDemoComponent.tsx` for reference implementation
+- **Data Fetching**: See `src/lib/database.ts` for reference implementation
+- **Supabase Verification**: See `scripts/verify-supabase-data.ts` for reference implementation
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useToast } from '@/components/ui/use-toast';
+Rather than duplicating code examples here, refer to these existing files which follow the project's established patterns.
 
-export default function InteractiveComponent({ 
-  initialData,
-  onDataChange 
-}: ComponentProps) {
-  // Local state
-  const [data, setData] = useState(initialData);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
-  const debouncedValue = useDebounce(data, 300);
-  
-  // Event handlers
-  const handleChange = (name: string, value: string) => {
-    const newData = { ...data, [name]: value };
-    setData(newData);
-    
-    // Update URL params
-    const params = new URLSearchParams();
-    Object.entries(newData).forEach(([key, value]) => {
-      if (value) params.set(key, value);
-    });
-    
-    router.push(`?${params.toString()}`);
-    if (onDataChange) onDataChange(newData);
-  };
-  
-  // Handle submission
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    try {
-      // Supabase operation
-      const { error } = await submitToSupabase(data);
-      
-      if (error) throw new Error(error.message);
-      
-      toast({
-        title: "Success",
-        description: "Operation completed successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  return (
-    <div className="space-y-4">
-      {/* UI components */}
-      <Button onClick={handleSubmit} disabled={isLoading}>
-        {isLoading ? <LoadingSpinner /> : "Submit"}
-      </Button>
-    </div>
-  );
-}
-```
+## 📋 MVP Implementation Plan
 
-### Review Component Template
-```tsx
-'use client';
+### Phase 1: Database & Authentication (Week 1)
+[ ] 1.1. Database Schema & Stored Procedures
+    [ ] Verify database schema against application requirements
+    [ ] Fix stored procedures to match actual schema
+    [ ] Create migration scripts for necessary schema changes
+    [ ] Test procedures with sample data
+    [ ] Update procedure documentation
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { reviewSchema } from '@/lib/schemas';
+[ ] 1.2. Authentication & Authorization
+    [ ] Test complete authentication flow (registration, login, logout)
+    [ ] Enhance role management (assignment, admin interface)
+    [ ] Fix auth-related UI issues (loading states, error handling)
+    [ ] Verify middleware protection for routes
 
-type ReviewFormValues = z.infer<typeof reviewSchema>;
+### Phase 2: Core Features (Week 2)
+[ ] 2.1. Review System
+    [ ] Enhance review submission (validation, anti-spam)
+    [ ] Complete review moderation workflow (admin queue, approval/rejection)
+    [ ] Optimize review display (pagination, sorting, filtering)
 
-export function ReviewComponent({ 
-  companyId,
-  onSubmit 
-}: {
-  companyId: string;
-  onSubmit: (data: ReviewFormValues) => Promise<void>;
-}) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  
-  const form = useForm<ReviewFormValues>({
-    resolver: zodResolver(reviewSchema),
-    defaultValues: {
-      rating: 0,
-      title: '',
-      pros: '',
-      cons: '',
-      employment_status: 'current',
-      position: '',
-      location: '',
-      salary: '',
-      recommend: false,
-      ceo_rating: 0,
-    },
-  });
-  
-  const handleSubmit = async (data: ReviewFormValues) => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit({
-        ...data,
-        companyId,
-      });
-      form.reset();
-      toast({
-        title: "Review Submitted",
-        description: "Thank you for sharing your experience!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit review",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      {/* Form fields */}
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? <LoadingSpinner /> : "Submit Review"}
-      </Button>
-    </form>
-  );
-}
-```
+[ ] 2.2. Company Management
+    [ ] Enhance company submission (validation, duplicate detection)
+    [ ] Complete company profile pages (statistics, metrics)
+    [ ] Optimize company search and filtering
 
-### MCP Component Template
-```tsx
-'use client';
+[ ] 2.3. Wall of Fame/Shame
+    [ ] Optimize WallOfCompanies component (performance, error handling)
+    [ ] Enhance filtering and sorting (persistent state)
+    [ ] Improve visualization (responsive design)
 
-import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+### Phase 3: Technical Improvements (Week 3)
+[ ] 3.1. Error Handling & Resilience
+    [ ] Implement global error boundary
+    [ ] Enhance component-level error handling
+    [ ] Add comprehensive data validation
 
-type MCPComponentProps = {
-  title: string;
-  description?: string;
-  initialQuery?: string;
-};
+[ ] 3.2. Performance Optimization
+    [ ] Implement data caching strategy
+    [ ] Optimize component rendering (memo, useCallback)
+    [ ] Enhance image and asset loading
 
-export default function MCPComponent({ 
-  title,
-  description,
-  initialQuery 
-}: MCPComponentProps) {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const supabase = createClientComponentClient<Database>();
-  
-  // Example function to fetch data using MCP-generated query
-  const fetchData = async (query: string = initialQuery || '') => {
-    if (!query) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // This is where you would use the MCP-generated query
-      // For example, if the query is "Show me all companies in the Technology industry"
-      // MCP might generate something like:
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('industry', 'Technology')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setData(data || []);
-    } catch (err: any) {
-      console.error('Error fetching data:', err);
-      setError(err.message || 'An error occurred while fetching data');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // You can also use stored procedures created for MCP
-  const executeStoredProcedure = async (procedureName: string, params?: Record<string, any>) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { data, error } = await supabase.rpc(procedureName, params || {});
-      
-      if (error) throw error;
-      setData(data || []);
-    } catch (err: any) {
-      console.error(`Error executing stored procedure ${procedureName}:`, err);
-      setError(err.message || `An error occurred while executing ${procedureName}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Optional: Execute initial query on component mount
-  useEffect(() => {
-    if (initialQuery) {
-      fetchData();
-    }
-  }, [initialQuery]);
-  
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <p className="text-sm text-gray-500">{description}</p>}
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <p>{error}</p>
-          </div>
-        )}
-        
-        <div className="space-y-4">
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner />
-            </div>
-          ) : data.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {Object.keys(data[0]).map((key) => (
-                      <th 
-                        key={key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.map((item, index) => (
-                    <tr key={index}>
-                      {Object.values(item).map((value: any, i) => (
-                        <td key={i} className="px-6 py-4 whitespace-nowrap">
-                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-center py-8 text-gray-500">No data available</p>
-          )}
-        </div>
-        
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button 
-            onClick={() => executeStoredProcedure('get_average_ratings_by_industry')}
-            variant="outline"
-          >
-            Average Ratings by Industry
-          </Button>
-          <Button 
-            onClick={() => executeStoredProcedure('get_top_companies_by_industry', { industry_name: 'Technology' })}
-            variant="outline"
-          >
-            Top Tech Companies
-          </Button>
-          <Button 
-            onClick={() => executeStoredProcedure('get_recent_reviews_for_company', { company_id: 1 })}
-            variant="outline"
-          >
-            Recent Reviews
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-```
+[ ] 3.3. Mobile Responsiveness
+    [ ] Audit all components for responsiveness
+    [ ] Fix responsive design issues
+    [ ] Test on various device sizes
 
-### Data Fetching Template
-```tsx
-// In lib/database.ts
-export async function getData(
-  filters: Record<string, string | string[] | undefined>
-): Promise<DatabaseResult<T>> {
-  try {
-    const { search, industry, location, sort, page = '1', limit = '10' } = filters;
-    
-    // Build query
-    let query = supabase
-      .from('table')
-      .select('*');
-    
-    // Apply filters
-    if (search) {
-      query = query.ilike('name', `%${search}%`);
-    }
-    
-    if (industry) {
-      query = query.eq('industry', industry);
-    }
-    
-    if (location) {
-      query = query.ilike('location', `%${location}%`);
-    }
-    
-    // Apply sorting
-    if (sort) {
-      const [field, direction] = sort.toString().split('-');
-      query = query.order(field, { ascending: direction === 'asc' });
-    } else {
-      query = query.order('created_at', { ascending: false });
-    }
-    
-    // Apply pagination
-    const pageNumber = parseInt(page.toString(), 10);
-    const limitNumber = parseInt(limit.toString(), 10);
-    const start = (pageNumber - 1) * limitNumber;
-    
-    query = query.range(start, start + limitNumber - 1);
-    
-    // Execute query
-    const { data, error } = await query;
-    
-    if (error) {
-      return {
-        data: null,
-        error: {
-          message: error.message,
-          details: error.details
-        }
-      };
-    }
-    
-    return {
-      data,
-      error: null
-    };
-  } catch (error) {
-    console.error("Failed to fetch data:", error);
-    return {
-      data: null,
-      error: {
-        message: error.message || "An unknown error occurred",
-        details: error
-      }
-    };
-  }
-}
-```
+### Phase 4: Quality Assurance & Documentation (Week 4)
+[ ] 4.1. Documentation & Onboarding
+    [ ] Update user documentation
+    [ ] Enhance developer documentation
+    [ ] Implement user onboarding flow
 
-### Supabase Data Verification Script Template
-```tsx
-// scripts/verify-form-data.ts
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
-import dotenv from 'dotenv';
-import { z } from 'zod';
+[ ] 4.2. Testing & Quality Assurance
+    [ ] Implement end-to-end tests for critical flows
+    [ ] Add unit and integration tests
+    [ ] Conduct manual testing and cross-browser verification
 
-// Load environment variables
-dotenv.config();
-
-// Initialize Supabase client with service role key for admin access
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Define verification schemas (should match your form schemas)
-const companyVerificationSchema = z.object({
-  id: z.number(),
-  name: z.string().min(2),
-  industry: z.string(),
-  location: z.string().min(1),
-  created_at: z.string().datetime(),
-  created_by: z.string().uuid(),
-});
-
-const reviewVerificationSchema = z.object({
-  id: z.number(),
-  company_id: z.number(),
-  rating: z.number().min(1).max(5),
-  title: z.string().min(1),
-  pros: z.string().min(10),
-  cons: z.string().min(10),
-  created_at: z.string().datetime(),
-  reviewer_id: z.string().uuid(),
-});
-
-// Verification functions
-async function verifyCompanies() {
-  console.log('🔍 Verifying companies table...');
-  
-  const { data: companies, error } = await supabase
-    .from('companies')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(10);
-  
-  if (error) {
-    console.error('❌ Error fetching companies:', error);
-    return;
-  }
-  
-  if (!companies || companies.length === 0) {
-    console.log('⚠️ No companies found in the database');
-    return;
-  }
-  
-  console.log(`✅ Found ${companies.length} companies`);
-  
-  // Validate each company against schema
-  companies.forEach((company, index) => {
-    try {
-      companyVerificationSchema.parse(company);
-      console.log(`✅ Company #${index + 1} (${company.name}) is valid`);
-    } catch (validationError) {
-      console.error(`❌ Company #${index + 1} (${company.name}) validation failed:`, validationError);
-    }
-  });
-  
-  // Check for relationships
-  console.log('🔍 Checking company-review relationships...');
-  
-  for (const company of companies) {
-    const { data: reviews, error: reviewError } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('company_id', company.id)
-      .limit(5);
-    
-    if (reviewError) {
-      console.error(`❌ Error fetching reviews for company ${company.name}:`, reviewError);
-      continue;
-    }
-    
-    console.log(`✅ Company ${company.name} has ${reviews?.length || 0} reviews`);
-  }
-}
-
-async function verifyReviews() {
-  console.log('🔍 Verifying reviews table...');
-  
-  const { data: reviews, error } = await supabase
-    .from('reviews')
-    .select('*, companies(name)')
-    .order('created_at', { ascending: false })
-    .limit(10);
-  
-  if (error) {
-    console.error('❌ Error fetching reviews:', error);
-    return;
-  }
-  
-  if (!reviews || reviews.length === 0) {
-    console.log('⚠️ No reviews found in the database');
-    return;
-  }
-  
-  console.log(`✅ Found ${reviews.length} reviews`);
-  
-  // Validate each review against schema
-  reviews.forEach((review, index) => {
-    try {
-      // Extract the review data without the joined company
-      const { companies, ...reviewData } = review;
-      reviewVerificationSchema.parse(reviewData);
-      console.log(`✅ Review #${index + 1} for company ${companies?.name} is valid`);
-    } catch (validationError) {
-      console.error(`❌ Review #${index + 1} validation failed:`, validationError);
-    }
-  });
-  
-  // Check for data anomalies
-  console.log('🔍 Checking for data anomalies...');
-  
-  const { data: anomalies, error: anomalyError } = await supabase
-    .from('reviews')
-    .select('id, rating, company_id, companies(name)')
-    .or('rating.lt.1,rating.gt.5');
-  
-  if (anomalyError) {
-    console.error('❌ Error checking for anomalies:', anomalyError);
-    return;
-  }
-  
-  if (anomalies && anomalies.length > 0) {
-    console.error(`❌ Found ${anomalies.length} reviews with invalid ratings:`, anomalies);
-  } else {
-    console.log('✅ No rating anomalies found');
-  }
-}
-
-// Run verification
-async function runVerification() {
-  console.log('🚀 Starting database verification...');
-  
-  await verifyCompanies();
-  await verifyReviews();
-  
-  console.log('✅ Verification complete');
-}
-
-runVerification().catch(error => {
-  console.error('❌ Verification failed:', error);
-  process.exit(1);
-});
+## 📊 MVP Progress Dashboard
+Overall Progress: 60% Complete
+- Database & Authentication  ■■■■□□□□□□   40%
+- Core Features             ■■■■■■□□□□   60%
+- Technical Improvements    ■■■□□□□□□□   30%
+- Quality Assurance         ■■□□□□□□□□   20%

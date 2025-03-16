@@ -1,0 +1,37 @@
+---
+description: MCP integration implementation patterns
+globs: src/components/MCP*.tsx,src/app/mcp*/**/*,scripts/mcp*.ts,scripts/setup-mcp.ts
+alwaysApply: true
+---
+
+# 🔮 MCP Integration Implementation Patterns
+
+## MCP Setup
+- Follow the setup process in `scripts/setup-mcp.ts`
+- Create stored procedures in `scripts/mcp-stored-procedures.sql`
+- Use the interactive CLI in `scripts/run-mcp-server.js`
+- Ensure configuration files exist in `.mcp/supabase/config.json` and `.mcp/supabase/schema.json`
+- Test stored procedures with `npm run mcp:sample-queries`
+
+## MCP UI Components
+- Implement UI components following `MCPDemoComponent.tsx` pattern
+- Use dynamic imports with `{ ssr: false }` for MCP components to avoid SSR issues
+- Use the demo page at `/mcp-demo` to showcase MCP integration
+- Wrap Supabase calls in try/catch blocks with proper error handling
+- Use loading states for better UX
+- Implement error boundaries for resilient rendering
+
+## MCP Stored Procedures
+- Follow the pattern in `scripts/mcp-stored-procedures.sql`
+- Use typed parameters and return values
+- Implement proper error handling
+- Use transactions for operations that modify multiple tables
+- Document all procedures with clear descriptions
+- Test procedures with sample data before production use
+
+## MCP Server
+- Run the MCP server with `npm run mcp:start` before using MCP features
+- Use the documentation helper with `npm run docs` for guidance
+- Implement proper error handling for server failures
+- Use the interactive CLI for debugging
+- Monitor server logs for errors and performance issues 

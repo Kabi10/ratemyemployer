@@ -1,0 +1,46 @@
+---
+description: Review system implementation patterns
+globs: src/components/Review*.tsx,src/app/reviews/**/*,src/app/companies/*/reviews/**/*
+alwaysApply: true
+---
+
+# 📝 Review System Implementation Patterns
+
+## Review Form Implementation
+- Use `ReviewForm.tsx` as the template for all review forms
+- Implement Zod validation with the following schema pattern:
+  ```typescript
+  const reviewSchema = z.object({
+    rating: z.number().min(1).max(5),
+    title: z.string().min(5).max(100),
+    content: z.string().min(20).max(2000),
+    pros: z.string().min(10).max(500),
+    cons: z.string().min(10).max(500),
+    // Additional fields as needed
+  });
+  ```
+- Use React Hook Form with the Zod resolver
+- Implement proper error handling and user feedback
+- Disable form inputs during submission
+- Use toast notifications for submission status
+
+## Review Display Implementation
+- Use `ReviewCard.tsx` as the template for all review displays
+- Follow the color-coded rating visualization pattern:
+  - Red for ratings < 2.5
+  - Yellow for ratings between 2.5 and 3.5
+  - Green for ratings > 3.5
+- Implement proper loading states with skeleton components
+- Use pagination for lists of reviews
+- Implement sorting and filtering options
+
+## Review Moderation Implementation
+- Implement status enum (pending, approved, rejected)
+- Use role-based access control for moderation features
+- Implement moderation history tracking
+- Add moderation notes for internal communication
+- Implement bulk moderation actions for efficiency
+- Use modals for detailed content viewing
+- Implement filtering by moderation status
+- Use consistent status indicators
+- Notify users of moderation decisions 

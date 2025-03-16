@@ -8,10 +8,11 @@ import type { CompanyWithReviews } from '@/types/database';
 import { EnhancedCompanyCard } from '@/components/EnhancedCompanyCard';
 import { CompanyFilters } from '@/components/CompanyFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Trophy, TrendingDown, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Trophy, TrendingDown, TrendingUp, Building2, MapPin, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 interface WallOfCompaniesProps {
   type: 'fame' | 'shame';
@@ -48,6 +49,12 @@ export function WallOfCompanies({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [sortBy, setSortBy] = useState('rating');
+  
+  // New state for statistics
+  const [industryStats, setIndustryStats] = useState<any[]>([]);
+  const [locationStats, setLocationStats] = useState<any[]>([]);
+  const [sizeStats, setSizeStats] = useState<any[]>([]);
+  const [showStats, setShowStats] = useState(false);
 
   // Fetch companies with ratings
   const fetchCompanies = async () => {
@@ -181,6 +188,9 @@ export function WallOfCompanies({
       // Fetch news for companies
       fetchNewsForCompanies(selectedCompanies);
       
+      // Fetch statistics
+      fetchStatistics();
+      
     } catch (err: any) {
       console.error('Error fetching companies:', err);
       setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies`);
@@ -202,6 +212,67 @@ export function WallOfCompanies({
       }
     }
     setCompanyNews(newsData);
+  };
+  
+  // Fetch statistics using stored procedures
+  const fetchStatistics = async () => {
+    try {
+      // Fetch industry statistics
+      const { data: industryData, error: industryError } = await supabase.rpc('get_industry_statistics');
+      
+      if (industryError) {
+        console.error('Error fetching industry statistics:', industryError);
+      } else {
+        // Sort based on type (fame = highest ratings first, shame = lowest ratings first)
+        const sortedIndustryData = [...industryData].sort((a, b) => {
+          if (type === 'fame') {
+            return b.average_rating - a.average_rating;
+          } else {
+            return a.average_rating - b.average_rating;
+          }
+        });
+        
+        setIndustryStats(sortedIndustryData.slice(0, 5));
+      }
+      
+      // Fetch location statistics
+      const { data: locationData, error: locationError } = await supabase.rpc('get_location_statistics');
+      
+      if (locationError) {
+        console.error('Error fetching location statistics:', locationError);
+      } else {
+        // Sort based on type
+        const sortedLocationData = [...locationData].sort((a, b) => {
+          if (type === 'fame') {
+            return b.average_rating - a.average_rating;
+          } else {
+            return a.average_rating - b.average_rating;
+          }
+        });
+        
+        setLocationStats(sortedLocationData.slice(0, 5));
+      }
+      
+      // Fetch size statistics
+      const { data: sizeData, error: sizeError } = await supabase.rpc('get_size_statistics');
+      
+      if (sizeError) {
+        console.error('Error fetching size statistics:', sizeError);
+      } else {
+        // Sort based on type
+        const sortedSizeData = [...sizeData].sort((a, b) => {
+          if (type === 'fame') {
+            return b.average_rating - a.average_rating;
+          } else {
+            return a.average_rating - b.average_rating;
+          }
+        });
+        
+        setSizeStats(sortedSizeData.slice(0, 5));
+      }
+    } catch (err) {
+      console.error('Error fetching statistics:', err);
+    }
   };
   
   useEffect(() => {
@@ -321,6 +392,18 @@ export function WallOfCompanies({
         statsColor: 'bg-red-50 border-red-200'
       };
     }
+  };
+  
+  const getRatingColor = (rating: number) => {
+    if (rating < 2.5) return 'text-red-500';
+    if (rating < 3.5) return 'text-amber-500';
+    return 'text-green-500';
+  };
+  
+  const getProgressColor = (rating: number) => {
+    if (rating < 2.5) return 'bg-red-500';
+    if (rating < 3.5) return 'bg-amber-500';
+    return 'bg-green-500';
   };
 
   const styles = getTypeStyles();
@@ -479,6 +562,135 @@ export function WallOfCompanies({
               </CardContent>
             </Card>
           </motion.div>
+        </div>
+        
+        {/* Detailed Statistics Toggle */}
+        <div className="mb-8">
+          <Button 
+            onClick={() => setShowStats(!showStats)}
+            variant="outline"
+            className="mb-4"
+          >
+            {showStats ? 'Hide Detailed Statistics' : 'Show Detailed Statistics'}
+          </Button>
+          
+          {showStats && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {/* Industry Statistics */}
+              {industryStats.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      {type === 'fame' ? 'Top Rated Industries' : 'Lowest Rated Industries'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {industryStats.map((stat) => (
+                      <div key={stat.industry} className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{stat.industry}</span>
+                          <span className={getRatingColor(stat.average_rating)}>
+                            {stat.average_rating.toFixed(1)}
+                            {type === 'fame' ? (
+                              <TrendingUp className="ml-1 inline h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="ml-1 inline h-4 w-4" />
+                            )}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={stat.average_rating * 20} 
+                          className="h-2"
+                          indicatorClassName={getProgressColor(stat.average_rating)}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{stat.company_count} companies</span>
+                          <span>{stat.review_count} reviews</span>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Location Statistics */}
+              {locationStats.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      {type === 'fame' ? 'Top Rated Locations' : 'Lowest Rated Locations'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {locationStats.map((stat) => (
+                      <div key={stat.location} className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{stat.location}</span>
+                          <span className={getRatingColor(stat.average_rating)}>
+                            {stat.average_rating.toFixed(1)}
+                            {type === 'fame' ? (
+                              <TrendingUp className="ml-1 inline h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="ml-1 inline h-4 w-4" />
+                            )}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={stat.average_rating * 20} 
+                          className="h-2"
+                          indicatorClassName={getProgressColor(stat.average_rating)}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{stat.company_count} companies</span>
+                          <span>{stat.review_count} reviews</span>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Size Statistics */}
+              {sizeStats.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {type === 'fame' ? 'Top Rated by Company Size' : 'Lowest Rated by Company Size'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {sizeStats.map((stat) => (
+                      <div key={stat.size} className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{stat.size}</span>
+                          <span className={getRatingColor(stat.average_rating)}>
+                            {stat.average_rating.toFixed(1)}
+                            {type === 'fame' ? (
+                              <TrendingUp className="ml-1 inline h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="ml-1 inline h-4 w-4" />
+                            )}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={stat.average_rating * 20} 
+                          className="h-2"
+                          indicatorClassName={getProgressColor(stat.average_rating)}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{stat.company_count} companies</span>
+                          <span>{stat.review_count} reviews</span>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
         
         {/* Filters */}

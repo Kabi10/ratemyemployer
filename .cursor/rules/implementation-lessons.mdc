@@ -1,0 +1,49 @@
+---
+description: Implementation lessons and best practices
+globs: *
+alwaysApply: false
+---
+
+# 🎓 RateMyEmployer Implementation Lessons
+
+## 🖥️ UI/UX Implementation Patterns
+- Use Shadcn UI components for consistent design
+- Maintain consistent page layouts (p-6 padding, mb-8 header spacing)
+- For loading states: use LoadingSpinner component and Suspense boundaries
+- For forms: use React Hook Form with Zod validation and disable inputs during submission
+- For filters/search: use useDebounce hook (300ms) and URL params for state
+- For ratings: use StatCard component with consistent color schemes (red < 2.5, yellow 2.5-3.5, green > 3.5)
+- For modals: use dialog component with aria attributes and focus management
+- For animations: use Framer Motion with consistent durations (300-500ms)
+
+## 🔄 Next.js Architecture Patterns
+- Page props params must be typed as a Promise in Next.js 14+
+- Use `createServerClient` from Supabase SSR for server components
+- Mark components using `useRouter` or `useSearchParams` with `'use client'` directive
+- Components using client-side hooks must be wrapped in Suspense
+- When using dynamic imports with `next/dynamic`, set `ssr: false` for client-only components
+- For client-side state: extract state display into client components
+- Pass search params as props from server components instead of using hooks directly
+- Handle auth properly: use middleware for protection, include callback URLs, use role-based access
+
+## 🧪 Testing Implementation Patterns
+- Use Playwright for E2E tests with consistent selectors
+- Always use `bcryptjs` instead of `bcrypt` in tests to avoid native dependencies
+- When mocking API handlers, use inline functions instead of `.mockImplementation()`
+- For dialog components, always provide `aria-describedby` attribute to avoid accessibility warnings
+- Use `jest.spyOn` for functions that need to be restored after tests
+- Mock Next.js hooks like `useRouter` at the module level with `jest.mock('next/navigation')`
+- When mocking `useRouter`, use `jest.mocked(useRouter).mockReturnValue()` instead of casting
+- Initialize mocks with default values for consistent behavior
+
+## 🛠️ Process Implementation Requirements
+- ALWAYS check for existing implementations before creating new files
+- Use grep_search/file_search to look for similar file names and functionality
+- Document search process in scratchpad before implementing features
+- NEVER skip the pre-implementation checklist to avoid duplicate code
+- Implement parallel components when dependencies allow
+- Use consistent patterns across similar file types
+- Create independent files first to avoid blocking dependencies
+- Leverage existing templates and patterns when available
+- Document implementation decisions for future reference
+- Split implementation from deployment for faster iteration 

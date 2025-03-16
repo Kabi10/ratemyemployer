@@ -1,0 +1,518 @@
+# Cursor Master Rules for RateMyEmployer Project
+
+## 🔄 Project Type Selection
+- [X] Business Website
+- [X] Web Application/SaaS Platform
+
+## ⚠️ MANDATORY PRE-IMPLEMENTATION CHECKLIST ⚠️
+STOP! Before writing ANY code or suggesting ANY changes:
+
+1. 🔍 SEARCH FIRST (REQUIRED):
+   ```bash
+   # Document ALL search results below
+   grep_search "[feature keyword]" # Search for related functionality
+   file_search "[filename pattern]" # Search for similar files
+   list_dir "[relevant directory]" # List contents of relevant directories
+   ```
+
+2. 📝 DOCUMENT FINDINGS (REQUIRED):
+   ```markdown
+   ## Existing Files Found:
+   - [List all relevant files found with full paths]
+   - [Include file sizes and last modified dates if relevant]
+   
+   ## Existing Functionality:
+   - [Describe what already exists in detail]
+   - [Note any patterns or architectural approaches used]
+   
+   ## Gaps Identified:
+   - [List what's missing or needs enhancement]
+   - [Identify technical debt or issues in existing code]
+   
+   ## Implementation Decision Tree:
+   - Is there existing code that serves this purpose? [Yes/No]
+   - Can existing code be enhanced to meet requirements? [Yes/No]
+   - Is creating new code justified? [Yes/No, with reasoning]
+   
+   ## Proposed Approach:
+   - [ ] Enhance existing code at [file path]
+   - [ ] Create new files (requires detailed justification)
+   - [ ] Refactor existing code at [file path]
+   
+   ## Implementation Plan:
+   1. [First step with estimated effort]
+   2. [Second step with estimated effort]
+   3. [Additional steps as needed]
+   ```
+
+3. ✋ WAIT FOR APPROVAL:
+   - Present findings to user with clear options
+   - Get explicit approval for chosen approach
+   - Never proceed with new files if similar functionality exists
+   - Document approval in the implementation plan
+
+❌ IF YOU SKIP THIS CHECKLIST, YOU ARE VIOLATING THE MOST IMPORTANT RULE ❌
+
+## 🔒 Enforcement Mechanisms
+
+The pre-implementation checklist is enforced through multiple mechanisms:
+
+1. **Pre-Implementation Templates**: Use `templates/pre-implementation-checklist.md` as a starting point for documenting your pre-implementation process.
+
+2. **Documentation Storage**: Store all pre-implementation documentation in the `implementations/` directory with a naming convention of `[feature-name]-pre-implementation.md`.
+
+3. **Automated Checks**:
+   - **Git Pre-Commit Hook**: Prevents commits of new files without evidence of pre-implementation documentation.
+   - **GitHub Actions Workflow**: Verifies that new files in PRs have corresponding pre-implementation documentation.
+   - **Compliance Checker**: Run `npm run check:pre-implementation` to check if recent files have documentation.
+
+4. **VS Code Integration**:
+   - Use the "Check Pre-Implementation Documentation" task to verify compliance.
+   - Use the "Create Pre-Implementation Documentation" task to create new documentation from the template.
+
+5. **Code Review Requirements**:
+   - All PRs must reference the pre-implementation documentation.
+   - Reviewers should verify that the implementation follows the approved plan.
+
+To create new pre-implementation documentation:
+```bash
+# Copy the template to the implementations directory
+cp templates/pre-implementation-checklist.md implementations/[feature-name]-pre-implementation.md
+
+# Edit the new file
+code implementations/[feature-name]-pre-implementation.md
+```
+
+## �� Table of Contents
+1. [AI Instructions](#-ai-instructions)
+2. [Pattern Recognition Map](#-ratemyemployer-pattern-recognition-map)
+3. [Project Progress Dashboard](#-project-progress-dashboard)
+4. [RateMyEmployer Specific Rules](#-ratemyemployer-specific-rules)
+5. [Implementation Lessons](#-ratemyemployer-lessons)
+6. [Documentation Structure](#-documentation-structure)
+7. [Implementation Templates](#-implementation-templates)
+8. [MVP Implementation Plan](#-mvp-implementation-plan)
+
+## 🔍 Quick Reference
+
+### Common Commands
+```bash
+# Search for functionality
+grep_search "feature keyword"
+
+# Find files by name
+file_search "filename pattern"
+
+# List directory contents
+list_dir "directory path"
+
+# Run MCP server
+npm run mcp:start
+
+# Access documentation
+npm run docs
+npm run docs:mcp
+```
+
+### Key File Locations
+- **Database Access**: `src/lib/database.ts`, `src/lib/supabaseClient.ts`, `src/lib/supabaseServer.ts`
+- **Authentication**: `src/middleware.ts`, `src/components/Auth.tsx`
+- **Core Components**: `src/components/ReviewForm.tsx`, `src/components/CompanyForm.tsx`
+- **MCP Integration**: `scripts/setup-mcp.ts`, `scripts/mcp-stored-procedures.sql`
+
+### Getting Started
+1. **Setup Environment**:
+   ```bash
+   npm install
+   cp .env.example .env  # Then edit .env with your credentials
+   ```
+
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Before Implementing Features**:
+   - Always check existing code with `grep_search` and `file_search`
+   - Follow the pre-implementation checklist above
+   - Reference existing patterns in similar components
+   - Use the MVP Implementation Plan as a guide for priorities
+
+4. **Testing Your Changes**:
+   ```bash
+   npm run test
+   npm run test:e2e
+   ```
+
+---
+
+## 📚 AI Instructions
+
+As an AI code builder, this document serves as your complete guide for building or extending the RateMyEmployer project. The rules below define HOW you should approach implementation:
+
+1. **Decision Protocol**: Before implementing any feature:
+   - First search for existing code and patterns
+   - Show clear options with tradeoffs
+   - Wait for explicit approval
+   - Document your decision-making process
+
+2. **Context Management**:
+   - Maintain a mental map of the project architecture
+   - Reference existing patterns when suggesting solutions
+   - Track technical debt and refactoring opportunities
+   - Keep your internal representation of the codebase updated
+
+3. **Implementation Approach**:
+   - Follow the pattern recognition guidelines
+   - Use established project patterns over introducing new ones
+   - Provide "why" explanations along with code
+   - Tag all implementation decisions with appropriate decision factors
+
+4. **Uncertainty Protocol**:
+   - When encountering ambiguity, present options with pros/cons
+   - Explicitly flag incomplete knowledge ("This appears to be ___, but I need more context")
+   - Use specified formats for indicating uncertainty levels
+   - Provide specific questions to resolve key uncertainties
+
+5. **Documentation Protocol**:
+   - All documentation is consolidated in central files
+   - MCP documentation is in `MCP_DOCUMENTATION.md`
+   - Form verification is documented in the MCP documentation
+   - Use `npm run docs` to access the documentation helper
+   - Never create new documentation files without checking existing ones
+   - Update existing documentation rather than creating new files
+
+## 🧠 RateMyEmployer Pattern Recognition Map
+
+### Universal Code Structure Patterns
+- **Server-Component Pattern**: `async function Page/Component({ params }) + await fetch/db` 
+- **Client-Interactive Pattern**: `'use client'; useState/useEffect + event handlers`
+- **Data-Fetch Pattern**: `getData` functions paired with React Server Components
+- **Layout Pattern**: Hierarchical layouts with global elements in parent layouts
+- **Review Pattern**: Form submission → validation → database storage → display
+- **Company Pattern**: Company profile → reviews → ratings → statistics
+- **Authentication Pattern**: Login/signup → session management → protected routes
+- **Supabase Pattern**: Server-side client creation → data fetching → error handling
+- **MCP Pattern**: Natural language query → Supabase operation → data display
+
+### RateMyEmployer-Specific Implementation Patterns
+- **Auth Flow Pattern**: Supabase auth → session checking → protected routes via middleware
+- **Data Display Pattern**: Skeleton loading → data fetch → render with error boundaries
+- **Form Pattern**: Zod schema → React Hook Form → Supabase mutation → toast notification
+- **Filter Pattern**: URL-based state → server-side filtering → paginated results
+- **Rating Pattern**: User input → calculation → color-coded visual representation
+- **News Integration Pattern**: SerpAPI fetch → database storage → component display
+- **Company Search Pattern**: Debounced input → Supabase query → filtered results
+- **Review Moderation Pattern**: Admin check → status update → notification
+- **MCP Integration Pattern**: Setup → schema definition → stored procedures → UI components
+
+## 📊 Project Progress Dashboard
+Overall Progress: 60% Complete
+- Setup & Configuration    ■■■■■■■■■■   100%
+- Core Features           ■■■■■■■■□□   80%
+- Admin Dashboard         ■■■■□□□□□□   40%
+- User Features           ■■■■■□□□□□   50%
+- Advanced Features       ■■■■□□□□□□   40%
+- Testing & Deployment    ■■□□□□□□□□   20%
+- Post-Launch             □□□□□□□□□□   0%
+
+## 🔧 RateMyEmployer Specific Rules
+
+### Business Website & Web Application Features
+- **Company Reviews System**: Implement with proper validation, moderation, and display
+  - Use `ReviewForm.tsx` pattern with Zod validation and React Hook Form
+  - Follow `ReviewCard.tsx` display pattern with rating visualization
+  - Implement moderation with status enum (pending, approved, rejected)
+  - Use toast notifications for user feedback
+
+- **Rating Visualization**: Use consistent color-coded progress bars across the application
+  - Red for ratings < 2.5
+  - Yellow for ratings between 2.5 and 3.5
+  - Green for ratings > 3.5
+  - Use the StatCard component for consistent display
+
+- **User Authentication**: Leverage Supabase for secure authentication and session management
+  - Use middleware.ts pattern for route protection
+  - Follow Auth.tsx component pattern for login/signup
+  - Use role-based access control for admin features
+  - Store user metadata in Supabase auth
+
+- **Company Profiles**: Detailed company information with size, industry, and location data
+  - Follow CompanyProfile.tsx pattern for display
+  - Use CompanyForm.tsx pattern for data entry
+  - Implement LocationAutocomplete.tsx for address input
+  - Use industry enum for consistent categorization
+
+- **Search and Filter**: Advanced search capabilities with multiple filter options
+  - Use SearchAndFilter.tsx pattern with debounced input
+  - Implement URL-based state for shareable filters
+  - Follow CompanyList.tsx pagination pattern
+  - Use Select components from UI library
+
+- **Wall of Shame/Fame**: Highlight companies with lowest/highest ratings
+  - Use shared `WallOfCompanies` component for both Wall of Fame and Wall of Shame
+  - Implement enhanced filtering with industry, location, size, and rating range
+  - Use tabbed interface for different data views
+  - Display company statistics with visual indicators
+  - Integrate news section with company cards
+  - Use consistent color coding for ratings visualization
+
+- **News Integration**: Fetch and display relevant company news
+  - Use newsApi.ts pattern for external API calls
+  - Follow CompanyNews.tsx display pattern
+  - Implement caching strategy for API calls
+  - Use error handling for failed requests
+
+- **Admin Dashboard**: Moderation tools for reviews and company data
+  - Follow role-based access pattern in middleware.ts
+  - Use table patterns for data display
+  - Implement action buttons for approve/reject
+  - Add filtering and sorting capabilities
+
+- **MCP Integration**: Natural language database interaction
+  - Follow setup patterns in `scripts/setup-mcp.ts`
+  - Use stored procedures from `scripts/mcp-stored-procedures.sql`
+  - Implement UI components following `MCPDemoComponent.tsx` pattern
+  - Use the interactive CLI in `scripts/run-mcp-server.js`
+  - Ensure configuration files exist in `.mcp/supabase/` directory
+  - Test functionality using the `/mcp-demo` page
+  - Run the MCP server with `npm run mcp:start` before using MCP features
+  - Use `npm run docs:mcp` to access comprehensive MCP documentation
+
+- **Permission Management System**: Implement role-based access control for different parts of the application
+  - Use `withAuth` HOC pattern for protecting components based on roles
+  - Implement role hierarchy (admin > moderator > user)
+  - Use middleware.ts for route protection at the page level
+  - Create a dedicated permission-denied page for unauthorized access attempts
+  - Use the AuthContext to manage and check user roles
+
+## 🎓 RateMyEmployer Lessons
+
+### 🖥️ UI/UX Implementation Patterns
+- Use Shadcn UI components for consistent design
+- Maintain consistent page layouts (p-6 padding, mb-8 header spacing)
+- For loading states: use LoadingSpinner component and Suspense boundaries
+- For forms: use React Hook Form with Zod validation and disable inputs during submission
+- For filters/search: use useDebounce hook (300ms) and URL params for state
+- For ratings: use StatCard component with consistent color schemes (red < 2.5, yellow 2.5-3.5, green > 3.5)
+- For modals: use dialog component with aria attributes and focus management
+- For animations: use Framer Motion with consistent durations (300-500ms)
+
+### 🔄 Next.js Architecture Patterns
+- Page props params must be typed as a Promise in Next.js 14+
+- Use `createServerClient` from Supabase SSR for server components
+- Mark components using `useRouter` or `useSearchParams` with `'use client'` directive
+- Components using client-side hooks must be wrapped in Suspense
+- When using dynamic imports with `next/dynamic`, set `ssr: false` for client-only components
+- For client-side state: extract state display into client components
+- Pass search params as props from server components instead of using hooks directly
+- Handle auth properly: use middleware for protection, include callback URLs, use role-based access
+
+### 🧪 Testing Implementation Patterns
+- Use Playwright for E2E tests with consistent selectors
+- Always use `bcryptjs` instead of `bcrypt` in tests to avoid native dependencies
+- When mocking API handlers, use inline functions instead of `.mockImplementation()`
+- For dialog components, always provide `aria-describedby` attribute to avoid accessibility warnings
+- Use `jest.spyOn` for functions that need to be restored after tests
+- Mock Next.js hooks like `useRouter` at the module level with `jest.mock('next/navigation')`
+- When mocking `useRouter`, use `jest.mocked(useRouter).mockReturnValue()` instead of casting
+- Initialize mocks with default values for consistent behavior
+
+### 🛠️ Process Implementation Requirements
+- ALWAYS check for existing implementations before creating new files
+- Use grep_search/file_search to look for similar file names and functionality
+- Document search process in scratchpad before implementing features
+- NEVER skip the pre-implementation checklist to avoid duplicate code
+- Implement parallel components when dependencies allow
+- Use consistent patterns across similar file types
+- Create independent files first to avoid blocking dependencies
+- Leverage existing templates and patterns when available
+- Document implementation decisions for future reference
+- Split implementation from deployment for faster iteration
+- Consolidate documentation in central files rather than creating new ones
+
+### 📂 File Management and Cleanup Patterns
+- Store SQL migrations in the `/supabase/migrations` directory with proper naming conventions
+- Archive outdated schema dumps instead of keeping them in the root directory
+- Maintain duplicate MCP procedure files in both `.mcp/supabase/procedures.sql` and `scripts/mcp-stored-procedures.sql`
+- Use the `/archive` directory for files that might be needed for reference but are no longer actively used
+- Remove temporary build artifacts and log files before committing
+- Check for duplicate files by comparing file sizes, last modified dates, and content
+- Use PowerShell commands for file comparison and cleanup on Windows environments
+- Document all cleanup actions in commit messages for future reference
+- Verify application functionality after cleanup operations
+- Keep documentation files organized and up-to-date
+- Regularly clean up temporary files to maintain a tidy codebase
+
+### 🔐 Supabase Implementation Patterns
+- Use `supabaseServer.ts` for server-side data fetching
+- Use `supabaseClient.ts` for client-side operations
+- Always wrap Supabase calls in try/catch blocks
+- Use typed responses with Database types from schema.ts
+- Follow the pattern in database.ts for consistent data access
+- Use RLS policies for secure data access
+- Implement proper error handling with DatabaseError type
+- Use transactions for operations that modify multiple tables
+
+### 🔍 Form Testing and Supabase Verification Patterns
+- Always test form submissions with both valid and invalid data
+- Implement client-side validation with Zod before submission
+- Add server-side validation as a second layer of protection
+- Use toast notifications to provide feedback on form submission status
+- Log form submission attempts and results for debugging
+- Verify data in Supabase after submission using the Table Editor
+- Run SQL queries to check data integrity and relationships
+- Create test scripts to automate verification of database state
+- Test edge cases like minimum/maximum values and special characters
+- Implement automated tests for critical form submissions
+- Monitor form submission success rates and error patterns
+- Verify that RLS policies are correctly enforcing access controls
+- Check that timestamps and default values are correctly applied
+- Validate that foreign key relationships are maintained
+- Test form behavior under slow network conditions
+
+### 🔮 MCP Implementation Patterns
+- Use the consolidated documentation in `MCP_DOCUMENTATION.md`
+- Follow the setup process in `scripts/setup-mcp.ts`
+- Create stored procedures in `scripts/mcp-stored-procedures.sql`
+- Use the interactive CLI in `scripts/run-mcp-server.js`
+- Implement UI components following `MCPDemoComponent.tsx` pattern
+- Use the demo page at `/mcp-demo` to showcase MCP integration
+- Wrap Supabase calls in try/catch blocks with proper error handling
+- Use the documentation helper with `npm run docs` for guidance
+- Ensure the MCP server is running with `npm run mcp:start` before using MCP features
+- Verify configuration files exist in `.mcp/supabase/config.json` and `.mcp/supabase/schema.json`
+- Test stored procedures with `npm run mcp:sample-queries`
+- Use dynamic imports with `{ ssr: false }` for MCP components to avoid SSR issues
+
+### 🔐 Permission Management Patterns
+- Use role hierarchy with clear precedence (admin > moderator > user)
+- Implement `withAuth` HOC for component-level protection
+- Use middleware for route-level protection
+- Create dedicated permission denied page with clear messaging
+- Store user roles in Supabase auth metadata
+- Check permissions client-side for UI adjustments
+- Check permissions server-side for data access control
+- Use consistent error handling for unauthorized actions
+- Implement role-based navigation visibility
+- Cache permission checks where appropriate for performance
+
+### 🏆 Wall of Shame/Fame Implementation Patterns
+- Use shared components between Wall of Fame and Wall of Shame
+- Implement enhanced filtering with multiple criteria
+- Use tabs for industry-specific views
+- Display statistics cards with visual indicators
+- Integrate news section with company cards
+- Use consistent color coding for ratings
+- Implement responsive design for mobile viewing
+- Use skeleton loading states for better UX
+- Cache company data where appropriate
+- Implement proper error handling and fallbacks
+
+### 📋 Review Moderation Implementation Patterns
+- Track moderation history for audit purposes
+- Add moderation notes for internal communication
+- Implement bulk moderation actions for efficiency
+- Use modals for detailed content viewing
+- Implement filtering by moderation status
+- Use consistent status indicators
+- Notify users of moderation decisions
+- Implement pagination for large datasets
+- Use optimistic UI updates for better UX
+- Implement proper error handling and recovery
+
+## 📋 Documentation Structure
+
+### Main Documentation Files
+- `README.md`: Main project documentation
+- `MCP_DOCUMENTATION.md`: Comprehensive MCP integration documentation
+- `CONTRIBUTING.md`: Guidelines for contributing to the project
+- `SECURITY.md`: Security policy and guidelines
+- `CODE_OF_CONDUCT.md`: Code of conduct for project contributors
+- `CHANGELOG.md`: Project changelog
+
+### Directory-Specific Documentation
+- `scripts/README.md`: Documentation for utility scripts
+
+### Documentation Access
+- Use `npm run docs` to access the documentation helper
+- Use `npm run docs:mcp` to open the MCP documentation directly
+
+## 🧩 Implementation Templates
+
+Implementation templates are available in the following locations:
+
+- **Server Components**: See `src/app/page.tsx` for reference implementation
+- **Client Components**: See `src/components/HomeClient.tsx` for reference implementation
+- **Review Components**: See `src/components/ReviewForm.tsx` for reference implementation
+- **MCP Components**: See `src/components/MCPDemoComponent.tsx` for reference implementation
+- **Data Fetching**: See `src/lib/database.ts` for reference implementation
+- **Supabase Verification**: See `scripts/verify-supabase-data.ts` for reference implementation
+
+Rather than duplicating code examples here, refer to these existing files which follow the project's established patterns.
+
+## 📋 MVP Implementation Plan
+
+### Phase 1: Database & Authentication (Week 1)
+[ ] 1.1. Database Schema & Stored Procedures
+    [ ] Verify database schema against application requirements
+    [ ] Fix stored procedures to match actual schema
+    [ ] Create migration scripts for necessary schema changes
+    [ ] Test procedures with sample data
+    [ ] Update procedure documentation
+
+[ ] 1.2. Authentication & Authorization
+    [ ] Test complete authentication flow (registration, login, logout)
+    [ ] Enhance role management (assignment, admin interface)
+    [ ] Fix auth-related UI issues (loading states, error handling)
+    [ ] Verify middleware protection for routes
+
+### Phase 2: Core Features (Week 2)
+[ ] 2.1. Review System
+    [ ] Enhance review submission (validation, anti-spam)
+    [ ] Complete review moderation workflow (admin queue, approval/rejection)
+    [ ] Optimize review display (pagination, sorting, filtering)
+
+[ ] 2.2. Company Management
+    [ ] Enhance company submission (validation, duplicate detection)
+    [ ] Complete company profile pages (statistics, metrics)
+    [ ] Optimize company search and filtering
+
+[ ] 2.3. Wall of Fame/Shame
+    [ ] Optimize WallOfCompanies component (performance, error handling)
+    [ ] Enhance filtering and sorting (persistent state)
+    [ ] Improve visualization (responsive design)
+
+### Phase 3: Technical Improvements (Week 3)
+[ ] 3.1. Error Handling & Resilience
+    [ ] Implement global error boundary
+    [ ] Enhance component-level error handling
+    [ ] Add comprehensive data validation
+
+[ ] 3.2. Performance Optimization
+    [ ] Implement data caching strategy
+    [ ] Optimize component rendering (memo, useCallback)
+    [ ] Enhance image and asset loading
+
+[ ] 3.3. Mobile Responsiveness
+    [ ] Audit all components for responsiveness
+    [ ] Fix responsive design issues
+    [ ] Test on various device sizes
+
+### Phase 4: Quality Assurance & Documentation (Week 4)
+[ ] 4.1. Documentation & Onboarding
+    [ ] Update user documentation
+    [ ] Enhance developer documentation
+    [ ] Implement user onboarding flow
+
+[ ] 4.2. Testing & Quality Assurance
+    [ ] Implement end-to-end tests for critical flows
+    [ ] Add unit and integration tests
+    [ ] Conduct manual testing and cross-browser verification
+
+## 📊 MVP Progress Dashboard
+Overall Progress: 60% Complete
+- Database & Authentication  ■■■■□□□□□□   40%
+- Core Features             ■■■■■■□□□□   60%
+- Technical Improvements    ■■■□□□□□□□   30%
+- Quality Assurance         ■■□□□□□□□□   20%

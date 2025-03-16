@@ -1,11 +1,37 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
-description: creating new files
+description: General project rules for all files
 globs: *
+alwaysApply: true
 ---
 
--Before creating a new file, make sure there isnt a duplicate file that already does what you intend to.
+# 📜 General Project Rules
+
+## File Creation Rules
+- Before creating a new file, verify there isn't a duplicate file that already does what you intend to.
+- Follow the established project structure and naming conventions.
+- Create files in the appropriate directories based on their functionality.
+- Use the appropriate file extension for the content type.
+
+## Code Style Rules
+- Follow the ESLint configuration for the project.
+- Use TypeScript for all new files.
+- Use meaningful variable and function names.
+- Add appropriate comments for complex logic.
+- Follow the established project patterns for component creation.
+
+## Documentation Rules
+- Document all public functions and components.
+- Include JSDoc comments for TypeScript interfaces and types.
+- Update relevant documentation when making significant changes.
+- Document any non-obvious behavior or workarounds.
+
+## Testing Rules
+- Write tests for all new functionality.
+- Update tests when modifying existing functionality.
+- Ensure all tests pass before submitting changes.
+- Use the appropriate testing framework for the type of test.
+
+## @file references
+@file pre-implementation.mdc
+@file pattern-recognition.mdc
+@file quick-reference.mdc

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to the RateMyEmployer project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- TypeScript-based statistics module (`src/lib/statistics.ts`) as an alternative to PostgreSQL stored procedures
+- Comprehensive documentation for the statistics module in `src/lib/README.md`
+- Type definitions for industry and location statistics
 - Company news integration with SerpAPI
 - Wall of Shame feature for lowest-rated companies
 - Bundle analysis support with @next/bundle-analyzer
@@ -16,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation structure
 
 ### Changed
+- Updated `MCPDemoComponent` to use the new statistics functions instead of stored procedures
+- Updated `WallOfCompanies` component to use the new statistics functions
+- Enhanced documentation in `MCP_DOCUMENTATION.md` with migration guide from stored procedures to TypeScript
+- Updated main README.md with information about the statistics module
 - Upgraded to Next.js 15.1
 - Enhanced Supabase Auth integration
 - Updated image configuration to use remotePatterns
@@ -24,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consolidated project documentation
 
 ### Fixed
+- Resolved issues with PostgreSQL stored procedures that were using reserved keywords
+- Fixed compatibility problems with different PostgreSQL versions
+- Improved error handling in statistics-related components
+- Removed references to non-existent size statistics in `WallOfCompanies`
 - Image loading optimization
 - Static asset handling
 - Type definition conflicts
@@ -37,17 +48,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated dependencies to latest versions
 - Improved authentication flow
 
-## [1.0.0] - 2024-01-19
+## [1.0.0] - 2023-10-15
 
 ### Added
-- Initial release with core features
-- Company review system
-- Rating visualization
-- Supabase authentication
-- Admin dashboard
-- Company profiles
-- Review management
-- Real-time updates
+- Initial release of RateMyEmployer
+- Company reviews system with rating visualization
+- User authentication with Supabase
+- Company profiles with industry and location data
+- Search and filter functionality
+- Wall of Fame/Shame feature
+- News integration for companies
+- Admin dashboard for moderation
+- MCP integration for natural language database queries
 
 ### Security
 - Supabase RLS policies

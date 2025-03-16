@@ -1,0 +1,46 @@
+---
+description: Company management implementation patterns
+globs: src/components/Company*.tsx,src/app/companies/**/*
+alwaysApply: true
+---
+
+# 🏢 Company Management Implementation Patterns
+
+## Company Form Implementation
+- Use `CompanyForm.tsx` as the template for all company forms
+- Implement Zod validation with the following schema pattern:
+  ```typescript
+  const companySchema = z.object({
+    name: z.string().min(2).max(100),
+    industry: z.enum(['TECH', 'FINANCE', 'HEALTHCARE', 'EDUCATION', 'RETAIL', 'OTHER']),
+    size: z.enum(['SMALL', 'MEDIUM', 'LARGE', 'ENTERPRISE']),
+    website: z.string().url().optional(),
+    description: z.string().min(20).max(2000),
+    // Additional fields as needed
+  });
+  ```
+- Use React Hook Form with the Zod resolver
+- Implement `LocationAutocomplete.tsx` for address input
+- Use industry enum for consistent categorization
+- Implement proper error handling and user feedback
+- Disable form inputs during submission
+- Use toast notifications for submission status
+
+## Company Profile Implementation
+- Use `CompanyProfile.tsx` as the template for all company profiles
+- Implement tabs for different sections (Overview, Reviews, News)
+- Display company statistics with visual indicators
+- Use StatCard component for consistent display
+- Implement proper loading states with skeleton components
+- Use error boundaries for resilient rendering
+- Implement responsive design for mobile viewing
+
+## Company Search Implementation
+- Use `SearchAndFilter.tsx` pattern with debounced input
+- Implement URL-based state for shareable filters
+- Follow `CompanyList.tsx` pagination pattern
+- Use Select components from UI library
+- Implement filtering by industry, size, location, and rating
+- Use skeleton loading states for better UX
+- Cache company data where appropriate
+- Implement proper error handling and fallbacks 

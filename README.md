@@ -204,4 +204,30 @@ RateMyEmployer includes integration with the Model Context Protocol (MCP), which
 
 3. Visit the MCP demo page at `/mcp-demo` to see it in action
 
+### Statistics Module
+
+As an alternative to PostgreSQL stored procedures, we've implemented a TypeScript-based statistics module in `src/lib/statistics.ts`. This module provides:
+
+- Industry and location statistics calculation
+- Improved reliability over SQL stored procedures
+- Full TypeScript type safety
+- Better error handling and debugging
+- Easy integration with React components
+
+To use the statistics module:
+
+```typescript
+import { 
+  getIndustryStatistics, 
+  getAllIndustryStatistics,
+  getLocationStatistics,
+  getAllLocationStatistics 
+} from '@/lib/statistics';
+
+// Example usage
+const industryStats = await getIndustryStatistics();
+```
+
+For more details, see the [statistics module documentation](src/lib/README.md).
+
 For comprehensive documentation on the MCP integration, see [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md). 

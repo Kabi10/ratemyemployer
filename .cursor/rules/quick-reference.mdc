@@ -1,0 +1,56 @@
+---
+description: Quick reference for common commands and key file locations
+globs: *
+alwaysApply: true
+---
+
+# 🔍 Quick Reference
+
+## Common Commands
+```bash
+# Search for functionality
+grep_search "feature keyword"
+
+# Find files by name
+file_search "filename pattern"
+
+# List directory contents
+list_dir "directory path"
+
+# Run MCP server
+npm run mcp:start
+
+# Access documentation
+npm run docs
+npm run docs:mcp
+```
+
+## Key File Locations
+- **Database Access**: `src/lib/database.ts`, `src/lib/supabaseClient.ts`, `src/lib/supabaseServer.ts`
+- **Authentication**: `src/middleware.ts`, `src/components/Auth.tsx`
+- **Core Components**: `src/components/ReviewForm.tsx`, `src/components/CompanyForm.tsx`
+- **MCP Integration**: `scripts/setup-mcp.ts`, `scripts/mcp-stored-procedures.sql`
+
+## Getting Started
+1. **Setup Environment**:
+   ```bash
+   npm install
+   cp .env.example .env  # Then edit .env with your credentials
+   ```
+
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Before Implementing Features**:
+   - Always check existing code with `grep_search` and `file_search`
+   - Follow the pre-implementation checklist
+   - Reference existing patterns in similar components
+   - Use the MVP Implementation Plan as a guide for priorities
+
+4. **Testing Your Changes**:
+   ```bash
+   npm run test
+   npm run test:e2e
+   ``` 

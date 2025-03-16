@@ -208,7 +208,18 @@ Here are some examples of natural language queries you can use with MCP:
 
 ## 📚 Stored Procedures
 
-The MCP integration includes several stored procedures that enhance its capabilities:
+The MCP integration includes several stored procedures that enhance its capabilities. However, due to potential compatibility issues with PostgreSQL versions and reserved keywords, we've also implemented a TypeScript-based statistics module as an alternative approach.
+
+### Alternative: TypeScript Statistics Module
+
+We've implemented a TypeScript-based statistics module in `src/lib/statistics.ts` that provides similar functionality to the stored procedures but with improved reliability and type safety. This module includes:
+
+- **`getIndustryStatistics`**: Returns statistics grouped by industry (with reviews)
+- **`getLocationStatistics`**: Returns statistics grouped by location (with reviews)
+- **`getAllIndustryStatistics`**: Returns statistics for all industries (including those without reviews)
+- **`getAllLocationStatistics`**: Returns statistics for all locations (including those without reviews)
+
+These functions directly query the Supabase database and process the results in JavaScript, providing a more reliable alternative to stored procedures. They are used in the `MCPDemoComponent` and `WallOfCompanies` components.
 
 ### `get_average_ratings_by_industry`
 
@@ -222,6 +233,8 @@ Returns the average ratings for companies grouped by industry.
 ```sql
 SELECT * FROM get_average_ratings_by_industry();
 ```
+
+**Note**: This stored procedure has been replaced by the `getIndustryStatistics` function in the TypeScript statistics module.
 
 ### `get_review_submission_trends`
 
