@@ -1,0 +1,40 @@
+name: Fetch Company News
+
+on:
+  schedule:
+    # Run twice daily at 6 AM and 6 PM UTC
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Create .env file
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
+          echo "NEXT_PUBLIC_OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env
+        
+      - name: Fetch news for Wall of Fame companies
+        run: npx tsx scripts/fetch-wall-news.ts --type=fame
+        
+      - name: Fetch news for Wall of Shame companies
+        run: npx tsx scripts/fetch-wall-news.ts --type=shame
+        
+      - name: Log completion
+        run: echo "News fetching completed successfully" 

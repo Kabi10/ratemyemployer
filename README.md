@@ -14,6 +14,7 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 - Data validation and sanitization
 - Role-based access control
 - Company news integration
+- Wall of Fame and Wall of Shame for highlighting top and bottom-rated companies
 - Model Context Protocol (MCP) integration for natural language database queries
 
 ## Tech Stack
@@ -78,6 +79,9 @@ npm run mcp:update-schema # Update MCP schema from Supabase
 
 # Database migrations
 npm run migrations:run   # Run database migrations
+
+# Add test data for Wall of Fame/Shame
+npx tsx scripts/add-wall-test-data.ts
 ```
 
 ## Project Structure
@@ -92,6 +96,7 @@ src/
 └── types/          # TypeScript types
 
 scripts/
+├── add-wall-test-data.ts    # Add test data for Wall of Fame/Shame
 ├── mcp-sample-queries.ts    # Sample MCP queries
 ├── mcp-stored-procedures.sql # SQL stored procedures for MCP
 ├── run-mcp-server.js        # Interactive MCP server runner
@@ -105,6 +110,48 @@ tests/
 ├── fixtures/       # Test data
 └── utils/          # Test utilities
 ```
+
+## Wall of Fame and Wall of Shame
+
+RateMyEmployer features a Wall of Fame and Wall of Shame to highlight the highest and lowest-rated companies based on employee reviews.
+
+### Key Features
+
+- **Wall of Fame**: Showcases companies with the highest ratings
+- **Wall of Shame**: Highlights companies with the lowest ratings
+- **Industry Filtering**: Filter companies by industry
+- **Advanced Filtering**: Filter by location, size, and rating range
+- **Company Statistics**: View statistics about companies, reviews, and ratings
+- **News Integration**: See latest news about featured companies
+
+### Adding Test Data
+
+To populate the Wall of Fame and Wall of Shame with test data:
+
+```bash
+npx tsx scripts/add-wall-test-data.ts
+```
+
+This script adds:
+- 5 companies with high ratings for the Wall of Fame
+- 5 companies with low ratings for the Wall of Shame
+- 4 positive reviews for each Wall of Fame company
+- 4 negative reviews for each Wall of Shame company
+
+### Accessing the Walls
+
+- Wall of Fame: `/fame`
+- Wall of Shame: `/shame`
+
+### Implementation Details
+
+The Wall of Fame and Wall of Shame are implemented using:
+- Direct Supabase queries for data fetching
+- Client-side data processing for statistics
+- Industry tabs for easy filtering
+- Responsive design for all device sizes
+- Color-coded rating indicators (red, yellow, green)
+- News integration for featured companies
 
 ## Testing
 
