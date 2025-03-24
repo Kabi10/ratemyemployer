@@ -89,7 +89,7 @@ export function WallOfCompanies({
           location,
           description,
           logo_url,
-          website_url,
+          website,
           size,
           founded_year,
           reviews (
@@ -98,7 +98,6 @@ export function WallOfCompanies({
             title,
             pros,
             cons,
-            recommend,
             created_at,
             status
           )
@@ -133,10 +132,8 @@ export function WallOfCompanies({
           ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
           : 0;
         
-        const recommendCount = reviews.filter(review => review.recommend).length;
-        const recommendPercentage = reviews.length > 0
-          ? Math.round((recommendCount / reviews.length) * 100)
-          : 0;
+        // Use a default recommendation percentage since the field doesn't exist
+        const recommendPercentage = 0;
         
         return {
           ...company,
@@ -146,9 +143,9 @@ export function WallOfCompanies({
         };
       });
 
-      // Filter companies with at least 3 reviews and a valid average rating
+      // Filter companies with at least 1 review and a valid average rating
       const companiesWithReviews = processedCompanies.filter(
-        company => company.average_rating > 0 && company.reviews && company.reviews.length >= 3
+        company => company.average_rating > 0 && company.reviews && company.reviews.length >= 1
       );
 
       // Sort by average rating (highest or lowest first based on type)
@@ -201,30 +198,47 @@ export function WallOfCompanies({
 
   // Fetch news for companies
   const fetchNewsForCompanies = async (companies: CompanyWithReviews[]) => {
-    const newsData: { [key: string]: NewsArticle[] } = {};
-    for (const company of companies) {
-      try {
-        const articles = await fetchCompanyNews(company.name);
-        newsData[company.name] = articles;
-      } catch (err) {
-        console.error(`Error fetching news for ${company.name}:`, err);
-        newsData[company.name] = [];
+    try {
+      const newsData: { [key: string]: NewsArticle[] } = {};
+      for (const company of companies) {
+        try {
+          const articles = await fetchCompanyNews(company.name);
+          newsData[company.name] = articles;
+        } catch (err) {
+          console.error(`Error fetching news for ${company.name}:`, err);
+          newsData[company.name] = [];
+        }
       }
+      setCompanyNews(newsData);
+    } catch (err) {
+      console.error('Error in fetchNewsForCompanies:', err);
+      setCompanyNews({});
     }
-    setCompanyNews(newsData);
   };
   
-  // Fetch statistics using stored procedures
+  // Fetch statistics using direct queries instead of stored procedures
   const fetchStatistics = async () => {
     try {
       // Fetch industry statistics
-      const { data: industryData, error: industryError } = await supabase.rpc('get_industry_statistics');
+      const { data: industryData, error: industryError } = await supabase
+        .from('companies')
+        .select(`
+          industry,
+          reviews!inner (
+            rating
+          )
+        `)
+        .not('industry', 'is', null);
       
       if (industryError) {
         console.error('Error fetching industry statistics:', industryError);
+        setIndustryStats([]);
       } else {
+        // Process the data to get statistics
+        const industryStats = processIndustryStats(industryData);
+        
         // Sort based on type (fame = highest ratings first, shame = lowest ratings first)
-        const sortedIndustryData = [...industryData].sort((a, b) => {
+        const sortedIndustryData = [...industryStats].sort((a, b) => {
           if (type === 'fame') {
             return b.average_rating - a.average_rating;
           } else {
@@ -236,13 +250,25 @@ export function WallOfCompanies({
       }
       
       // Fetch location statistics
-      const { data: locationData, error: locationError } = await supabase.rpc('get_location_statistics');
+      const { data: locationData, error: locationError } = await supabase
+        .from('companies')
+        .select(`
+          location,
+          reviews!inner (
+            rating
+          )
+        `)
+        .not('location', 'is', null);
       
       if (locationError) {
         console.error('Error fetching location statistics:', locationError);
+        setLocationStats([]);
       } else {
+        // Process the data to get statistics
+        const locationStats = processLocationStats(locationData);
+        
         // Sort based on type
-        const sortedLocationData = [...locationData].sort((a, b) => {
+        const sortedLocationData = [...locationStats].sort((a, b) => {
           if (type === 'fame') {
             return b.average_rating - a.average_rating;
           } else {
@@ -254,13 +280,25 @@ export function WallOfCompanies({
       }
       
       // Fetch size statistics
-      const { data: sizeData, error: sizeError } = await supabase.rpc('get_size_statistics');
+      const { data: sizeData, error: sizeError } = await supabase
+        .from('companies')
+        .select(`
+          size,
+          reviews!inner (
+            rating
+          )
+        `)
+        .not('size', 'is', null);
       
       if (sizeError) {
         console.error('Error fetching size statistics:', sizeError);
+        setSizeStats([]);
       } else {
+        // Process the data to get statistics
+        const sizeStats = processSizeStats(sizeData);
+        
         // Sort based on type
-        const sortedSizeData = [...sizeData].sort((a, b) => {
+        const sortedSizeData = [...sizeStats].sort((a, b) => {
           if (type === 'fame') {
             return b.average_rating - a.average_rating;
           } else {
@@ -272,9 +310,139 @@ export function WallOfCompanies({
       }
     } catch (err) {
       console.error('Error fetching statistics:', err);
+      // Set empty arrays for all statistics
+      setIndustryStats([]);
+      setLocationStats([]);
+      setSizeStats([]);
     }
   };
   
+  // Helper function to process industry statistics
+  const processIndustryStats = (data: any[]) => {
+    const industryMap = new Map<string, { 
+      ratings: number[], 
+      companies: Set<number>,
+      reviews: number
+    }>();
+    
+    // Group by industry
+    data.forEach(item => {
+      const industry = item.industry;
+      if (!industryMap.has(industry)) {
+        industryMap.set(industry, { 
+          ratings: [], 
+          companies: new Set(),
+          reviews: 0
+        });
+      }
+      
+      const stats = industryMap.get(industry)!;
+      stats.companies.add(item.id);
+      item.reviews.forEach((review: any) => {
+        stats.ratings.push(review.rating);
+        stats.reviews++;
+      });
+    });
+    
+    // Calculate statistics
+    return Array.from(industryMap.entries()).map(([industry, stats]) => {
+      const average_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+        
+      return {
+        industry,
+        average_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
+  };
+  
+  // Helper function to process location statistics
+  const processLocationStats = (data: any[]) => {
+    const locationMap = new Map<string, { 
+      ratings: number[], 
+      companies: Set<number>,
+      reviews: number
+    }>();
+    
+    // Group by location
+    data.forEach(item => {
+      const location = item.location;
+      if (!locationMap.has(location)) {
+        locationMap.set(location, { 
+          ratings: [], 
+          companies: new Set(),
+          reviews: 0
+        });
+      }
+      
+      const stats = locationMap.get(location)!;
+      stats.companies.add(item.id);
+      item.reviews.forEach((review: any) => {
+        stats.ratings.push(review.rating);
+        stats.reviews++;
+      });
+    });
+    
+    // Calculate statistics
+    return Array.from(locationMap.entries()).map(([location, stats]) => {
+      const average_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+        
+      return {
+        location,
+        average_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
+  };
+  
+  // Helper function to process size statistics
+  const processSizeStats = (data: any[]) => {
+    const sizeMap = new Map<string, { 
+      ratings: number[], 
+      companies: Set<number>,
+      reviews: number
+    }>();
+    
+    // Group by size
+    data.forEach(item => {
+      const size = item.size;
+      if (!sizeMap.has(size)) {
+        sizeMap.set(size, { 
+          ratings: [], 
+          companies: new Set(),
+          reviews: 0
+        });
+      }
+      
+      const stats = sizeMap.get(size)!;
+      stats.companies.add(item.id);
+      item.reviews.forEach((review: any) => {
+        stats.ratings.push(review.rating);
+        stats.reviews++;
+      });
+    });
+    
+    // Calculate statistics
+    return Array.from(sizeMap.entries()).map(([size, stats]) => {
+      const average_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+        
+      return {
+        size,
+        average_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
+  };
+
   useEffect(() => {
     // Extract unique locations and sizes from companies
     if (companies.length > 0) {
@@ -465,14 +633,13 @@ export function WallOfCompanies({
             {styles.icon}
             <h1 className={`text-4xl font-bold ${styles.textColor}`}>{title}</h1>
           </div>
-          <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg p-8 text-center">
-            <h2 className="text-xl font-semibold mb-2">No companies found</h2>
-            <p className="text-gray-600 mb-4">
-              There are not enough companies with reviews to display on the {title}.
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-md">
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              No companies found with sufficient reviews to display on the {type === 'fame' ? 'Wall of Fame' : 'Wall of Shame'}.
             </p>
-            <Button asChild>
-              <a href="/companies">Browse All Companies</a>
-            </Button>
+            <p className="mt-4 text-gray-500 dark:text-gray-400">
+              Companies need at least one review to be eligible.
+            </p>
           </div>
         </div>
       </div>
@@ -486,212 +653,70 @@ export function WallOfCompanies({
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col mb-8"
+          className="flex items-center mb-8"
         >
-          <div className="flex items-center">
-            {styles.icon}
-            <h1 className={`text-4xl font-bold ${styles.textColor}`}>{title}</h1>
-          </div>
-          <p className="mt-2 text-gray-600 max-w-3xl">
-            {description}
-          </p>
+          {styles.icon}
+          <h1 className={`text-4xl font-bold ${styles.textColor}`}>{title}</h1>
         </motion.div>
         
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <Card className={`${styles.statsColor} border`}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Total Companies</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  {styles.statsIcon}
-                  <span className="text-3xl font-bold ml-2">
-                    {statsLoading ? <Skeleton className="h-8 w-16" /> : stats.totalCompanies}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card className={`${styles.statsColor} border`}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Total Reviews</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  {styles.statsIcon}
-                  <span className="text-3xl font-bold ml-2">
-                    {statsLoading ? <Skeleton className="h-8 w-16" /> : stats.totalReviews}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <Card className={`${styles.statsColor} border`}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Average Rating</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  {styles.statsIcon}
-                  <span className="text-3xl font-bold ml-2">
-                    {statsLoading ? (
-                      <Skeleton className="h-8 w-16" />
-                    ) : (
-                      stats.averageRating.toFixed(1)
-                    )}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+        <p className="text-lg mb-6">{description}</p>
         
-        {/* Detailed Statistics Toggle */}
-        <div className="mb-8">
-          <Button 
-            onClick={() => setShowStats(!showStats)}
-            variant="outline"
-            className="mb-4"
-          >
-            {showStats ? 'Hide Detailed Statistics' : 'Show Detailed Statistics'}
-          </Button>
-          
-          {showStats && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Industry Statistics */}
-              {industryStats.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5" />
-                      {type === 'fame' ? 'Top Rated Industries' : 'Lowest Rated Industries'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {industryStats.map((stat) => (
-                      <div key={stat.industry} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{stat.industry}</span>
-                          <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
-                            {type === 'fame' ? (
-                              <TrendingUp className="ml-1 inline h-4 w-4" />
-                            ) : (
-                              <TrendingDown className="ml-1 inline h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={stat.average_rating * 20} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(stat.average_rating)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-              
-              {/* Location Statistics */}
-              {locationStats.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      {type === 'fame' ? 'Top Rated Locations' : 'Lowest Rated Locations'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {locationStats.map((stat) => (
-                      <div key={stat.location} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{stat.location}</span>
-                          <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
-                            {type === 'fame' ? (
-                              <TrendingUp className="ml-1 inline h-4 w-4" />
-                            ) : (
-                              <TrendingDown className="ml-1 inline h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={stat.average_rating * 20} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(stat.average_rating)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-              
-              {/* Size Statistics */}
-              {sizeStats.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      {type === 'fame' ? 'Top Rated by Company Size' : 'Lowest Rated by Company Size'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {sizeStats.map((stat) => (
-                      <div key={stat.size} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{stat.size}</span>
-                          <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
-                            {type === 'fame' ? (
-                              <TrendingUp className="ml-1 inline h-4 w-4" />
-                            ) : (
-                              <TrendingDown className="ml-1 inline h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={stat.average_rating * 20} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(stat.average_rating)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Statistics Cards */}
+        {!statsLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className={`${styles.statsColor} border`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium flex items-center">
+                  <Building2 className="h-5 w-5 mr-2" />
+                  Companies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.totalCompanies}</div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {type === 'fame' ? 'Top-rated' : 'Low-rated'} companies
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className={`${styles.statsColor} border`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  Reviews
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.totalReviews}</div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Total employee reviews
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className={`${styles.statsColor} border`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium flex items-center">
+                  {styles.statsIcon}
+                  <span className="ml-2">Average Rating</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  <span className={getRatingColor(stats.averageRating)}>
+                    {stats.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-sm text-gray-500">/5</span>
+                </div>
+                <Progress 
+                  value={stats.averageRating * 20} 
+                  className="h-2 mt-2"
+                  indicatorClassName={getProgressColor(stats.averageRating)}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
         
         {/* Filters */}
         <div className="mb-8">
@@ -700,57 +725,72 @@ export function WallOfCompanies({
             locations={locations}
             sizes={sizes}
             onFiltersChange={handleFiltersChange}
-            initialFilters={{
-              search: searchTerm,
-              industry: selectedIndustry,
-              sortBy: sortBy,
-            }}
+            type={type}
           />
         </div>
         
         {/* Industry Tabs */}
         {industries.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-            className="mb-8"
-          >
-            <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="mb-4 flex flex-wrap">
-                <TabsTrigger value="all">All Industries</TabsTrigger>
-                {industries.map(industry => (
-                  <TabsTrigger key={industry} value={industry}>
-                    {industry}
-                  </TabsTrigger>
+          <Tabs defaultValue="all" className="mb-8" onValueChange={handleTabChange}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">All Industries</TabsTrigger>
+              {industries.map(industry => (
+                <TabsTrigger key={industry} value={industry}>
+                  {industry}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-0">
+              <div className="space-y-6">
+                {filteredCompanies.map((company, index) => (
+                  <EnhancedCompanyCard
+                    key={company.id}
+                    company={company}
+                    news={companyNews[company.name] || []}
+                    type={type}
+                    rank={index < 3 ? index + 1 : undefined}
+                  />
                 ))}
-              </TabsList>
-            </Tabs>
-          </motion.div>
+                
+                {filteredCompanies.length === 0 && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No companies match your filter criteria.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            {industries.map(industry => (
+              <TabsContent key={industry} value={industry} className="mt-0">
+                <div className="space-y-6">
+                  {filteredCompanies
+                    .filter(company => company.industry === industry)
+                    .map((company, index) => (
+                      <EnhancedCompanyCard
+                        key={company.id}
+                        company={company}
+                        news={companyNews[company.name] || []}
+                        type={type}
+                        rank={index < 3 ? index + 1 : undefined}
+                      />
+                    ))}
+                    
+                  {filteredCompanies.filter(company => company.industry === industry).length === 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
+                      <p className="text-gray-500 dark:text-gray-400">
+                        No companies in this industry match your filter criteria.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         )}
-        
-        {/* Company Cards */}
-        <div className="space-y-8">
-          {filteredCompanies.length > 0 ? (
-            filteredCompanies.map((company, index) => (
-              <EnhancedCompanyCard
-                key={company.id}
-                company={company}
-                rank={index + 1}
-                news={companyNews[company.name] || []}
-                isWallOfFame={type === 'fame'}
-              />
-            ))
-          ) : (
-            <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg p-8 text-center">
-              <h2 className="text-xl font-semibold mb-2">No matching companies</h2>
-              <p className="text-gray-600">
-                Try adjusting your filters to see more results.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
-} 
+}

@@ -32,9 +32,9 @@ function AdminCompaniesPage() {
   const [totalCount, setTotalCount] = useState(0)
   
   // Filters
-  const [verificationFilter, setVerificationFilter] = useState(searchParams.get('verification') || 'all')
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10))
+  const [verificationFilter, setVerificationFilter] = useState(searchParams?.get('verification') || 'all')
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || '')
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1', 10))
   const itemsPerPage = 10
 
   // Fetch companies with filters and pagination

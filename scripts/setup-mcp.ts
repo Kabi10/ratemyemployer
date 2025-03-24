@@ -80,81 +80,105 @@ async function generateSchema(supabaseDir: string) {
   console.log(chalk.blue('🔍 Generating database schema...'));
   
   try {
-    // Get table definitions
-    const { data: tables, error: tablesError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .not('table_name', 'like', 'pg_%')
-      .not('table_name', 'like', '_prisma_%');
-    
-    if (tablesError) {
-      console.error(chalk.red('❌ Error fetching tables:'), tablesError);
-      return;
-    }
-    
-    if (!tables || tables.length === 0) {
-      console.error(chalk.red('❌ No tables found in the database'));
-      return;
-    }
-    
-    console.log(chalk.green(`✅ Found ${tables.length} tables`));
-    
-    // Create schema object
-    const schema: Record<string, any> = {};
-    
-    // Process each table
-    for (const table of tables) {
-      const tableName = table.table_name;
-      
-      // Get columns for this table
-      const { data: columns, error: columnsError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name, data_type, is_nullable, column_default')
-        .eq('table_schema', 'public')
-        .eq('table_name', tableName);
-      
-      if (columnsError) {
-        console.error(chalk.red(`❌ Error fetching columns for table ${tableName}:`), columnsError);
-        continue;
-      }
-      
-      if (!columns || columns.length === 0) {
-        console.warn(chalk.yellow(`⚠️ No columns found for table ${tableName}`));
-        continue;
-      }
-      
-      // Create table schema
-      schema[tableName] = {
-        name: tableName,
-        description: `${tableName} table in the RateMyEmployer database`,
-        fields: {}
-      };
-      
-      // Add columns to table schema
-      columns.forEach(column => {
-        schema[tableName].fields[column.column_name] = {
-          type: mapDataType(column.data_type),
-          nullable: column.is_nullable === 'YES',
-          description: `${column.column_name} field in the ${tableName} table`
+    // Define the schema structure
+    const schema: {
+      tables: {
+        [key: string]: {
+          description: string;
+          fields: {
+            [key: string]: {
+              description: string;
+              type: string;
+              nullable: boolean;
+            };
+          };
         };
-        
-        if (column.column_default) {
-          schema[tableName].fields[column.column_name].default = column.column_default;
+      };
+    } = {
+      tables: {}
+    };
+
+    // Define known tables and their fields
+    const tableDefinitions = {
+      companies: {
+        description: 'Companies that can be reviewed on the platform',
+        fields: {
+          id: { type: 'number', description: 'Unique identifier for the company', nullable: false },
+          name: { type: 'string', description: 'Name of the company', nullable: false },
+          industry: { type: 'string', description: 'Industry sector the company operates in', nullable: true },
+          location: { type: 'string', description: 'Primary location of the company', nullable: true },
+          website: { type: 'string', description: 'Official website URL', nullable: true },
+          size: { type: 'string', description: 'Company size category', nullable: true },
+          average_rating: { type: 'number', description: 'Average rating from all reviews', nullable: true },
+          total_reviews: { type: 'number', description: 'Total number of reviews', nullable: true },
+          created_at: { type: 'string', description: 'When the company was added', nullable: true },
+          updated_at: { type: 'string', description: 'When the company was last updated', nullable: true }
         }
-      });
-      
-      console.log(chalk.green(`✅ Processed schema for table: ${tableName} (${columns.length} columns)`));
-    }
-    
+      },
+      reviews: {
+        description: 'User reviews of companies',
+        fields: {
+          id: { type: 'number', description: 'Unique identifier for the review', nullable: false },
+          company_id: { type: 'number', description: 'Reference to the reviewed company', nullable: false },
+          user_id: { type: 'string', description: 'User who wrote the review', nullable: false },
+          title: { type: 'string', description: 'Review title', nullable: false },
+          rating: { type: 'number', description: 'Rating from 1-5', nullable: false },
+          pros: { type: 'string', description: 'Positive aspects mentioned', nullable: true },
+          cons: { type: 'string', description: 'Negative aspects mentioned', nullable: true },
+          status: { type: 'string', description: 'Review status (pending/approved/rejected)', nullable: false },
+          created_at: { type: 'string', description: 'When the review was created', nullable: false }
+        }
+      },
+      users: {
+        description: 'User accounts',
+        fields: {
+          id: { type: 'string', description: 'Unique identifier for the user', nullable: false },
+          email: { type: 'string', description: 'User email address', nullable: false },
+          created_at: { type: 'string', description: 'When the user account was created', nullable: false }
+        }
+      },
+      moderation_history: {
+        description: 'History of moderation actions',
+        fields: {
+          id: { type: 'number', description: 'Unique identifier for the moderation action', nullable: false },
+          entity_type: { type: 'string', description: 'Type of entity being moderated (review/company)', nullable: false },
+          entity_id: { type: 'number', description: 'ID of the moderated entity', nullable: false },
+          action: { type: 'string', description: 'Type of moderation action taken', nullable: false },
+          moderator_id: { type: 'string', description: 'ID of the moderator', nullable: false },
+          created_at: { type: 'string', description: 'When the action was taken', nullable: false }
+        }
+      },
+      company_news: {
+        description: 'News articles related to companies',
+        fields: {
+          id: { type: 'number', description: 'Unique identifier for the news article', nullable: false },
+          company_id: { type: 'number', description: 'Reference to the company', nullable: false },
+          title: { type: 'string', description: 'Article title', nullable: false },
+          url: { type: 'string', description: 'Link to the article', nullable: false },
+          source: { type: 'string', description: 'News source name', nullable: false },
+          published_at: { type: 'string', description: 'When the article was published', nullable: false },
+          created_at: { type: 'string', description: 'When the article was added', nullable: false }
+        }
+      }
+    };
+
+    // Add tables to schema
+    Object.entries(tableDefinitions).forEach(([tableName, definition]) => {
+      schema.tables[tableName] = {
+        description: definition.description,
+        fields: definition.fields
+      };
+    });
+
     // Write schema to file
-    const schemaPath = path.resolve(supabaseDir, 'schema.json');
+    const schemaPath = path.join(supabaseDir, 'schema.json');
     fs.writeFileSync(schemaPath, JSON.stringify(schema, null, 2));
-    console.log(chalk.green(`✅ Created schema file: ${schemaPath}`));
-    
+    console.log(chalk.green(`✅ Generated schema file: ${schemaPath}`));
+
     return schema;
   } catch (error) {
     console.error(chalk.red('❌ Error generating schema:'), error);
+    throw error;
   }
 }
 

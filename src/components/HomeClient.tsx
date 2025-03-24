@@ -125,7 +125,7 @@ export function HomeClient() {
     try {
       const cleanData = {
         name: data.name.trim(),
-        website: data.website && data.website.length > 0 ? data.website : null,
+        website: data.website && data.website.trim().length > 0 ? data.website.trim() : null,
         industry: data.industry as Industry,
         location: data.location,
       };
@@ -161,9 +161,9 @@ export function HomeClient() {
     }
   }, [showAddCompany, searchQuery, setValue]);
 
-  const filteredCompanies = searchResults.filter((company: Company) => 
-    company.industry && INDUSTRIES.includes(company.industry as typeof INDUSTRIES[number])
-  );
+  // Remove the filtering that's causing companies to be hidden
+  // Use the searchResults directly instead of filtering them
+  const filteredCompanies = searchResults;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

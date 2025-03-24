@@ -28,7 +28,7 @@ export const INDUSTRIES = [
 
 // Types
 export type Industry = typeof INDUSTRIES[number];
-export type Role = 'user' | 'admin' | 'moderator';
+export type Role = 'user' | 'moderator' | 'admin';
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise' | 'Startup';
 
 // Database-derived types
@@ -75,3 +75,15 @@ export const EMPLOYMENT_STATUSES = [
 export const isValidEmploymentStatus = (status: string): status is EmploymentStatus => {
   return EMPLOYMENT_STATUSES.includes(status as EmploymentStatus);
 };
+
+export interface RoleChange {
+  id: string;
+  user_id: string;
+  changed_by: string;
+  user_email: string;
+  changed_by_email: string;
+  previous_role: Role;
+  new_role: Role;
+  reason: string | null;
+  created_at: string;
+}

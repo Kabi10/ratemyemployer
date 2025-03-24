@@ -1,21 +1,23 @@
 import '@testing-library/jest-dom';
 
-import { vi, beforeEach } from 'vitest';
-
+import { vi } from 'vitest';
 
 // Suppress React warnings
 const originalError = console.error;
-console.error = (...args) => {
-  if (
-    typeof args[0] === 'string' && 
-    (args[0].includes('React.createContext') || 
-     args[0].includes('Invalid hook call') ||
-     args[0].includes('node_modules'))
-  ) {
-    return;
-  }
-  originalError.call(console, ...args);
-};
+beforeAll(() => {
+  console.error = (...args) => {
+    if (
+      /Warning: ReactDOM.render is no longer supported in React 18/.test(args[0])
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -45,8 +47,3 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
-
-// Clear mocks before each test
-beforeEach(() => {
-  vi.clearAllMocks();
-});

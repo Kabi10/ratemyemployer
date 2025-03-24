@@ -63,11 +63,11 @@ export default function EditReview() {
     );
   }
 
-  if (error || !review) {
+  if (error || !review || !review.company_id) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700 dark:text-red-200">{error || 'Review not found'}</p>
+          <p className="text-red-700 dark:text-red-200">{error || 'Review not found or invalid company'}</p>
         </div>
       </div>
     );
@@ -82,16 +82,14 @@ export default function EditReview() {
     cons: review.cons || '',
     position: review.position || '',
     employment_status: review.employment_status as 'Full-time' | 'Part-time' | 'Contract' | 'Intern' || 'Full-time',
-    is_current_employee: review.is_current_employee ?? false,
-    reviewer_name: review.reviewer_name || undefined,
-    reviewer_email: review.reviewer_email || undefined
+    is_current_employee: review.is_current_employee ?? false
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit Review</h1>
       <ReviewForm
-        companyId={review.company_id}
+        companyId={review.company_id!}
         initialData={formData}
         onSuccess={() => {
           router.push('/account');

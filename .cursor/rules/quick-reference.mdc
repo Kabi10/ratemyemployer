@@ -20,6 +20,9 @@ list_dir "directory path"
 # Run MCP server
 npm run mcp:start
 
+# Verify database configuration
+npm run verify:database
+
 # Access documentation
 npm run docs
 npm run docs:mcp
@@ -30,6 +33,7 @@ npm run docs:mcp
 - **Authentication**: `src/middleware.ts`, `src/components/Auth.tsx`
 - **Core Components**: `src/components/ReviewForm.tsx`, `src/components/CompanyForm.tsx`
 - **MCP Integration**: `scripts/setup-mcp.ts`, `scripts/mcp-stored-procedures.sql`
+- **Database Verification**: `scripts/verify-database.ts`, `scripts/verify-supabase-data.ts`
 
 ## Getting Started
 1. **Setup Environment**:

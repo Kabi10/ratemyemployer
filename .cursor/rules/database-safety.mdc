@@ -1,6 +1,10 @@
 ---
+description: 
+globs: 
+---
+---
 description: Critical database safety protocols
-globs: src/lib/database.ts,src/lib/supabaseClient.ts,src/lib/supabaseServer.ts,scripts/mcp-*.ts,scripts/setup-*.ts
+globs: src/lib/database.ts,src/lib/supabaseClient.ts,src/lib/supabaseServer.ts,scripts/mcp-*.ts,scripts/setup-*.ts,scripts/verify-*.ts
 alwaysApply: true
 ---
 
@@ -22,6 +26,8 @@ Before making ANY changes to the database, follow these protocols:
 
 7. **Rollback Plan**: For every database change, have a detailed rollback plan in place, ready to be executed if anything goes wrong.
 
+8. **Verify Changes**: After making any database changes, run the verification script to ensure everything is properly configured.
+
 ## Supabase Implementation Patterns
 - Use `supabaseServer.ts` for server-side data fetching
 - Use `supabaseClient.ts` for client-side operations
@@ -30,4 +36,15 @@ Before making ANY changes to the database, follow these protocols:
 - Follow the pattern in database.ts for consistent data access
 - Use RLS policies for secure data access
 - Implement proper error handling with DatabaseError type
-- Use transactions for operations that modify multiple tables 
+- Use transactions for operations that modify multiple tables
+
+## Database Verification
+- Run `npm run verify:database` to check database configuration
+- The verification script checks:
+  - Critical tables: companies, reviews, moderation_history
+  - Critical stored procedures: get_industry_statistics, get_location_statistics, get_size_statistics
+  - Enums: review_status, verification_status
+  - Optional components like triggers (when permissions allow)
+- Run this verification after any schema changes or migrations
+- The script handles type mismatches between database column types (fixed-length character varying) and TypeScript types (text)
+- Check the code at `scripts/verify-database.ts` for implementation details 

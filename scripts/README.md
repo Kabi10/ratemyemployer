@@ -14,11 +14,17 @@ This directory contains various utility scripts for the RateMyEmployer project.
 | `mcp-database-fixes.ts` | Fixes database schema and stored procedures for MCP |
 | `mcp-database-fixes.sql` | SQL script for fixing database schema (for direct execution in Supabase SQL Editor) |
 
+## Database Verification Scripts
+
+| Script | Description |
+|--------|-------------|
+| `verify-database.ts` | Verifies database schema, stored procedures, and triggers |
+| `verify-supabase-data.ts` | Verifies data integrity in Supabase |
+
 ## Form Verification Scripts
 
 | Script | Description |
 |--------|-------------|
-| `verify-supabase-data.ts` | Verifies data integrity in Supabase |
 | `test-form-validation.ts` | Tests form validation logic |
 | `test-form-submissions.ts` | Tests form submission process |
 | `monitor-form-submissions.ts` | Monitors form submissions in real-time |
@@ -43,6 +49,9 @@ npm run mcp:setup
 
 # Run the MCP database fixes script
 npm run mcp:fix-database
+
+# Run the database verification script
+npm run verify:database
 
 # Run the documentation helper
 npm run docs

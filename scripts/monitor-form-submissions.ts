@@ -187,26 +187,27 @@ async function fetchRecentSubmissions() {
 async function generateSummaryReport() {
   console.log('📊 Generating summary report...');
   
-  // Get counts for today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const { data: todayCompanies, error: todayCompaniesError } = await supabase
+  // Get submission counts for today
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayISOString = todayStart.toISOString();
+
+  const { data: todayCompanies, error: todayCompaniesError, count: todayCompaniesCount } = await supabase
     .from('companies')
     .select('id', { count: 'exact', head: true })
-    .gte('created_at', today.toISOString());
+    .gte('created_at', todayISOString);
   
-  const { data: todayReviews, error: todayReviewsError } = await supabase
+  const { data: todayReviews, error: todayReviewsError, count: todayReviewsCount } = await supabase
     .from('reviews')
     .select('id', { count: 'exact', head: true })
-    .gte('created_at', today.toISOString());
+    .gte('created_at', todayISOString);
   
-  // Get counts for all time
-  const { data: totalCompanies, error: totalCompaniesError } = await supabase
+  // Get total counts
+  const { data: totalCompanies, error: totalCompaniesError, count: totalCompaniesCount } = await supabase
     .from('companies')
     .select('id', { count: 'exact', head: true });
   
-  const { data: totalReviews, error: totalReviewsError } = await supabase
+  const { data: totalReviews, error: totalReviewsError, count: totalReviewsCount } = await supabase
     .from('reviews')
     .select('id', { count: 'exact', head: true });
   
@@ -214,12 +215,12 @@ async function generateSummaryReport() {
   const report = {
     timestamp: new Date().toISOString(),
     today: {
-      companies: todayCompanies?.count || 0,
-      reviews: todayReviews?.count || 0,
+      companies: todayCompaniesCount || 0,
+      reviews: todayReviewsCount || 0,
     },
     total: {
-      companies: totalCompanies?.count || 0,
-      reviews: totalReviews?.count || 0,
+      companies: totalCompaniesCount || 0,
+      reviews: totalReviewsCount || 0,
     },
     errors: {
       todayCompanies: todayCompaniesError ? todayCompaniesError.message : null,

@@ -68,19 +68,20 @@ export type UserProfile = MockUserProfile;
 export type ErrorLog = MockErrorLog;
 
 // Insert types
-export type CompanyInsert = Omit<Company, 'id' | 'created_at' | 'updated_at'>;
-export type ReviewInsert = Omit<Review, 'id' | 'created_at' | 'updated_at'>;
+export type CompanyInsert = Database['public']['Tables']['companies']['Insert'];
+export type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
 export type UserProfileInsert = Omit<MockUserProfile, 'id' | 'created_at' | 'updated_at'>;
 export type ErrorLogInsert = Omit<MockErrorLog, 'id' | 'created_at'>;
 
 // Update types
-export type CompanyUpdate = Partial<CompanyInsert>;
-export type ReviewUpdate = Partial<ReviewInsert>;
+export type CompanyUpdate = Database['public']['Tables']['companies']['Update'];
+export type ReviewUpdate = Database['public']['Tables']['reviews']['Update'];
 export type UserProfileUpdate = Partial<Omit<MockUserProfile, 'id' | 'created_at' | 'updated_at'>>;
 
 // Enum types
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
-export type RateLimitType = 'ip' | 'user';
+export type VerificationStatus = 'pending' | 'verified' | 'rejected';
+export type RateLimitType = 'review' | 'company';
 export type EmploymentStatus = 'Full-time' | 'Part-time' | 'Contract' | 'Intern';
 export type CompanySize = 'Small' | 'Medium' | 'Large' | 'Enterprise' | 'Startup';
 
@@ -91,13 +92,14 @@ export type UserId = UserProfile['id'];
 
 // Extended types with relationships
 export type ReviewWithCompany = Review & {
-  company: Company;
+  company?: Company;
 };
 
 export type CompanyWithReviews = Company & {
-  reviews: Review[];
-  average_rating: number;
-  total_reviews: number;
+  reviews?: Review[];
+  average_rating?: number;
+  total_reviews?: number;
+  recommendation_rate?: number;
 };
 
 export type ReviewWithLikes = Review & {
@@ -114,10 +116,11 @@ export type ReviewLike = {
 };
 
 // Error handling types
-export interface DatabaseError {
+export type DatabaseError = {
+  code: string;
   message: string;
-  details?: unknown;
-}
+  details?: string;
+};
 
 export interface DatabaseResult<T> {
   data: T | null;
@@ -128,25 +131,24 @@ export interface DatabaseResult<T> {
 export interface GetCompaniesOptions {
   industry?: string;
   location?: string;
-  search?: string;
-  orderBy?: keyof Company;
-  orderDirection?: 'asc' | 'desc';
-  page?: number;
+  size?: string;
+  verificationStatus?: VerificationStatus;
+  minRating?: number;
+  maxRating?: number;
   limit?: number;
-  withStats?: boolean;
-  withReviews?: boolean;
+  offset?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
 }
 
 export interface GetReviewsOptions {
-  status?: string;
-  orderBy?: keyof Review;
-  orderDirection?: 'asc' | 'desc';
-  page?: number;
-  limit?: number;
-  companyId?: number | string;
+  companyId?: number;
+  status?: ReviewStatus;
   userId?: string;
-  withCompany?: boolean;
-  withLikes?: boolean;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
 }
 
 // Helper types for Supabase
@@ -155,24 +157,15 @@ export type SupabaseQueryResult<T> = {
   error: PostgrestError | null;
 };
 
-export type DatabaseOperation = 
-  | 'SELECT' 
-  | 'INSERT'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'AUTH'
-  | 'RPC'
+export type DatabaseOperation = 'insert' | 'update' | 'delete' | 'select';
+export type TableName = 'companies' | 'reviews' | 'moderation_history';
 
-export type TableName = 'companies' | 'reviews' | 'user_profiles' | 'error_logs' | 'review_likes';
-
-export type ErrorLogDetails = {
+export interface ErrorLogDetails {
   operation: DatabaseOperation;
   table: TableName;
-  error: string;
-  details?: Record<string, unknown>;
-  user_id?: string;
-  created_at?: string;
-};
+  error: DatabaseError;
+  data?: any;
+}
 
 // Utility types
 export type WithTimestamps = {
@@ -205,4 +198,48 @@ export type JoinedCompany = Company & {
   user_reviewed?: boolean;
 };
 
-export type DatabaseReview = Review; 
+export type DatabaseReview = Review;
+
+export type ModerationHistory = Database['public']['Tables']['moderation_history']['Row'];
+export type ModerationHistoryInsert = Database['public']['Tables']['moderation_history']['Insert'];
+
+export interface ModerationHistoryWithDetails extends ModerationHistory {
+  moderator?: {
+    email: string;
+    role: string;
+  };
+  entity?: Review | Company;
+}
+
+export type Tables = Database['public']['Tables'];
+export type Enums = Database['public']['Enums'];
+
+export type IndustryStatistics = {
+  industry: string | null;
+  average_rating: number;
+  company_count: number;
+  review_count: number;
+};
+
+export type LocationStatistics = {
+  location: string | null;
+  average_rating: number;
+  company_count: number;
+  review_count: number;
+};
+
+export type SizeStatistics = {
+  size: string | null;
+  average_rating: number;
+  company_count: number;
+  review_count: number;
+};
+
+export type TriggerStatus = {
+  trigger_name: string;
+  trigger_table: string;
+  trigger_event: string;
+  function_name: string;
+  function_status: string;
+  error_message: string;
+}; 

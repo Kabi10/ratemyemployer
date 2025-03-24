@@ -71,6 +71,9 @@ npm run start
 # Run linting
 npm run lint
 
+# Verify database schema and procedures
+npm run verify:database
+
 # MCP related commands
 npm run mcp:setup        # Set up MCP for the first time
 npm run mcp:start        # Start the MCP server

@@ -15,7 +15,11 @@ import {
   TableName,
   ErrorLogDetails,
   GetReviewsOptions,
-  GetCompaniesOptions
+  GetCompaniesOptions,
+  ModerationHistory,
+  ModerationHistoryInsert,
+  ReviewWithCompany,
+  ModerationHistoryWithDetails
 } from '@/types/database';
 
 // Response types
@@ -37,12 +41,59 @@ function ensureNumericId(id: string | number): number {
   return typeof id === 'string' ? parseInt(id, 10) : id;
 }
 
-export const getCompanies = async () => {
-  const { data, error } = await supabase
-    .from('companies')
-    .select('*');
-  return { data, error };
-};
+export async function getCompanies(options: GetCompaniesOptions = {}): Promise<DatabaseResult<Company[]>> {
+  try {
+    let query = supabase
+      .from('companies')
+      .select('*');
+
+    if (options.industry) {
+      query = query.eq('industry', options.industry);
+    }
+    if (options.location) {
+      query = query.eq('location', options.location);
+    }
+    if (options.size) {
+      query = query.eq('size', options.size);
+    }
+    if (options.verificationStatus) {
+      query = query.eq('verification_status', options.verificationStatus);
+    }
+    if (options.minRating) {
+      query = query.gte('average_rating', options.minRating);
+    }
+    if (options.maxRating) {
+      query = query.lte('average_rating', options.maxRating);
+    }
+
+    if (options.orderBy) {
+      query = query.order(options.orderBy, {
+        ascending: options.orderDirection === 'asc'
+      });
+    }
+
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+    if (options.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching companies',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
 
 export async function getCompany(id: number) {
   try {
@@ -62,12 +113,39 @@ export async function getCompany(id: number) {
   }
 }
 
+export interface GetReviewsOptions {
+  companyId?: number | string;
+  status?: ReviewStatus;
+  userId?: string;
+  page?: number;
+  limit?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+  withCompany?: boolean;
+  withLikes?: boolean;
+  // Enhanced filtering options
+  minRating?: number;
+  employmentStatus?: string;
+  isCurrentEmployee?: boolean;
+  verified?: boolean;
+  fromDate?: string;
+  sortBy?: string;
+}
+
 export async function getReviews(options?: GetReviewsOptions): Promise<DatabaseResult<(Review & { company: Company })[]>> {
   try {
+    let select = '*, company:companies(*)';
+    
+    // Add optional related data
+    if (options?.withLikes) {
+      select += ', likes:review_likes(*)';
+    }
+    
     const query = supabase
       .from('reviews')
-      .select('*, company:companies(*)');
+      .select(select, { count: 'exact' });
 
+    // Apply filters
     if (options?.companyId) {
       query.eq('company_id', typeof options.companyId === 'string' ? parseInt(options.companyId, 10) : options.companyId);
     }
@@ -76,12 +154,58 @@ export async function getReviews(options?: GetReviewsOptions): Promise<DatabaseR
       query.eq('status', options.status);
     }
 
-    if (options?.orderBy) {
+    if (options?.userId) {
+      query.eq('reviewer_id', options.userId);
+    }
+
+    // Enhanced filtering options
+    if (options?.minRating && options.minRating > 0) {
+      query.gte('rating', options.minRating);
+    }
+
+    if (options?.employmentStatus && options.employmentStatus !== 'all') {
+      query.eq('employment_status', options.employmentStatus);
+    }
+
+    if (options?.isCurrentEmployee !== undefined) {
+      query.eq('is_current_employee', options.isCurrentEmployee);
+    }
+
+    if (options?.verified) {
+      // If we want to show verified reviews only, filter by reviewers with verified status
+      // This would require a join, but for now we can use a simplified approach
+      // In a real implementation, you would join with user profiles
+      query.eq('verified', true);
+    }
+
+    if (options?.fromDate) {
+      query.gte('created_at', options.fromDate);
+    }
+
+    // Apply sorting
+    if (options?.sortBy) {
+      // Map front-end sort options to database fields
+      const sortMapping: Record<string, { field: string, ascending: boolean }> = {
+        'newest': { field: 'created_at', ascending: false },
+        'oldest': { field: 'created_at', ascending: true },
+        'highest': { field: 'rating', ascending: false },
+        'lowest': { field: 'rating', ascending: true },
+        'most_helpful': { field: 'helpful_count', ascending: false }
+      };
+
+      const sort = sortMapping[options.sortBy];
+      if (sort) {
+        query.order(sort.field, { ascending: sort.ascending });
+      }
+    } else if (options?.orderBy) {
+      // Legacy sorting option
       query.order(options.orderBy, { ascending: options.orderDirection === 'asc' });
     } else {
+      // Default sort
       query.order('created_at', { ascending: false });
     }
 
+    // Apply pagination
     if (options?.page && options?.limit) {
       const start = (options.page - 1) * options.limit;
       query.range(start, start + options.limit - 1);
@@ -89,15 +213,27 @@ export async function getReviews(options?: GetReviewsOptions): Promise<DatabaseR
       query.limit(options.limit);
     }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
-      return { data: null, error: handleDatabaseError(error, 'SELECT', 'reviews', { options }) };
+      return { 
+        data: null, 
+        error: handleDatabaseError(error, 'SELECT', 'reviews', { options }),
+        count: 0
+      };
     }
 
-    return { data: data as (Review & { company: Company })[], error: null };
+    return { 
+      data: data as (Review & { company: Company })[], 
+      error: null,
+      count: count || data.length
+    };
   } catch (error) {
-    return { data: null, error: handleDatabaseError(error, 'SELECT', 'reviews', { options }) };
+    return { 
+      data: null, 
+      error: handleDatabaseError(error, 'SELECT', 'reviews', { options }),
+      count: 0
+    };
   }
 }
 
@@ -428,3 +564,134 @@ export const dbLogError = async (details: ErrorLogDetails) => {
     console.error('Failed to log error:', err);
   }
 };
+
+// Moderation functions
+export async function getModerationHistory(
+  entityType: string,
+  entityId: number
+): Promise<DatabaseResult<ModerationHistory[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('moderation_history')
+      .select(`
+        *,
+        moderator:moderator_id(email, role)
+      `)
+      .eq('entity_type', entityType)
+      .eq('entity_id', entityId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching moderation history',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
+
+export async function createModerationHistory(
+  history: ModerationHistoryInsert
+): Promise<DatabaseResult<ModerationHistory>> {
+  try {
+    const { data, error } = await supabase
+      .from('moderation_history')
+      .insert(history)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error creating moderation history',
+        code: 'INSERT_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
+
+// Statistics functions
+export async function getCompanyStatistics(companyId: number): Promise<DatabaseResult<CompanyWithReviews>> {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select(`
+        *,
+        reviews:reviews(*)
+      `)
+      .eq('id', companyId)
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching company statistics',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
+
+export async function getIndustryStatistics() {
+  try {
+    const { data, error } = await supabase.rpc('get_industry_statistics');
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching industry statistics',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
+
+export async function getLocationStatistics() {
+  try {
+    const { data, error } = await supabase.rpc('get_location_statistics');
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching location statistics',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}
+
+export async function getSizeStatistics() {
+  try {
+    const { data, error } = await supabase.rpc('get_size_statistics');
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: {
+        message: 'Error fetching size statistics',
+        code: 'FETCH_ERROR',
+        details: error.message
+      }
+    };
+  }
+}

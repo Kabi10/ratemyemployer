@@ -80,7 +80,7 @@ async function getRecentReviewsForCompany(companyId: number) {
     console.log(chalk.gray(`      Pros: ${review.pros?.substring(0, 50)}...`));
     console.log(chalk.gray(`      Cons: ${review.cons?.substring(0, 50)}...`));
     console.log(chalk.gray(`      Position: ${review.position} | Status: ${review.employment_status}`));
-    console.log(chalk.gray(`      Date: ${new Date(review.created_at || '').toLocaleDateString()}`));
+    console.log(chalk.gray(`      Date: ${review.created_at ? new Date(review.created_at).toLocaleDateString() : 'Unknown date'}`));
   });
   
   return data;
@@ -91,7 +91,7 @@ async function getAverageRatingsByIndustry() {
   console.log(chalk.blue('\n📊 Calculating average ratings by industry...'));
   
   try {
-    const { data, error } = await supabase.rpc('get_average_ratings_by_industry');
+    const { data, error } = await supabase.rpc('get_industry_statistics');
     
     if (error) {
       console.error(chalk.red('❌ Error calculating average ratings by industry:'), error);
@@ -156,43 +156,35 @@ async function getCompaniesWithNoReviews() {
   console.log(chalk.blue('\n🔍 Finding companies with no reviews...'));
   
   try {
-    const { data, error } = await supabase.rpc('get_companies_with_no_reviews');
+    // Direct query instead of RPC since there's no specific RPC function for this
+    const { data, error } = await supabase
+      .from('companies')
+      .select('id, name, industry, location, created_at')
+      .eq('total_reviews', 0);
     
     if (error) {
       console.error(chalk.red('❌ Error finding companies with no reviews:'), error);
-      
-      // Fallback to direct query
-      console.log(chalk.yellow('⚠️ Falling back to direct query...'));
-      
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('companies')
-        .select('id, name, industry, location, created_at')
-        .eq('total_reviews', 0)
-        .order('created_at', { ascending: false });
-      
-      if (fallbackError) {
-        console.error(chalk.red('❌ Error with fallback query:'), fallbackError);
-        return;
-      }
-      
-      console.log(chalk.green(`✅ Found ${fallbackData?.length || 0} companies with no reviews:`));
-      fallbackData?.forEach((company, index) => {
-        console.log(chalk.blue(`   ${index + 1}. ${company.name} (${company.industry || 'Unknown industry'})`));
-        console.log(chalk.gray(`      Location: ${company.location} | Created: ${new Date(company.created_at || '').toLocaleDateString()}`));
-      });
-      
-      return fallbackData;
+      return null;
     }
     
-    console.log(chalk.green(`✅ Found ${data?.length || 0} companies with no reviews:`));
-    data?.forEach((company: any, index: number) => {
-      console.log(chalk.blue(`   ${index + 1}. ${company.name} (${company.industry || 'Unknown industry'})`));
-      console.log(chalk.gray(`      Location: ${company.location} | Created: ${new Date(company.created_at || '').toLocaleDateString()}`));
-    });
+    if (data && data.length > 0) {
+      console.log(chalk.green(`✅ Found ${data.length} companies with no reviews:`));
+      
+      // Format and display the results
+      data.forEach((company, index) => {
+        console.log(chalk.cyan(`  ${index + 1}. ${company.name}`));
+        console.log(`     Industry: ${company.industry || 'Unknown'}`);
+        console.log(`     Location: ${company.location || 'Unknown'}`);
+        console.log(`     Created: ${company.created_at ? new Date(company.created_at).toLocaleDateString() : 'Unknown date'}`);
+      });
+    } else {
+      console.log(chalk.yellow('⚠️ No companies found without reviews.'));
+    }
     
     return data;
   } catch (error) {
     console.error(chalk.red('❌ Unhandled error finding companies with no reviews:'), error);
+    return null;
   }
 }
 

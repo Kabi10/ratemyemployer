@@ -37,19 +37,43 @@ const testId = uuidv4().substring(0, 8);
 console.log(`🔑 Test ID: ${testId}`);
 
 // Test company data
-const testCompany = {
+interface TestCompany {
+  name: string;
+  industry: string;
+  location: string;
+  website: string;
+  logo_url: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const testCompany: TestCompany = {
   name: `Test Company ${testId}`,
   industry: 'Technology',
   location: 'Test Location',
   website: 'https://example.com',
   logo_url: 'https://example.com/logo.png',
-  created_by: null, // Will be set to test user ID
+  created_by: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
 
 // Test review data (will be populated after company is created)
-let testReview = {
+interface TestReview {
+  company_id: number | null;
+  rating: number;
+  title: string;
+  pros: string;
+  cons: string;
+  employment_status: string;
+  position: string;
+  created_at: string;
+  user_id: string | null;
+  status: string;
+}
+
+let testReview: TestReview = {
   company_id: null, // Will be set after company creation
   rating: 4,
   title: `Test Review ${testId}`,
@@ -328,12 +352,19 @@ async function cleanupTestData(companyId: number, reviewId: number, userId: stri
 }
 
 // Main function to run the tests
-async function runTests() {
+interface TestResult {
+  success: boolean;
+  testUser: { id: string } | null;
+  testCompanyData: { id: number } | null;
+  testReviewData: { id: number } | null;
+}
+
+async function runTests(): Promise<TestResult> {
   console.log('🚀 Starting form submission tests...');
   
-  let testUser;
-  let testCompanyData;
-  let testReviewData;
+  let testUser = null;
+  let testCompanyData = null;
+  let testReviewData = null;
   
   try {
     // Create test user
@@ -345,73 +376,24 @@ async function runTests() {
     // Create test review
     testReviewData = await createTestReview();
     
-    // Verify company data
+    // Verify data
     await verifyCompanyData(testCompanyData.id);
-    
-    // Verify review data
     await verifyReviewData(testReviewData.id);
-    
-    // Verify relationships
     await verifyRelationships(testCompanyData.id, testReviewData.id);
     
-    console.log('\n✅ All tests passed!');
-    
-    // Generate report
-    const report = {
-      timestamp: new Date().toISOString(),
-      testId,
-      user: {
-        id: testUser.id,
-        email: testUser.email,
-      },
-      company: {
-        id: testCompanyData.id,
-        name: testCompanyData.name,
-      },
-      review: {
-        id: testReviewData.id,
-        title: testReviewData.title,
-      },
-      results: {
-        userCreated: true,
-        companyCreated: true,
-        reviewCreated: true,
-        companyVerified: true,
-        reviewVerified: true,
-        relationshipsVerified: true,
-      },
+    return {
+      success: true,
+      testUser,
+      testCompanyData,
+      testReviewData
     };
-    
-    // Write report to file
-    const reportPath = path.resolve(process.cwd(), 'form-submission-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    console.log(`\n✅ Test report generated at ${reportPath}`);
-    
-    return { success: true, testUser, testCompanyData, testReviewData };
   } catch (error) {
-    console.error('\n❌ Tests failed:', error);
-    
-    // Generate error report
-    const errorReport = {
-      timestamp: new Date().toISOString(),
-      testId,
-      error: error instanceof Error ? error.message : String(error),
-      user: testUser ? { id: testUser.id, email: testUser.email } : null,
-      company: testCompanyData ? { id: testCompanyData.id, name: testCompanyData.name } : null,
-      review: testReviewData ? { id: testReviewData.id, title: testReviewData.title } : null,
-    };
-    
-    // Write error report to file
-    const errorReportPath = path.resolve(process.cwd(), 'form-submission-error-report.json');
-    fs.writeFileSync(errorReportPath, JSON.stringify(errorReport, null, 2));
-    console.log(`\n❌ Error report generated at ${errorReportPath}`);
-    
-    return { 
-      success: false, 
-      error, 
-      testUser, 
-      testCompanyData, 
-      testReviewData 
+    console.error('❌ Test failed:', error);
+    return {
+      success: false,
+      testUser,
+      testCompanyData,
+      testReviewData
     };
   }
 }
@@ -419,16 +401,19 @@ async function runTests() {
 // Run the tests and clean up
 runTests()
   .then(result => {
-    if (result.success && result.testUser && result.testCompanyData && result.testReviewData) {
+    if (result.success && 
+        result.testUser?.id && 
+        result.testCompanyData?.id && 
+        result.testReviewData?.id) {
       // Ask if we should clean up test data
       console.log('\n🧹 Do you want to clean up the test data? (y/n)');
       process.stdin.once('data', async (data) => {
         const input = data.toString().trim().toLowerCase();
         if (input === 'y' || input === 'yes') {
           await cleanupTestData(
-            result.testCompanyData.id, 
-            result.testReviewData.id, 
-            result.testUser.id
+            result.testCompanyData!.id,
+            result.testReviewData!.id,
+            result.testUser!.id
           );
         } else {
           console.log('⚠️ Test data will remain in the database. Clean it up manually if needed.');
@@ -437,14 +422,11 @@ runTests()
         process.exit(0);
       });
     } else {
-      if (result.testUser && result.testCompanyData && result.testReviewData) {
-        console.log('\n⚠️ Some tests failed. Test data may still be in the database.');
-        console.log(`   Test ID: ${testId}`);
-      }
+      console.log('❌ Tests failed or data is incomplete, no cleanup needed');
       process.exit(1);
     }
   })
   .catch(error => {
-    console.error('\n❌ Unhandled error:', error);
+    console.error('❌ Unhandled error:', error);
     process.exit(1);
   }); 

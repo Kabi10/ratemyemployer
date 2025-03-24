@@ -25,6 +25,8 @@ This integration is fully configured with custom stored procedures, a detailed s
 - [Advanced Configuration](#advanced-configuration)
 - [Technical Details](#technical-details)
 - [Form Verification Integration](#form-verification-integration)
+- [🔍 Detailed Stored Procedures Reference](#detailed-stored-procedures-reference)
+- [📝 Document History](#document-history)
 
 ## 🔍 Overview
 
@@ -547,10 +549,31 @@ The RateMyEmployer project includes comprehensive form verification and Supabase
 | Script | Description |
 |--------|-------------|
 | `npm run verify:supabase` | Verifies data integrity in Supabase |
+| `npm run verify:database` | Verifies database schema, procedures, and triggers |
 | `npm run test:form-validation` | Tests form validation logic |
 | `npm run test:form-submissions` | Tests form submission process |
 | `npm run monitor:submissions` | Monitors form submissions in real-time |
 | `npm run verify:all` | Runs all verification scripts |
+
+### Database Schema Verification
+
+The database verification script (`scripts/verify-database.ts`) ensures that all database components are properly configured:
+
+1. **Critical Components**:
+   - Tables: `companies`, `reviews`, `moderation_history`
+   - Stored Procedures: `get_industry_statistics`, `get_location_statistics`, `get_size_statistics`
+   - Enums: `review_status`, `verification_status`
+
+2. **Optional Components**:
+   - Trigger Verification: `check_trigger_and_function_status`
+
+3. **Type Verification**:
+   The script handles type mismatches between Supabase's fixed-length character varying types and TypeScript text types, ensuring compatibility despite different type definitions.
+
+Run this verification with:
+```bash
+npx tsx scripts/verify-database.ts
+```
 
 ### Form Validation Testing
 
@@ -581,7 +604,85 @@ The form verification tools complement the MCP integration by ensuring data inte
 
 For more detailed information on form verification, refer to the scripts in the `scripts/` directory:
 
-- `verify-supabase-data.ts`
-- `test-form-validation.ts`
-- `test-form-submissions.ts`
-- `monitor-form-submissions.ts` 
+- `verify-database.ts` - Verifies database schema, stored procedures, and triggers
+- `verify-supabase-data.ts` - Verifies data integrity
+- `test-form-validation.ts` - Tests form validation
+- `test-form-submissions.ts` - Tests form submissions
+- `monitor-form-submissions.ts` - Monitors form submissions
+
+## 🔍 Detailed Stored Procedures Reference
+
+This section provides detailed information about all stored procedures available for use with the Model Context Protocol (MCP) in the RateMyEmployer application.
+
+### get_average_ratings_by_industry
+
+**Description:** Function to get review submission trends by month
+
+**Parameters:** None
+
+**Returns:** TABLE
+
+**Example:**
+```sql
+SELECT * FROM get_average_ratings_by_industry();
+```
+
+### get_review_submission_trends
+
+**Description:** Function to get top-rated companies in a specific industry
+
+**Parameters:** None
+
+**Returns:** TABLE
+
+**Example:**
+```sql
+SELECT * FROM get_review_submission_trends();
+```
+
+### get_top_rated_companies_by_industry
+
+**Description:** Function to get top-rated companies in a specific industry
+
+**Parameters:**
+- `p_industry` - Industry name (VARCHAR)
+- `p_limit` - Number of companies to return (INTEGER, default 5)
+
+**Returns:** TABLE
+
+**Example:**
+```sql
+SELECT * FROM get_top_rated_companies_by_industry('Technology', 10);
+```
+
+### get_user_review_stats
+
+**Description:** Function to get review statistics for a specific user
+
+**Parameters:**
+- `p_user_id` - User ID (UUID)
+
+**Returns:** TABLE
+
+**Example:**
+```sql
+SELECT * FROM get_user_review_stats('user-uuid-here');
+```
+
+### get_company_review_summary
+
+**Description:** Function to get a summary of reviews for a specific company
+
+**Parameters:**
+- `p_company_id` - Company ID (INTEGER)
+
+**Returns:** TABLE
+
+**Example:**
+```sql
+SELECT * FROM get_company_review_summary(123);
+```
+
+## 📝 Document History
+
+- **2024-03-25**: Consolidated MCP_PROCEDURES.md into this document for a single source of truth for MCP documentation. 

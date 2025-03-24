@@ -53,6 +53,7 @@ export default function EditCompany() {
           description: data.description || '',
           location: data.location || '',
           website: data.website || '',
+          metadata: undefined as Record<string, any> | undefined
         };
         
         if (data.metadata) {

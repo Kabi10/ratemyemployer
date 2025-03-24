@@ -13,6 +13,8 @@ import { Input } from './ui/input';
 import { LoadingSpinner } from './ui/loading-spinner';
 import { useToast } from './ui/use-toast';
 import { PostgrestError } from '@supabase/supabase-js';
+import { RateLimitInfo } from './RateLimitInfo';
+import { useRemainingLimits } from '@/hooks/useRemainingLimits';
 
 /**
  * src/components/ReviewForm.tsx
@@ -67,6 +69,9 @@ export const ReviewForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<JoinedCompany | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { remainingLimits, loading: loadingLimits, refetch: refetchLimits } = useRemainingLimits();
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [hasDuplicateReview, setHasDuplicateReview] = useState(false);
 
   const {
     register,
@@ -87,8 +92,6 @@ export const ReviewForm = ({
       status: 'pending' as const,
       employment_status: 'Full-time' as const,
       is_current_employee: false,
-      reviewer_name: '',
-      reviewer_email: '',
       ...initialData
     }
   });
@@ -140,6 +143,45 @@ export const ReviewForm = ({
     };
   }, [companyId, toast]);
 
+  // Check if user has already reviewed this company
+  useEffect(() => {
+    const checkExistingReview = async () => {
+      if (!user || !companyId || initialData?.id) {
+        return; // Skip if no user or companyId, or if editing an existing review
+      }
+
+      try {
+        setCheckingDuplicate(true);
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('id, created_at')
+          .eq('company_id', companyId)
+          .eq('reviewer_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          // Check if the most recent review is within the last 24 hours
+          const lastReviewDate = new Date(data[0].created_at);
+          const oneDayAgo = new Date();
+          oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+          if (lastReviewDate > oneDayAgo) {
+            setHasDuplicateReview(true);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking for existing review:', err);
+      } finally {
+        setCheckingDuplicate(false);
+      }
+    };
+
+    checkExistingReview();
+  }, [user, companyId, initialData?.id]);
+
   const handleReviewSubmit = async (data: ReviewFormData) => {
     if (!user) {
       router.push('/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname));
@@ -155,6 +197,26 @@ export const ReviewForm = ({
       return;
     }
 
+    // Check remaining review limits
+    if (remainingLimits && remainingLimits.remaining_reviews <= 0) {
+      toast({
+        title: "Rate Limit Exceeded",
+        description: `You've reached your daily review limit. Please try again in ${Math.ceil(remainingLimits.reset_in_hours)} hours.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate review for the same company within 24 hours
+    if (hasDuplicateReview) {
+      toast({
+        title: "Duplicate Review",
+        description: "You can only post one review per company every 24 hours.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const { error } = await supabase.from('reviews').insert({
@@ -164,7 +226,21 @@ export const ReviewForm = ({
         status: 'pending'
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check for rate limit errors
+        if (error.message.includes('rate limit') || error.message.includes('Rate limit')) {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: error.message,
+            variant: "destructive",
+          });
+          // Refresh limits after error
+          refetchLimits();
+          return;
+        }
+        
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -172,6 +248,7 @@ export const ReviewForm = ({
       });
       
       reset();
+      refetchLimits(); // Refresh limits after successful submission
       onSuccess?.();
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -185,10 +262,30 @@ export const ReviewForm = ({
     }
   };
 
-  if (isLoading) {
+  if (isLoading || checkingDuplicate) {
     return (
       <div className="flex justify-center items-center min-h-[400px]" role="status" aria-label="Loading form...">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Show warning if user has already reviewed this company recently
+  if (hasDuplicateReview) {
+    return (
+      <div className="p-6 bg-amber-50 border border-amber-200 rounded-md">
+        <h3 className="text-lg font-medium text-amber-800">Already Reviewed</h3>
+        <p className="mt-2 text-amber-700">
+          You have already reviewed this company within the last 24 hours. 
+          You can only submit one review per company every 24 hours.
+        </p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => router.back()}
+        >
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -213,6 +310,9 @@ export const ReviewForm = ({
           </p>
         </div>
       )}
+
+      {/* Rate Limit Info Alert - show this prominently to the user */}
+      <RateLimitInfo type="review" showAlert={true} />
 
       {/* Rating */}
       <div>
@@ -325,81 +425,43 @@ export const ReviewForm = ({
         </label>
       </div>
 
-      {/* Pros */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="pros-label">
-          Pros <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          {...register('pros')}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-          rows={3}
-          placeholder="What did you like about working here? (minimum 10 characters)"
-          maxLength={1000}
-          aria-labelledby="pros-label"
-        />
-        {errors.pros && (
-          <p className="mt-1 text-sm text-red-600">{errors.pros.message}</p>
-        )}
-        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {1000 - (pros?.length || 0)} characters remaining
+      {/* Pros and Cons section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Pros */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="pros-label">
+            Pros <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            {...register('pros')}
+            rows={4}
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="What did you like about working here?"
+          ></textarea>
+          {errors.pros && <p className="mt-1 text-sm text-red-600">{errors.pros.message}</p>}
+        </div>
+
+        {/* Cons */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cons-label">
+            Cons <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            {...register('cons')}
+            rows={4}
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="What didn't you like about working here?"
+          ></textarea>
+          {errors.cons && <p className="mt-1 text-sm text-red-600">{errors.cons.message}</p>}
         </div>
       </div>
 
-      {/* Cons */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cons-label">
-          Cons <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          {...register('cons')}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-          rows={3}
-          placeholder="What could be improved? (minimum 10 characters)"
-          maxLength={1000}
-          aria-labelledby="cons-label"
-        />
-        {errors.cons && (
-          <p className="mt-1 text-sm text-red-600">{errors.cons.message}</p>
-        )}
-        <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {1000 - (cons?.length || 0)} characters remaining
-        </div>
-      </div>
-
-      {/* Reviewer Name */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="reviewer-name-label">
-          Your Name (optional)
-        </label>
-        <Input
-          {...register('reviewer_name')}
-          type="text"
-          placeholder="Your name (optional)"
-          className="w-full"
-        />
-      </div>
-
-      {/* Reviewer Email */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="reviewer-email-label">
-          Your Email (optional)
-        </label>
-        <Input
-          {...register('reviewer_email')}
-          type="email"
-          placeholder="Your email (optional)"
-          className="w-full"
-        />
-      </div>
-
-      {/* Submit Button */}
-      <div className="flex justify-end space-x-4">
+      {/* Submit button */}
+      <div className="flex justify-end">
         <Button
           type="submit"
-          disabled={isSubmitting}
-          variant="default"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          disabled={isSubmitting || hasDuplicateReview || (remainingLimits && remainingLimits.remaining_reviews <= 0)}
+          className="flex items-center justify-center"
         >
           {isSubmitting ? (
             <>

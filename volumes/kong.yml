@@ -1,1 +1,6 @@
- 
+# Kong configuration placeholder
+_format_version: "2.1"
+
+# Add your Kong configuration here when needed
+services: []
+routes: [] 
