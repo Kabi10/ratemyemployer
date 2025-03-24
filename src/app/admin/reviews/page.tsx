@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { withAuth } from '@/lib/auth/withAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { ModerationHistoryModal } from '@/components/modals/ModerationHistoryModal';
+import { SpamIndicator } from '@/components/SpamIndicator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertCircle, AlertTriangle, Filter, LucideFilter, RefreshCw, UserCheck } from 'lucide-react';
 
 import { supabase } from '@/lib/supabaseClient';
 import { formatDateDisplay } from '@/utils/date';
@@ -38,6 +42,12 @@ interface Review {
     industry: string | null;
     location: string | null;
   } | null;
+  reviewer: {
+    id: string;
+    created_at: string | null;
+    email: string | null;
+    review_count: number;
+  } | null;
 }
 
 interface ModerationAction {
@@ -50,6 +60,7 @@ function AdminReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // State
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -63,18 +74,20 @@ function AdminReviewsPage() {
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [moderationHistory, setModerationHistory] = useState<any[]>([]);
   const [selectedReviewForHistory, setSelectedReviewForHistory] = useState<Review | null>(null);
+  const [bulkApproveSelected, setBulkApproveSelected] = useState(false);
   
   // Filters
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [statusFilter, setStatusFilter] = useState(searchParams?.get('status') || 'pending');
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || '');
+  const [showPossibleSpamOnly, setShowPossibleSpamOnly] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1', 10));
   const itemsPerPage = 10;
 
-  // Fetch reviews with enhanced filters and sorting
   useEffect(() => {
     async function fetchReviews() {
-      setIsLoading(true);
       try {
+        setIsLoading(true);
+        
         let query = supabase
           .from('reviews')
           .select(`
@@ -85,56 +98,54 @@ function AdminReviewsPage() {
               industry,
               location
             ),
-            moderated_by:profiles (
+            reviewer:profiles (
               id,
-              full_name,
-              email
+              created_at,
+              email,
+              review_count:reviews(count)
             )
-          `, { count: 'exact' });
-        
-        // Apply status filter
-        if (statusFilter && statusFilter !== 'all') {
+          `);
+          
+        if (statusFilter !== 'all') {
           query = query.eq('status', statusFilter);
         }
         
-        // Apply search filter
         if (searchQuery) {
-          query = query.or(`
-            title.ilike.%${searchQuery}%,
-            content.ilike.%${searchQuery}%,
-            pros.ilike.%${searchQuery}%,
-            cons.ilike.%${searchQuery}%,
-            company.name.ilike.%${searchQuery}%
-          `);
+          query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
         }
         
-        // Apply sorting
-        query = query.order(sortField, { ascending: sortOrder === 'asc' });
+        const { data, error, count } = await query
+          .order(sortField, { ascending: sortOrder === 'asc' })
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+          
+        if (error) throw error;
         
-        // Apply pagination
-        const start = (currentPage - 1) * itemsPerPage;
-        query = query.range(start, start + itemsPerPage - 1);
+        const reviewsWithSpamChecks = data as Review[];
         
-        const { data, error: fetchError, count } = await query;
-
-        if (fetchError) throw fetchError;
-
-        if (data) {
-          setReviews(data as Review[]);
-          setTotalCount(count || 0);
-        }
+        setReviews(reviewsWithSpamChecks);
+        setTotalCount(count || 0);
+        
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch reviews'));
+        setError(err as Error);
+        console.error('Error fetching reviews:', err);
+        toast({
+          title: "Error",
+          description: "Failed to fetch reviews. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     }
-
-    fetchReviews();
     
-    // Update URL with filters and sorting
+    fetchReviews();
+  }, [statusFilter, searchQuery, currentPage, sortField, sortOrder, toast]);
+
+  // Update URL when filters change
+  useEffect(() => {
     const params = new URLSearchParams();
-    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    
+    if (statusFilter !== 'all') params.set('status', statusFilter);
     if (searchQuery) params.set('search', searchQuery);
     if (currentPage > 1) params.set('page', currentPage.toString());
     if (sortField !== 'created_at') params.set('sort', sortField);
@@ -156,6 +167,20 @@ function AdminReviewsPage() {
     }
 
     try {
+      // Store moderation history
+      const moderationHistoryEntries = selectedReviews.map(reviewId => {
+        const review = reviews.find(r => r.id === reviewId);
+        return {
+          review_id: reviewId,
+          action: action,
+          note: moderationNote,
+          previous_status: review?.status || null,
+          new_status: action,
+          moderator_id: user?.id
+        };
+      });
+
+      // Update reviews
       const { error: updateError } = await supabase
         .from('reviews')
         .update({ 
@@ -167,6 +192,16 @@ function AdminReviewsPage() {
         .in('id', selectedReviews);
 
       if (updateError) throw updateError;
+
+      // Add moderation history entries
+      const { error: historyError } = await supabase
+        .from('moderation_history')
+        .insert(moderationHistoryEntries);
+
+      if (historyError) {
+        console.error('Error saving moderation history:', historyError);
+        // Continue anyway since the primary action succeeded
+      }
 
       // Update local state
       setReviews(reviews.map(review => 
@@ -184,6 +219,7 @@ function AdminReviewsPage() {
       // Clear selection and note
       setSelectedReviews([]);
       setModerationNote('');
+      setBulkApproveSelected(false);
       
       toast({
         title: `Reviews ${action}ed`,
@@ -200,6 +236,70 @@ function AdminReviewsPage() {
     }
   };
 
+  // Handle individual review update
+  const handleUpdateReviewStatus = async (reviewId: number, status: string, note?: string) => {
+    try {
+      const review = reviews.find(r => r.id === reviewId);
+      if (!review) return;
+
+      // Update the review
+      const { error: updateError } = await supabase
+        .from('reviews')
+        .update({ 
+          status,
+          moderation_note: note || review.moderation_note,
+          moderated_at: new Date().toISOString(),
+          moderated_by: user?.id
+        })
+        .eq('id', reviewId);
+
+      if (updateError) throw updateError;
+
+      // Add moderation history entry
+      const { error: historyError } = await supabase
+        .from('moderation_history')
+        .insert({
+          review_id: reviewId,
+          action: status,
+          note: note || null,
+          previous_status: review.status,
+          new_status: status,
+          moderator_id: user?.id
+        });
+
+      if (historyError) {
+        console.error('Error saving moderation history:', historyError);
+        // Continue anyway since the primary action succeeded
+      }
+
+      // Update local state
+      setReviews(reviews.map(r => 
+        r.id === reviewId
+          ? { 
+              ...r, 
+              status,
+              moderation_note: note || r.moderation_note,
+              moderated_at: new Date().toISOString(),
+              moderated_by: user?.id
+            }
+          : r
+      ));
+      
+      toast({
+        title: `Review ${status}ed`,
+        description: `Successfully ${status}ed the review.`,
+        variant: "default",
+      });
+    } catch (err) {
+      console.error(`Error updating review:`, err);
+      toast({
+        title: "Error",
+        description: `Failed to update the review. Please try again.`,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Toggle review selection
   const toggleReviewSelection = (reviewId: number) => {
     setSelectedReviews(prev => 
@@ -207,6 +307,15 @@ function AdminReviewsPage() {
         ? prev.filter(id => id !== reviewId)
         : [...prev, reviewId]
     );
+  };
+
+  // Select all reviews
+  const toggleSelectAll = () => {
+    if (selectedReviews.length === reviews.length) {
+      setSelectedReviews([]);
+    } else {
+      setSelectedReviews(reviews.map(review => review.id));
+    }
   };
 
   // Fetch moderation history
@@ -239,66 +348,24 @@ function AdminReviewsPage() {
     }
   };
 
-  // Handle review status updates
-  const handleUpdateReviewStatus = async (reviewId: number, newStatus: 'approved' | 'rejected') => {
-    try {
-      const { error: updateError } = await supabase
-        .from('reviews')
-        .update({ status: newStatus })
-        .eq('id', reviewId);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Update local state
-      setReviews(reviews.map(review => 
-        review.id === reviewId 
-          ? { ...review, status: newStatus }
-          : review
-      ));
-      
-      // Show success toast
-      toast({
-        title: `Review ${newStatus}`,
-        description: `The review has been ${newStatus} successfully.`,
-        variant: "default",
-      });
-    } catch (err) {
-      console.error(`Error ${newStatus} review:`, err);
-      toast({
-        title: "Error",
-        description: `Failed to ${newStatus} the review. Please try again.`,
-        variant: "destructive",
-      });
-    }
-  };
+  // Filter reviews by spam indicator
+  const filteredReviews = showPossibleSpamOnly 
+    ? reviews.filter(review => {
+        // This is a simplified version - the actual filtering would be done 
+        // based on the SpamIndicator's assessment which we don't have direct access to here
+        const hasSpamIndicators = 
+          (review.title?.toUpperCase() === review.title && review.title?.length > 10) ||
+          (review.pros && review.pros.length < 30) ||
+          (review.cons && review.cons.length < 30) ||
+          (/!{3,}/.test(review.title || '') || /\?{3,}/.test(review.title || '')) ||
+          (review.reviewer?.created_at && 
+            (new Date().getTime() - new Date(review.reviewer.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000);
+        return hasSpamIndicators;
+      })
+    : reviews;
 
   // Calculate total pages
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-  // Render loading state
-  if (isLoading && reviews.length === 0) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner />
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <AdminLayout>
-        <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-          <h2 className="text-lg font-semibold text-red-700">Error</h2>
-          <p className="text-red-600">{error.message}</p>
-        </div>
-      </AdminLayout>
-    );
-  }
 
   // Render status badge
   const getStatusBadge = (status: string | null) => {
@@ -352,15 +419,45 @@ function AdminReviewsPage() {
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
             </Button>
+            <Button
+              variant={showPossibleSpamOnly ? "default" : "outline"}
+              onClick={() => setShowPossibleSpamOnly(!showPossibleSpamOnly)}
+              title="Show potential spam only"
+            >
+              <AlertTriangle className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsLoading(true);
+                // Refetch with current params
+                setTimeout(() => {
+                  router.refresh();
+                }, 100);
+              }}
+              title="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
         </div>
         
         {/* Bulk actions */}
         {selectedReviews.length > 0 && (
           <div className="bg-gray-50 p-4 rounded-lg mb-4 flex items-center gap-4">
-            <span className="text-sm font-medium">
-              {selectedReviews.length} reviews selected
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">
+                {selectedReviews.length} reviews selected
+              </span>
+              <Checkbox 
+                id="auto-approve" 
+                checked={bulkApproveSelected}
+                onCheckedChange={(checked) => setBulkApproveSelected(checked as boolean)}
+              />
+              <label htmlFor="auto-approve" className="text-sm cursor-pointer">
+                Auto-approve similar reviews
+              </label>
+            </div>
             <Input
               placeholder="Add moderation note..."
               value={moderationNote}
@@ -389,57 +486,111 @@ function AdminReviewsPage() {
           </div>
         )}
         
-        <div className="space-y-4">
-          {reviews.length > 0 ? (
-            reviews.map((review) => (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-md p-6 text-center">
+            <h3 className="text-lg font-medium text-red-800">Error loading reviews</h3>
+            <p className="mt-2 text-red-700">{error.message}</p>
+            <Button className="mt-4" onClick={() => router.refresh()}>
+              Try Again
+            </Button>
+          </div>
+        ) : filteredReviews.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-md p-12 text-center">
+            <h3 className="text-lg font-medium text-gray-700">No reviews found</h3>
+            <p className="mt-2 text-gray-600">
+              {searchQuery 
+                ? `No reviews matching "${searchQuery}" were found.` 
+                : showPossibleSpamOnly
+                  ? "No potential spam reviews found."
+                  : `There are no reviews with status "${statusFilter}".`
+              }
+            </p>
+            <div className="flex justify-center mt-4 space-x-2">
+              <Button onClick={() => {
+                setShowPossibleSpamOnly(false);
+                setSearchQuery('');
+                setStatusFilter('pending');
+              }}>
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex items-center mb-2 border-b pb-2">
+              <Checkbox 
+                id="select-all" 
+                checked={selectedReviews.length === filteredReviews.length && filteredReviews.length > 0}
+                onCheckedChange={toggleSelectAll}
+                className="mr-2"
+              />
+              <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                Select All
+              </label>
+              <div className="ml-auto text-sm text-gray-500">
+                Showing {filteredReviews.length} of {totalCount} reviews
+              </div>
+            </div>
+            
+            {filteredReviews.map((review) => (
               <Card key={review.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
+                <CardHeader className="pb-2 flex flex-row items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
                         checked={selectedReviews.includes(review.id)}
-                        onChange={() => toggleReviewSelection(review.id)}
-                        className="h-4 w-4 rounded border-gray-300"
+                        onCheckedChange={() => toggleReviewSelection(review.id)}
+                        className="mr-2"
                       />
-                      <div>
-                        <CardTitle className="text-lg">
-                          {review.title || 'Untitled Review'}
-                        </CardTitle>
-                        <CardDescription>
-                          {review.company?.name || 'Unknown Company'} • 
-                          {review.position || 'Position not specified'} • 
-                          {getStatusBadge(review.status)}
-                        </CardDescription>
+                      <CardTitle className="text-lg">{review.title || 'Untitled Review'}</CardTitle>
+                      {getStatusBadge(review.status)}
+                      
+                      {/* Spam Indicator */}
+                      <div className="ml-2">
+                        <SpamIndicator 
+                          reviewTitle={review.title || ''} 
+                          reviewContent={`${review.pros || ''} ${review.cons || ''}`}
+                          reviewerId={review.reviewer?.id || null}
+                          reviewerJoinDate={review.reviewer?.created_at}
+                        />
                       </div>
                     </div>
-                    <div className="text-sm font-medium">
-                      Rating: {review.rating || 'N/A'}/5
-                    </div>
+                    <CardDescription className="mt-1">
+                      {review.company?.name} • {review.position || 'Unknown Position'} • {review.employment_status || 'Unknown Status'}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center text-2xl font-bold text-yellow-500">
+                    {review.rating}/5
                   </div>
                 </CardHeader>
                 <CardContent className="pb-2">
-                  {(review.pros || review.cons) ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      {review.pros && (
-                        <div className="bg-green-50 p-3 rounded-md">
-                          <h4 className="font-medium text-green-700 mb-1">Pros</h4>
-                          <p className="text-sm text-gray-700">{review.pros}</p>
-                        </div>
-                      )}
-                      {review.cons && (
-                        <div className="bg-red-50 p-3 rounded-md">
-                          <h4 className="font-medium text-red-700 mb-1">Cons</h4>
-                          <p className="text-sm text-gray-700">{review.cons}</p>
-                        </div>
-                      )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-1">Pros</h4>
+                      <p className="text-sm text-gray-700">{review.pros || 'None provided'}</p>
                     </div>
-                  ) : (
-                    <p className="text-gray-700 mb-4">{review.content || 'No content provided'}</p>
-                  )}
+                    <div>
+                      <h4 className="font-medium mb-1">Cons</h4>
+                      <p className="text-sm text-gray-700">{review.cons || 'None provided'}</p>
+                    </div>
+                  </div>
                   
-                  <div className="text-sm text-gray-500">
-                    Posted on {formatDateDisplay(review.created_at)}
+                  {/* Reviewer info */}
+                  <div className="mt-4 pt-2 border-t text-xs text-gray-500 flex items-center gap-4">
+                    <span className="flex items-center gap-1">
+                      <UserCheck className="h-3 w-3" /> 
+                      {review.reviewer?.email || 'Unknown user'}
+                    </span>
+                    {review.reviewer?.review_count && (
+                      <span>{(review.reviewer.review_count as any)[0].count || 0} total reviews</span>
+                    )}
+                    {review.reviewer?.created_at && (
+                      <span>Joined {formatDateDisplay(review.reviewer.created_at)}</span>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center pt-4 border-t">
@@ -490,14 +641,11 @@ function AdminReviewsPage() {
                   </div>
                 </CardFooter>
               </Card>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              No reviews found matching your criteria
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
         
+        {/* Pagination */}
         {totalPages > 1 && (
           <Pagination className="mt-6">
             <PaginationContent>
@@ -509,31 +657,34 @@ function AdminReviewsPage() {
               </PaginationItem>
               
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                // Show pages around current page
-                let pageNum = currentPage;
-                if (currentPage < 3) {
-                  pageNum = i + 1;
-                } else if (currentPage > totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                // Ensure page numbers are within range
-                if (pageNum > 0 && pageNum <= totalPages) {
-                  return (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(pageNum)}
-                        isActive={currentPage === pageNum}
-                      >
-                        {pageNum}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-                return null;
+                const pageNum = i + 1;
+                return (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      onClick={() => setCurrentPage(pageNum)}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
               })}
+              
+              {totalPages > 5 && (
+                <>
+                  <PaginationItem>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink 
+                      onClick={() => setCurrentPage(totalPages)}
+                      isActive={currentPage === totalPages}
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
               
               <PaginationItem>
                 <PaginationNext 

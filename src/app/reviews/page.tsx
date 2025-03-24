@@ -1,149 +1,113 @@
-'use client'
+import { Suspense } from 'react';
+import { EnhancedReviewListContainer } from '@/components/EnhancedReviewListContainer';
+import { Metadata } from 'next';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getReviews } from '@/lib/database';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ErrorDisplay } from "@/components/ErrorDisplay";
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Database } from '@/types/supabase';
+export const metadata: Metadata = {
+  title: 'All Reviews | RateMyEmployer',
+  description: 'Browse all employer reviews from RateMyEmployer, filtered and sorted to find exactly what you need.',
+};
 
-type Company = Database['public']['Tables']['companies']['Row'];
-
-interface ReviewWithCompany {
-  id: number;
-  rating: number;
-  title: string;
-  content: string;
-  pros: string | null;
-  cons: string | null;
-  position: string;
-  employment_status: string;
-  created_at: string;
-  user_id: string;
-  company: Pick<Company, 'id' | 'name'>;
-}
-
-function ReviewsList() {
-  const [reviews, setReviews] = useState<ReviewWithCompany[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchReviews() {
-      try {
-        console.log('Fetching reviews...');
-        
-        const { data, error } = await supabase
-          .from('reviews')
-          .select(`
-            *,
-            company:company_id (
-              id,
-              name
-            )
-          `)
-          .order('created_at', { ascending: false });
-
-        console.log('Full query response:', { data, error });
-        
-        if (error) {
-          console.error('Supabase error:', error);
-          throw error;
-        }
-
-        if (!data) {
-          console.log('No data returned from Supabase');
-          setError('No reviews found');
-          return;
-        }
-
-        console.log('Number of reviews:', data.length);
-        setReviews(data);
-      } catch (err) {
-        console.error('Error fetching reviews:', err);
-        setError('Failed to load reviews');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchReviews();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <ErrorDisplay message={error} />;
-  }
+export default async function ReviewsPage() {
+  // Server-side initial data fetch for SEO and initial render
+  const initialReviewsResult = await getReviews({
+    limit: 5,
+    status: 'approved',
+    page: 1
+  });
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Company Reviews</h1>
+    <main className="container mx-auto py-8 px-4 md:px-6">
+      <section className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Company Reviews</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Browse honest reviews from employees across thousands of companies. Use the filters to find
+          exactly what you're looking for.
+        </p>
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader className="pb-0">
+              <CardTitle>Recent Reviews</CardTitle>
+              <CardDescription>
+                See what employees are saying about their workplaces
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Suspense fallback={<ReviewsLoading />}>
+                <EnhancedReviewListContainer initialReviews={initialReviewsResult.data || []} initialCount={initialReviewsResult.count || 0} />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-1">
+          <ReviewsSidebar />
+        </div>
       </div>
+    </main>
+  );
+}
 
-      <div className="space-y-6">
-        {reviews.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400 text-lg">No reviews available yet.</p>
-          </div>
-        ) : (
-          reviews.map(review => (
-            <div key={review.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <Link
-                    href={`/companies/${review.company?.id}`}
-                    className="text-xl font-semibold hover:text-blue-500"
-                  >
-                    {review.company?.name}
-                  </Link>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {review.position} • {review.employment_status}
-                  </p>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-2xl font-bold">{review.rating}/5</span>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-semibold mb-2">{review.title}</h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">{review.content}</p>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <h4 className="font-medium text-green-600 dark:text-green-400 mb-1">Pros</h4>
-                  <p className="text-gray-600 dark:text-gray-400">{review.pros || 'None provided'}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-red-600 dark:text-red-400 mb-1">Cons</h4>
-                  <p className="text-gray-600 dark:text-gray-400">{review.cons || 'None provided'}</p>
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Posted on {new Date(review.created_at).toLocaleDateString()}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+function ReviewsLoading() {
+  return (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={i}
+          className="bg-gray-100 dark:bg-gray-800 animate-pulse h-40 rounded-lg"
+        />
+      ))}
     </div>
   );
 }
 
-export default function ReviewsPage() {
+function ReviewsSidebar() {
   return (
-    <ErrorBoundary>
-      <ReviewsList />
-    </ErrorBoundary>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Review Benefits</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 list-disc pl-5">
+            <li>Help others make informed decisions</li>
+            <li>Share your workplace experience</li>
+            <li>Highlight company strengths and weaknesses</li>
+            <li>Improve transparency in the job market</li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Review Guidelines</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 list-disc pl-5">
+            <li>Be honest and specific</li>
+            <li>Focus on your personal experience</li>
+            <li>Avoid naming specific individuals</li>
+            <li>No offensive or discriminatory content</li>
+            <li>Respect confidentiality agreements</li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Why Reviews Matter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            Your reviews help create transparency in the workplace and empower job seekers to make informed decisions. 
+            Together, we can improve workplace cultures across industries.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

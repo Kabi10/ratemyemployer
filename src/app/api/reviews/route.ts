@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       .range(offset, offset + limit - 1);
 
     if (typeof companyId === 'number' && !isNaN(companyId)) {
-      query = query.eq('company_id', companyId);
+      query = query.eq('company_id', companyId as any);
     }
 
     const { data, error, count } = await query;
@@ -64,23 +64,98 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = reviewSchema.parse(body);
 
-    const { data, error } = await supabase
+    // Check for rate limits before trying to insert
+    const { data: rateLimitData, error: rateLimitError } = await supabase
+      .rpc('get_remaining_limits', { user_id: user.id });
+
+    if (rateLimitError) {
+      console.error('Error checking rate limits:', rateLimitError);
+      // Continue with submission, but log the error
+    } else if (rateLimitData && (rateLimitData as any).remaining_reviews <= 0) {
+      // User has reached their daily limit
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'You have reached your daily review limit. Please try again tomorrow.'
+        },
+        { status: 429 }
+      );
+    }
+
+    // Check for duplicate reviews for this company within 24 hours
+    const { data: existingReview, error: existingReviewError } = await supabase
       .from('reviews')
-      .insert({
-        ...validatedData,
-        reviewer_id: user.id,
-        status: 'pending'
-      })
-      .select()
-      .single();
+      .select('id, created_at')
+      .eq('company_id', Number(validatedData.company_id))
+      .eq('reviewer_id', user.id)
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .maybeSingle();
 
-    if (error) throw error;
+    if (existingReviewError) {
+      console.error('Error checking for duplicate reviews:', existingReviewError);
+      // Continue with submission, but log the error
+    } else if (existingReview) {
+      // User has already reviewed this company within 24 hours
+      return NextResponse.json(
+        { 
+          error: 'Duplicate review', 
+          message: 'You can only post one review per company every 24 hours.' 
+        },
+        { status: 409 }
+      );
+    }
 
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error creating review:', error);
+    // Proceed with review submission
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert({
+          ...validatedData,
+          reviewer_id: user.id,
+          status: 'pending'
+        } as any)
+        .select()
+        .single();
+
+      if (error) {
+        // Check if this is a rate limit error
+        if (error.message && (
+            error.message.includes('rate limit') || 
+            error.message.includes('Rate limit') ||
+            error.message.includes('can only post')
+          )) {
+          return NextResponse.json(
+            { 
+              error: 'Rate limit exceeded', 
+              message: error.message 
+            },
+            { status: 429 }
+          );
+        }
+        throw error;
+      }
+
+      return NextResponse.json(data);
+    } catch (error: any) {
+      console.error('Error creating review:', error);
+      return NextResponse.json(
+        { error: 'Failed to create review', message: error.message },
+        { status: 500 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Error processing review submission:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ZodError') {
+      return NextResponse.json(
+        { error: 'Validation error', message: error.errors },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to create review' },
+      { error: 'Failed to create review', message: error.message },
       { status: 500 }
     );
   }

@@ -27,27 +27,28 @@ export const ERROR_MESSAGES = {
   website: 'Please enter a valid URL',
   industry: 'Please select an industry',
   location: 'Location must be between 2 and 150 characters',
-  title: 'Title must be between 3 and 255 characters',
+  title: 'Title must be between 3 and 100 characters',
   content: 'Review must be at least 10 characters',
-  position: 'Position must be between 2 and 255 characters'
+  position: 'Position must be between 2 and 100 characters',
+  pros: 'Pros must be at least 10 characters',
+  cons: 'Cons must be at least 10 characters'
 };
 
 // Company schema
 export const companySchema = z.object({
   name: z.string()
-    .min(2, 'Company name must be between 2 and 100 characters')
-    .max(100, 'Company name must be less than 100 characters')
-    .transform(val => val.trim()),
-  industry: z.enum(["Technology", "Healthcare", "Education", "Finance", "Manufacturing", "Retail", "Other"]),
+    .min(2, ERROR_MESSAGES.name)
+    .max(100, ERROR_MESSAGES.name),
+  industry: z.string().min(1, ERROR_MESSAGES.industry),
   location: z.string()
     .min(1, 'Location is required')
     .max(100, 'Location must be less than 100 characters'),
   website: z.string()
-    .max(255, 'Website URL must be less than 255 characters')
-    .regex(URL_REGEX, 'Invalid website URL')
+    .url(ERROR_MESSAGES.url)
+    .regex(urlRegex, ERROR_MESSAGES.website)
     .optional()
-    .nullable(),
-  size: companySizeEnum.optional().nullable(),
+    .or(z.literal('')),
+  size: z.string().optional(),
   ceo: z.string()
     .max(100, 'CEO name must be less than 100 characters')
     .optional()
@@ -71,28 +72,23 @@ export const companySchema = z.object({
 export const reviewSchema = z.object({
   company_id: z.number().int().positive('Invalid company ID'),
   rating: z.number()
-    .min(1, 'Rating must be between 1 and 5')
-    .max(5, 'Rating must be between 1 and 5'),
+    .min(1, ERROR_MESSAGES.rating)
+    .max(5, ERROR_MESSAGES.rating),
   title: z.string()
-    .min(1, 'Title is required')
-    .max(100, 'Title must be less than 100 characters'),
-  pros: z.string().min(10),
-  cons: z.string().min(10),
+    .min(5, ERROR_MESSAGES.min('Title', 5))
+    .max(100, ERROR_MESSAGES.max('Title', 100)),
+  pros: z.string()
+    .min(10, ERROR_MESSAGES.pros)
+    .max(2000, ERROR_MESSAGES.max('Pros', 2000)),
+  cons: z.string()
+    .min(10, ERROR_MESSAGES.cons)
+    .max(2000, ERROR_MESSAGES.max('Cons', 2000)),
   position: z.string()
-    .min(1, 'Position is required')
-    .max(100, 'Position must be less than 100 characters'),
+    .min(2, ERROR_MESSAGES.min('Position', 2))
+    .max(100, ERROR_MESSAGES.max('Position', 100)),
   employment_status: employmentStatusEnum,
   is_current_employee: z.boolean(),
   status: reviewStatusEnum.default('pending'),
-  reviewer_name: z.string()
-    .max(100, 'Reviewer name must be less than 100 characters')
-    .optional()
-    .nullable(),
-  reviewer_email: z.string()
-    .email('Invalid email address')
-    .max(255, 'Email must be less than 255 characters')
-    .optional()
-    .nullable(),
 });
 
 // Validation Utilities
