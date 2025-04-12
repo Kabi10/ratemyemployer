@@ -329,3 +329,4 @@ This will apply any pending migrations to your Supabase instance.
 - Document complex migrations with comments
 
 For more details on database management, see the [Database Guide](docs/DATABASE_GUIDE.md). 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Kabi10/ratemyemployer?utm_source=oss&utm_medium=github&utm_campaign=Kabi10%2Fratemyemployer&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
