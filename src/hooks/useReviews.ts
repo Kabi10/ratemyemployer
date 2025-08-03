@@ -28,8 +28,11 @@ export const useReviews = (options: GetReviewsOptions = {}): UseReviewsResult =>
         // Convert string IDs to proper types if provided
         const parsedOptions = {
           ...options,
-          companyId: options.companyId ? 
-            (typeof options.companyId === 'string' ? parseInt(options.companyId, 10) : options.companyId) : 
+          companyId: options.companyId ?
+            (typeof options.companyId === 'string' ? parseInt(options.companyId, 10) : options.companyId) :
+            undefined,
+          userId: options.userId ?
+            (typeof options.userId === 'string' ? parseInt(options.userId, 10) : options.userId) :
             undefined,
         };
 
