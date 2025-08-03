@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-import { createClient } from 'supabase'
+import { createClient } from '@supabase/supabase-js'
 
 describe('Supabase Connection', () => {
   test('should successfully connect to Supabase', async () => {
@@ -19,8 +19,9 @@ describe('Supabase Connection', () => {
     const { data, error } = await invalidSupabase
       .from('companies')
       .select('*')
-    
+
     expect(error).toBeTruthy()
+    expect(error?.message || error?.status).toBeTruthy()
     expect(data).toBeNull()
   })
-}) 
+})
