@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronDown, Menu, User, X, Database } from 'lucide-react';
+import { ChevronDown, Menu, User, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Navbar(): JSX.Element {
@@ -55,11 +55,10 @@ export function Navbar(): JSX.Element {
               Background Check
             </Link>
             <Link
-              href="/mcp-demo"
-              className="text-lg text-gray-700 hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-400 transition-colors flex items-center gap-1"
+              href="/analytics"
+              className="text-lg text-gray-700 hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-400 transition-colors"
             >
-              <Database className="w-4 h-4" />
-              MCP Demo
+              Analytics
             </Link>
             {isLoading ? (
               <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
@@ -159,11 +158,10 @@ export function Navbar(): JSX.Element {
             Background Check
           </Link>
           <Link
-            href="/mcp-demo"
-            className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-gray-800 flex items-center gap-2"
+            href="/analytics"
+            className="block py-3 px-6 text-lg text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-gray-800"
           >
-            <Database className="w-4 h-4" />
-            MCP Demo
+            Analytics
           </Link>
           {user ? (
             <>

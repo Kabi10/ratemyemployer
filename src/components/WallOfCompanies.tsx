@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useIndustryStatistics, useLocationStatistics } from '@/hooks/useMCPQuery';
+import { IndustryStatistic, LocationStatistic } from '@/types/mcp';
 
 interface WallOfCompaniesProps {
   type: 'fame' | 'shame';
@@ -50,9 +52,23 @@ export function WallOfCompanies({
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   
-  // New state for statistics
-  const [industryStats, setIndustryStats] = useState<any[]>([]);
-  const [locationStats, setLocationStats] = useState<any[]>([]);
+  // MCP-powered statistics hooks
+  const {
+    data: industryStats,
+    loading: industryLoading
+  } = useIndustryStatistics({
+    enabled: true,
+    refreshInterval: 300000 // 5 minutes
+  });
+
+  const {
+    data: locationStats,
+    loading: locationLoading
+  } = useLocationStatistics({
+    enabled: true,
+    refreshInterval: 300000 // 5 minutes
+  });
+
   const [sizeStats, setSizeStats] = useState<any[]>([]);
   const [showStats, setShowStats] = useState(false);
 
@@ -188,9 +204,6 @@ export function WallOfCompanies({
       // Fetch news for companies
       fetchNewsForCompanies(selectedCompanies);
       
-      // Fetch statistics
-      fetchStatistics();
-      
     } catch (err: any) {
       console.error('Error fetching companies:', err);
       setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies`);
@@ -214,66 +227,26 @@ export function WallOfCompanies({
     setCompanyNews(newsData);
   };
   
-  // Fetch statistics using stored procedures
-  const fetchStatistics = async () => {
-    try {
-      // Fetch industry statistics
-      const { data: industryData, error: industryError } = await supabase.rpc('get_industry_statistics');
-      
-      if (industryError) {
-        console.error('Error fetching industry statistics:', industryError);
+  // Process MCP statistics data based on wall type
+  const processedIndustryStats = industryStats ? [...industryStats]
+    .sort((a, b) => {
+      if (type === 'fame') {
+        return b.average_rating - a.average_rating;
       } else {
-        // Sort based on type (fame = highest ratings first, shame = lowest ratings first)
-        const sortedIndustryData = [...industryData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setIndustryStats(sortedIndustryData.slice(0, 5));
+        return a.average_rating - b.average_rating;
       }
-      
-      // Fetch location statistics
-      const { data: locationData, error: locationError } = await supabase.rpc('get_location_statistics');
-      
-      if (locationError) {
-        console.error('Error fetching location statistics:', locationError);
+    })
+    .slice(0, 5) : [];
+
+  const processedLocationStats = locationStats ? [...locationStats]
+    .sort((a, b) => {
+      if (type === 'fame') {
+        return b.average_rating - a.average_rating;
       } else {
-        // Sort based on type
-        const sortedLocationData = [...locationData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setLocationStats(sortedLocationData.slice(0, 5));
+        return a.average_rating - b.average_rating;
       }
-      
-      // Fetch size statistics
-      const { data: sizeData, error: sizeError } = await supabase.rpc('get_size_statistics');
-      
-      if (sizeError) {
-        console.error('Error fetching size statistics:', sizeError);
-      } else {
-        // Sort based on type
-        const sortedSizeData = [...sizeData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setSizeStats(sortedSizeData.slice(0, 5));
-      }
-    } catch (err) {
-      console.error('Error fetching statistics:', err);
-    }
-  };
+    })
+    .slice(0, 5) : [];
   
   useEffect(() => {
     // Extract unique locations and sizes from companies
@@ -586,7 +559,13 @@ export function WallOfCompanies({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {industryStats.map((stat) => (
+                    {industryLoading ? (
+                      <div className="space-y-2">
+                        {[...Array(3)].map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    ) : processedIndustryStats.map((stat) => (
                       <div key={stat.industry} className="space-y-2">
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.industry}</span>
@@ -624,7 +603,13 @@ export function WallOfCompanies({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {locationStats.map((stat) => (
+                    {locationLoading ? (
+                      <div className="space-y-2">
+                        {[...Array(3)].map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    ) : processedLocationStats.map((stat) => (
                       <div key={stat.location} className="space-y-2">
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.location}</span>
