@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 
 import { vi } from 'vitest';
 
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, AuthContext } from '@/contexts/AuthContext';
 
 
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -45,11 +45,31 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-// Create a mock context
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Mock the AuthContext hook
+vi.mock('@/contexts/AuthContext', async () => {
+  const actual = await vi.importActual('@/contexts/AuthContext');
+  return {
+    ...actual,
+    useAuth: () => mockAuthContext,
+  };
+});
+
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock auth context value
-const mockAuthContext: AuthContextType = {
+export const mockAuthContext: AuthContextType = {
   user: {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -98,9 +118,7 @@ const customRender = (
   const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
     return (
       <ThemeProvider>
-        <AuthContext.Provider value={mockAuthContext}>
-          {children}
-        </AuthContext.Provider>
+        {children}
       </ThemeProvider>
     );
   };
@@ -116,4 +134,3 @@ export * from '@testing-library/react';
 
 // Override render method
 export { customRender as render };
-export { mockAuthContext };

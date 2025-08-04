@@ -6,10 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { isFeatureEnabled } from '@/lib/featureFlags';
 
-export const metadata = {
-  title: 'MCP Demo | RateMyEmployer',
-  description: 'Model Context Protocol integration has been moved to admin tools',
-};
+
 
 export default function MCPDemoPage() {
   const router = useRouter();

@@ -13,10 +13,7 @@ const MCPDemoComponent = dynamic(
   { ssr: false }
 );
 
-export const metadata = {
-  title: 'MCP Developer Tools | RateMyEmployer Admin',
-  description: 'Model Context Protocol developer tools and testing interface',
-};
+
 
 function MCPDemoPage() {
   const { userRole } = useAuth();

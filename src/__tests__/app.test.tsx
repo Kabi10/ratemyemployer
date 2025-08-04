@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/utils/test-utils';
 import type { Database } from '@/types/supabase';
 
 type Company = Database['public']['Tables']['companies']['Row'];
