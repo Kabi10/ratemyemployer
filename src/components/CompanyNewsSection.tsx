@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { NewsArticle, fetchCompanyNews } from '@/lib/newsApi';
 import { NewsCard } from '@/components/NewsCard';

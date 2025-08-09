@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Enhanced Navbar Component
  * Modern, responsive navigation with advanced styling and interactions
@@ -110,7 +112,7 @@ const EnhancedNavbar: React.FC<EnhancedNavbarProps> = ({
 
   const isActiveLink = (href: string) => {
     if (href === '/') return pathname === '/';
-    return pathname.startsWith(href);
+    return pathname?.startsWith(href) || false;
   };
 
   const NavLink: React.FC<{ item: NavItem; mobile?: boolean }> = ({ item, mobile = false }) => {

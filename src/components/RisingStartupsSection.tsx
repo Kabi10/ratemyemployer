@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Rising Startups Section Component
  * Displays promising startups and rapidly growing companies with growth indicators

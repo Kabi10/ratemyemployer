@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Design System Showcase
  * Comprehensive showcase of the enhanced design system components

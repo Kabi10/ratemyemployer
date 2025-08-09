@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Web Scraping Dashboard Component
  * Comprehensive dashboard for managing and monitoring web scraping operations

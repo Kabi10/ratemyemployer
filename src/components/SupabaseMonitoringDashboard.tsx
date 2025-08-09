@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Supabase Monitoring Dashboard
  * Real-time monitoring of database usage, costs, and performance metrics

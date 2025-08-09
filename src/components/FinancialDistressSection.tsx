@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Financial Distress Section Component
  * Displays companies experiencing financial difficulties with detailed indicators

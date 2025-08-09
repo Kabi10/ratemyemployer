@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Admin Bulk Import Component
  * Allows administrators to bulk import companies from various sources
