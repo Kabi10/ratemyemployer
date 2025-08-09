@@ -32,9 +32,10 @@ export function CompanyNews({ companyName }: CompanyNewsProps) {
 
   if (news.length === 0) {
     return (
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400 text-center">
-          No workplace violations or issues found for {companyName}
+      <div className="p-4 text-center text-gray-600 dark:text-gray-300 border rounded-lg">
+        <p className="mb-2">No recent news found for this company.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          We’re still populating news from public sources. Check back soon or suggest a reliable source.
         </p>
       </div>
     );

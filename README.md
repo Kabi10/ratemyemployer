@@ -48,7 +48,9 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
 Required environment variables:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (for scripts)
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: (Optional) For location features
+- `SERP_API_KEY`: (Optional) For news fetching functionality
 
 ## Development
 
@@ -79,7 +81,32 @@ npm run mcp:update-schema # Update MCP schema from Supabase
 
 # Database migrations
 npm run migrations:run   # Run database migrations
+```
 
+## Database Population
+
+To populate your database with sample data for development:
+
+```bash
+# Install tsx for running TypeScript scripts
+npm install -g tsx
+
+# Populate companies (default: 50 companies)
+tsx scripts/populate-companies.ts
+
+# Populate companies with custom count
+tsx scripts/populate-companies.ts 100
+
+# Populate reviews (default: 10 reviews per company)
+tsx scripts/populate-reviews.ts
+
+# Populate reviews with custom counts
+tsx scripts/populate-reviews.ts 50 15  # 50 companies, 15 reviews each
+```
+
+**Note:** Make sure your Supabase environment variables are set before running population scripts.
+
+```bash
 # Add test data for Wall of Fame/Shame
 npx tsx scripts/add-wall-test-data.ts
 ```

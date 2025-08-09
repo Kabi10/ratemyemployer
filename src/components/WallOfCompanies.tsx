@@ -315,16 +315,29 @@ export function WallOfCompanies({
     }
     
     // Sort companies
-    if (filters.sortBy === 'rating') {
-      filtered = filtered.sort((a, b) => 
-        type === 'fame' 
-          ? b.average_rating - a.average_rating 
-          : a.average_rating - b.average_rating
-      );
-    } else if (filters.sortBy === 'reviews') {
-      filtered = filtered.sort((a, b) => b.review_count - a.review_count);
-    } else if (filters.sortBy === 'name') {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    switch (filters.sortBy) {
+      case 'rating-desc':
+        filtered = filtered.sort((a, b) => b.average_rating - a.average_rating);
+        break;
+      case 'rating-asc':
+        filtered = filtered.sort((a, b) => a.average_rating - b.average_rating);
+        break;
+      case 'reviews-desc':
+        filtered = filtered.sort((a, b) => b.review_count - a.review_count);
+        break;
+      case 'name-asc':
+        filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'recommend-desc':
+        filtered = filtered.sort((a, b) => (b.recommend_percentage || 0) - (a.recommend_percentage || 0));
+        break;
+      default:
+        // Default to rating-desc for fame, rating-asc for shame
+        filtered = filtered.sort((a, b) =>
+          type === 'fame'
+            ? b.average_rating - a.average_rating
+            : a.average_rating - b.average_rating
+        );
     }
     
     setFilteredCompanies(filtered);
@@ -688,8 +701,9 @@ export function WallOfCompanies({
             initialFilters={{
               search: searchTerm,
               industry: selectedIndustry,
-              sortBy: sortBy,
+              sortBy: type === 'fame' ? 'rating-desc' : 'rating-asc',
             }}
+            showSortOptions={true}
           />
         </div>
         
