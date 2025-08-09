@@ -13,7 +13,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      SERP_API_KEY: ${{ secrets.SERP_API_KEY }}
+      SERP_API_KEY: ${{ secrets.SERP_API_KEY }}  # Optional - will use free sources if not provided
 
     steps:
       - name: Checkout repository

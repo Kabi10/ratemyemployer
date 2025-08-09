@@ -127,19 +127,20 @@ export function EnhancedCompanyCard({
   
   // Format the founded date
   const getFoundedDate = () => {
-    if (!company.founded_year) return 'Unknown';
-    return company.founded_year;
+    // Since founded_year doesn't exist in the database, return 'Unknown'
+    return 'Unknown';
   };
-  
+
   // Get company size display
   const getCompanySize = () => {
-    return company.size || 'Unknown';
+    // Since size doesn't exist in the database, return 'Unknown'
+    return 'Unknown';
   };
   
   // Get salary range
   const getSalaryRange = () => {
-    // This would ideally come from actual data
-    return company.salary_range || 'Not reported';
+    // Since salary_range doesn't exist in the database, return 'Not reported'
+    return 'Not reported';
   };
 
   // Get data freshness indicator
@@ -360,7 +361,7 @@ export function EnhancedCompanyCard({
                   <ThumbsUp className="h-4 w-4 mr-2 text-gray-400" />
                   <div>
                     <div className="text-gray-500">CEO Approval</div>
-                    <div>{company.ceo_approval ? `${company.ceo_approval}%` : 'N/A'}</div>
+                    <div>N/A</div>
                   </div>
                 </div>
                 

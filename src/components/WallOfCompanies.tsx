@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, isSupabaseConfigured, getSupabaseConfig } from '@/lib/supabaseClient';
 import type { CompanyWithReviews } from '@/types/database';
 import { EnhancedCompanyCard } from '@/components/EnhancedCompanyCard';
 import { CompanyFilters } from '@/components/CompanyFilters';
@@ -47,11 +47,10 @@ export function WallOfCompanies({
     averageRating: 0
   });
   const [locations, setLocations] = useState<string[]>([]);
-  const [sizes, setSizes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [sortBy, setSortBy] = useState('rating');
-  
+
   // MCP-powered statistics hooks
   const {
     data: industryStats,
@@ -69,14 +68,25 @@ export function WallOfCompanies({
     refreshInterval: 300000 // 5 minutes
   });
 
-  const [sizeStats, setSizeStats] = useState<any[]>([]);
   const [showStats, setShowStats] = useState(false);
 
   // Fetch companies with ratings
   const fetchCompanies = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log('Starting companies fetch...');
+
+      // Check if Supabase is properly configured
+      if (!isSupabaseConfigured()) {
+        const config = getSupabaseConfig();
+        console.error('Supabase configuration issue:', config);
+        throw new Error(
+          `Database not configured. Please check your environment variables:\n` +
+          `- NEXT_PUBLIC_SUPABASE_URL: ${config.hasUrl ? '✓' : '✗'}\n` +
+          `- NEXT_PUBLIC_SUPABASE_ANON_KEY: ${config.hasKey ? '✓' : '✗'}`
+        );
+      }
 
       // First, test a simple query
       const { data: testData, error: testError } = await supabase
@@ -105,9 +115,7 @@ export function WallOfCompanies({
           location,
           description,
           logo_url,
-          website_url,
-          size,
-          founded_year,
+          website,
           reviews (
             id,
             rating,
@@ -206,7 +214,8 @@ export function WallOfCompanies({
       
     } catch (err: any) {
       console.error('Error fetching companies:', err);
-      setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies`);
+      const errorMessage = err?.message || 'Unknown error occurred';
+      setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -249,13 +258,10 @@ export function WallOfCompanies({
     .slice(0, 5) : [];
   
   useEffect(() => {
-    // Extract unique locations and sizes from companies
+    // Extract unique locations from companies
     if (companies.length > 0) {
       const uniqueLocations = Array.from(new Set(companies.map(company => company.location).filter(Boolean)));
-      const uniqueSizes = Array.from(new Set(companies.map(company => company.size).filter(Boolean)));
-      
       setLocations(uniqueLocations as string[]);
-      setSizes(uniqueSizes as string[]);
     }
   }, [companies]);
 
@@ -282,15 +288,8 @@ export function WallOfCompanies({
     
     // Filter by location
     if (filters.location) {
-      filtered = filtered.filter(company => 
+      filtered = filtered.filter(company =>
         company.location === filters.location
-      );
-    }
-    
-    // Filter by size
-    if (filters.size) {
-      filtered = filtered.filter(company => 
-        company.size === filters.size
       );
     }
     
@@ -650,53 +649,16 @@ export function WallOfCompanies({
                 </Card>
               )}
               
-              {/* Size Statistics */}
-              {sizeStats.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      {type === 'fame' ? 'Top Rated by Company Size' : 'Lowest Rated by Company Size'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {sizeStats.map((stat) => (
-                      <div key={stat.size} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{stat.size}</span>
-                          <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
-                            {type === 'fame' ? (
-                              <TrendingUp className="ml-1 inline h-4 w-4" />
-                            ) : (
-                              <TrendingDown className="ml-1 inline h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={stat.average_rating * 20} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(stat.average_rating)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+
             </div>
           )}
         </div>
         
         {/* Filters */}
         <div className="mb-8">
-          <CompanyFilters 
+          <CompanyFilters
             industries={industries}
             locations={locations}
-            sizes={sizes}
             onFiltersChange={handleFiltersChange}
             initialFilters={{
               search: searchTerm,

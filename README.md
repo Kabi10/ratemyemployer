@@ -45,12 +45,17 @@ A platform for sharing and discovering authentic workplace experiences. Help oth
    cp .env.example .env.local
    ```
 
-Required environment variables:
+**Required environment variables (Free):**
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (for scripts)
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: (Optional) For location features
-- `SERP_API_KEY`: (Optional) For news fetching functionality
+
+**Optional environment variables (Paid - free alternatives used if not provided):**
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: Google Maps API (falls back to OpenStreetMap)
+- `SERP_API_KEY`: SerpAPI for news (falls back to RSS feeds)
+- `NEXT_PUBLIC_GEMINI_API_KEY`: Google Gemini API (optional AI features)
+
+**💡 Zero-Cost Operation:** The application works completely free with just Supabase credentials!
 
 ## Development
 
@@ -109,6 +114,11 @@ tsx scripts/populate-reviews.ts 50 15  # 50 companies, 15 reviews each
 ```bash
 # Add test data for Wall of Fame/Shame
 npx tsx scripts/add-wall-test-data.ts
+
+# Automated database population
+npm run populate:auto              # Full automation (Fortune 500 + Startups)
+npm run populate:fortune500        # Fortune 500 companies only
+npm run populate:startups          # Tech startups only
 ```
 
 ## Project Structure
@@ -239,7 +249,8 @@ The Wall of Shame feature includes automated news fetching via GitHub Actions. T
 
 - Runs twice daily (6 AM and 6 PM UTC)
 - Fetches news for the 10 companies with lowest ratings
-- Uses SerpAPI to gather relevant news articles
+- Uses free RSS feeds and Google News RSS (no API key required)
+- Falls back to SerpAPI if API key is provided
 - Stores results in the database for quick access
 
 ### Required Repository Secrets
@@ -248,11 +259,318 @@ To enable the news fetching workflow, add these secrets to your GitHub repositor
 
 - `SUPABASE_URL`: Your Supabase project URL
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
-- `SERP_API_KEY`: Your SerpAPI key
+
+### Optional Repository Secrets
+
+- `SERP_API_KEY`: Your SerpAPI key (uses free RSS feeds if not provided)
 
 ### Manual Trigger
 
 You can manually trigger the news fetch workflow:
+
+## 🏢 Database Population
+
+The application includes automated database population to quickly add companies from various sources:
+
+### Automated Population Sources
+
+- **Fortune 500 Companies**: Well-known large corporations
+- **Tech Startups**: Popular technology companies and startups
+- **User Suggestions**: Community-driven company additions
+- **CSV Bulk Import**: Administrative batch uploads
+- **OpenStreetMap**: Location-based company discovery
+
+### Population Commands
+
+```bash
+# Full automated population
+npm run populate:auto
+
+# Specific data sources
+npm run populate:fortune500    # Fortune 500 companies
+npm run populate:startups      # Tech startups
+
+# Manual script with options
+tsx scripts/populate-database-automation.ts --help
+```
+
+### GitHub Actions Automation
+
+The database population runs automatically:
+- **Weekly**: Every Sunday at 2 AM UTC
+- **Manual**: Trigger via GitHub Actions interface
+- **Configurable**: Choose specific data sources
+
+### User Suggestion System
+
+Users can suggest companies through the application interface:
+1. Submit company information via suggestion form
+2. Admin reviews and approves/rejects suggestions
+3. Approved suggestions automatically become companies
+
+See [Database Population Guide](./docs/DATABASE_POPULATION.md) for detailed documentation.
+
+## 📊 Supabase Monitoring & Cost Optimization
+
+The application includes comprehensive Supabase usage monitoring and cost optimization tools:
+
+### Real-time Monitoring
+
+- **Usage Tracking**: Database size, bandwidth, storage, and active users
+- **Cost Estimation**: Current and projected monthly costs
+- **Free Tier Monitoring**: Track usage against Supabase free tier limits
+- **Performance Metrics**: Query optimization and database health
+
+### Automated Optimization
+
+```bash
+# Run comprehensive cost optimization
+npm run supabase:optimize
+
+# Monitor current usage and costs
+npm run supabase:monitor
+
+# Manual optimization with options
+tsx scripts/supabase-cost-optimization.ts --help
+```
+
+### Admin Dashboard
+
+The admin panel includes a dedicated Supabase monitoring dashboard with:
+- Real-time usage metrics and alerts
+- Cost breakdown and projections
+- Usage trends and historical data
+- Optimization recommendations
+
+### Key Features
+
+- **Zero-Cost Strategy**: Optimized to stay within free tier limits
+- **Automated Alerts**: Warnings when approaching usage limits
+- **Performance Optimization**: Database maintenance and query optimization
+- **Historical Tracking**: Usage trends and cost projections
+- **Migration Planning**: Strategic recommendations for scaling
+
+See [Supabase Evaluation Report](./docs/SUPABASE_EVALUATION.md) for comprehensive analysis and recommendations.
+
+## 🚨 Financial Distress & 🚀 Rising Startups Sections
+
+RateMyEmployer now features specialized sections for tracking company financial health and growth opportunities:
+
+### Financial Distress Monitor
+
+Track companies experiencing financial difficulties and make informed career decisions:
+
+- **Distress Indicators**: Layoffs, funding issues, revenue decline, leadership changes
+- **Severity Scoring**: 1-5 scale with impact assessment
+- **Real-time Monitoring**: Automated detection from news and review patterns
+- **Industry Analysis**: Breakdown by industry and location
+- **Trend Tracking**: Historical distress patterns and predictions
+
+### Rising Startups Tracker
+
+Discover promising startups and rapidly growing companies:
+
+- **Growth Indicators**: Funding rounds, expansion, hiring sprees, partnerships
+- **Growth Scoring**: 1-10 scale with confidence metrics
+- **Funding Information**: Latest rounds, valuations, and investor details
+- **Success Metrics**: Awards, recognition, and achievements
+- **Opportunity Filtering**: Filter by growth stage and potential
+
+### Automated Detection System
+
+```bash
+# Run automated indicator detection
+npm run sections:detect
+
+# Add test data for development
+npm run sections:test-data
+
+# Manual detection with options
+tsx scripts/run-automated-detection.ts --help
+```
+
+### Key Features
+
+- **Smart Analysis**: Automated detection from news articles and review patterns
+- **Comprehensive Filtering**: Industry, location, score ranges, and time periods
+- **Visual Indicators**: Color-coded severity and growth levels
+- **Real-time Updates**: Continuous monitoring and indicator updates
+- **Mobile Optimized**: Responsive design for all devices
+
+### Section Access
+
+- **Financial Distress**: `/financial-distress`
+- **Rising Startups**: `/rising-startups`
+- **Integrated Navigation**: Accessible from main menu
+
+See [New Sections Implementation Guide](./docs/NEW_SECTIONS_IMPLEMENTATION.md) for detailed technical documentation.
+
+## 🕷️ Web Scraping Infrastructure
+
+RateMyEmployer features a comprehensive web scraping infrastructure for automated data collection and enhancement:
+
+### Advanced Automation Capabilities
+
+Sophisticated web scraping systems for automated data collection:
+
+- **Multi-Source Scraping**: Company websites, news sites, job boards, review platforms
+- **Intelligent Job Scheduling**: Priority-based queue with concurrent processing
+- **Data Type Specialization**: Dedicated scrapers for company data, reviews, news, job listings
+- **Quality Assurance**: Automated validation and quality scoring
+- **Deduplication**: Intelligent duplicate detection and prevention
+
+### Ethical Scraping Practices
+
+Respectful and responsible data collection:
+
+- **Robots.txt Compliance**: Automatic checking and respect for robots.txt files
+- **Rate Limiting**: Configurable limits to avoid overwhelming servers
+- **User Agent Rotation**: Respectful identification and request patterns
+- **Terms of Service**: Framework for respecting platform terms
+- **Crawl Delays**: Intelligent delays based on server responses
+
+### Data Quality & Validation
+
+Comprehensive quality assurance system:
+
+- **Validation Rules**: Configurable validation for different data types
+- **Quality Scoring**: Automated assessment of data completeness and accuracy
+- **Spam Detection**: Identifies and filters spam or low-quality content
+- **Confidence Metrics**: Reliability scoring for all scraped data
+- **Manual Verification**: Interface for human validation and verification
+
+### Web Scraping Dashboard
+
+```bash
+# Access the scraping dashboard
+# Visit: /scraping
+
+# Run the scraping system
+npm run scraping:run
+
+# Demo mode with sample data
+npm run scraping:demo
+
+# Monitor existing operations
+npm run scraping:monitor
+
+# Validate scraped data quality
+npm run scraping:validate
+```
+
+### Key Features
+
+- **Real-time Monitoring**: Live job status and progress tracking
+- **Statistics Dashboard**: Success rates, completion times, quality metrics
+- **Engine Controls**: Start/stop scraping operations
+- **Job Management**: Create, cancel, retry scraping jobs
+- **Data Enhancement**: Automatic company data enrichment
+
+### Scraper Types
+
+- **Company Data**: Basic information, industry, description, contact details
+- **News Monitoring**: Company mentions, sentiment analysis, relevance scoring
+- **Job Listings**: Career page scraping, position details, requirements
+- **Review Collection**: Employee feedback (with ethical considerations)
+- **Financial Data**: Public financial information and metrics
+
+### Performance & Scalability
+
+- **Concurrent Processing**: Multiple jobs running simultaneously
+- **Intelligent Queuing**: Priority-based job scheduling
+- **Caching Systems**: Robots.txt and metadata caching
+- **Error Recovery**: Automatic retry with exponential backoff
+- **Resource Management**: Memory and CPU optimization
+
+See [Web Scraping Infrastructure Guide](./docs/WEB_SCRAPING_INFRASTRUCTURE.md) for comprehensive technical documentation.
+
+## 🎨 UI Design System Upgrade
+
+RateMyEmployer features a comprehensive, modern design system delivering exceptional user experience:
+
+### Enhanced Component Library
+
+Modern, accessible UI components with advanced functionality:
+
+- **Enhanced Buttons**: 8 variants, loading states, icon support, accessibility-first design
+- **Enhanced Cards**: 10 variants, hover effects, structured content, skeleton loading
+- **Enhanced Inputs**: 4 variants, validation states, interactive elements, full accessibility
+- **Enhanced Navigation**: 4 variants, dropdown menus, mobile responsive, theme switching
+- **Design Tokens**: Comprehensive CSS custom properties for consistent theming
+
+### Advanced Design Features
+
+Sophisticated visual design with modern patterns:
+
+- **Glassmorphism Effects**: Subtle transparency and backdrop blur
+- **Gradient Systems**: Dynamic color transitions and animations
+- **Micro-interactions**: Smooth 60fps animations with hardware acceleration
+- **Responsive Design**: Mobile-first, adaptive layouts with touch optimization
+- **Dark Mode**: Complete light/dark theme system with automatic switching
+
+### Accessibility Excellence
+
+WCAG 2.1 AA compliant throughout the platform:
+
+- **Keyboard Navigation**: Full keyboard accessibility for all components
+- **Screen Reader Support**: Comprehensive ARIA implementation
+- **Color Contrast**: 4.5:1+ contrast ratios throughout
+- **Focus Management**: Visible focus indicators and proper tab order
+- **Reduced Motion**: Respects user motion preferences
+
+### Design System Showcase
+
+```bash
+# Access the design system documentation
+# Visit: /design-system
+
+# Component usage examples
+import { EnhancedButton, EnhancedCard, EnhancedInput } from '@/components/ui';
+
+<EnhancedButton variant="premium" loading>
+  Premium Action
+</EnhancedButton>
+
+<EnhancedCard variant="glass" hoverEffect="lift">
+  Modern card with glassmorphism
+</EnhancedCard>
+
+<EnhancedInput
+  label="Email"
+  type="email"
+  clearable
+  showValidation
+/>
+```
+
+### Performance Optimizations
+
+Optimized for speed and efficiency:
+
+- **CSS-in-JS**: Class Variance Authority for minimal bundle size
+- **Hardware Acceleration**: GPU-accelerated transforms and animations
+- **Code Splitting**: Dynamic imports for optimal loading
+- **Responsive Images**: WebP format with intelligent fallbacks
+- **Efficient Rendering**: React.memo and optimized re-renders
+
+### Mobile Experience
+
+Touch-optimized interface design:
+
+- **Large Touch Targets**: Minimum 44px for all interactive elements
+- **Gesture Support**: Swipe, pinch, and tap interactions
+- **Adaptive Navigation**: Collapsible menus and mobile-first design
+- **Performance**: Optimized animations for lower-end devices
+
+### Key Improvements
+
+- **Modern Aesthetic**: Glassmorphism, gradients, and elevated design
+- **Enhanced UX**: Micro-interactions, loading states, and clear feedback
+- **Accessibility**: WCAG 2.1 AA compliance throughout
+- **Performance**: 60fps animations with hardware acceleration
+- **Consistency**: Unified design language with systematic spacing and typography
+
+See [UI Design System Upgrade Guide](./docs/UI_DESIGN_SYSTEM_UPGRADE.md) for comprehensive implementation documentation.
 
 1. Go to the "Actions" tab in your repository
 2. Select "Fetch Company News" workflow
