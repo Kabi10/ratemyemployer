@@ -134,8 +134,9 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
         <label className="block text-sm font-medium mb-2">
           Location <span className="text-red-500">*</span>
         </label>
-        <Input
-          {...register('location')}
+        <LocationAutocomplete
+          value={location}
+          onChange={(value) => setValue('location', value, { shouldValidate: true })}
           placeholder="Enter location..."
           required
         />

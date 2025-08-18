@@ -117,21 +117,25 @@ export function useMCPQueryWithFallback<T = any>(
       const { data: mcpResult, error: mcpError } = await supabase.rpc(procedure, params);
       
       if (mcpError) {
-        // Fall back to direct query
-        console.warn(`MCP procedure ${procedure} failed, using fallback:`, mcpError);
+        throw mcpError;
+      }
+
+      setData(mcpResult);
+
+    } catch (err) {
+      console.warn(`MCP procedure ${procedure} failed, using fallback:`, err);
+      try {
         const { data: fallbackResult, error: fallbackError } = await fallbackQuery();
         
         if (fallbackError) throw fallbackError;
         setData(fallbackResult);
-      } else {
-        setData(mcpResult);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Query failed';
-      setError(message);
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`Error in ${procedure} with fallback:`, err);
+      } catch (fallbackErr) {
+        const message = fallbackErr instanceof Error ? fallbackErr.message : 'Query failed';
+        setError(message);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`Error in ${procedure} with fallback:`, fallbackErr);
+        }
       }
     } finally {
       setLoading(false);

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { CompanySize, EmploymentStatus, ReviewStatus } from '@/types/database';
 
 // URL validation regex
-const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+const URL_REGEX = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
 
 // Enums
 export const employmentStatusEnum = z.enum(['Full-time', 'Part-time', 'Contract', 'Intern']) satisfies z.ZodType<EmploymentStatus>;
@@ -45,6 +45,7 @@ export const companySchema = z.object({
   website: z.string()
     .max(255, 'Website URL must be less than 255 characters')
     .regex(URL_REGEX, 'Invalid website URL')
+    .transform(val => val.trim())
     .optional()
     .nullable(),
   size: companySizeEnum.optional().nullable(),
@@ -92,7 +93,8 @@ export const reviewSchema = z.object({
     .email('Invalid email address')
     .max(255, 'Email must be less than 255 characters')
     .optional()
-    .nullable(),
+    .nullable()
+    .or(z.literal('')),
 });
 
 // Validation Utilities

@@ -264,14 +264,14 @@ export function RisingStartupsSection({
               <div>
                 <label className="block text-sm font-medium mb-1">Industry</label>
                 <Select 
-                  value={filters.industry || ''} 
-                  onValueChange={(value) => handleFilterChange('industry', value || undefined)}
+                  value={filters.industry || 'all'}
+                  onValueChange={(value) => handleFilterChange('industry', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Industries" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Industries</SelectItem>
+                    <SelectItem value="all">All Industries</SelectItem>
                     <SelectItem value="Technology">Technology</SelectItem>
                     <SelectItem value="Healthcare">Healthcare</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
@@ -284,14 +284,14 @@ export function RisingStartupsSection({
               <div>
                 <label className="block text-sm font-medium mb-1">Growth Level</label>
                 <Select 
-                  value={filters.min_growth_score?.toString() || ''} 
-                  onValueChange={(value) => handleFilterChange('min_growth_score', value ? parseInt(value) : undefined)}
+                  value={filters.min_growth_score?.toString() || 'all'}
+                  onValueChange={(value) => handleFilterChange('min_growth_score', value === 'all' ? undefined : parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Levels" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Levels</SelectItem>
+                    <SelectItem value="all">All Levels</SelectItem>
                     <SelectItem value="25">Moderate+ (25+)</SelectItem>
                     <SelectItem value="50">High+ (50+)</SelectItem>
                     <SelectItem value="75">Exceptional (75+)</SelectItem>
