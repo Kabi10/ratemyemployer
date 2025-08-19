@@ -94,9 +94,10 @@ const enhancedButtonVariants = cva(
         'icon-sm': 'h-8 w-8',
         'icon-lg': 'h-12 w-12',
       },
+      // Only apply width when explicitly requested; avoiding a default
+      // `w-auto` ensures icon-only buttons retain their sizing
       fullWidth: {
         true: 'w-full',
-        false: 'w-auto',
       },
       rounded: {
         default: 'rounded-lg',
@@ -109,7 +110,6 @@ const enhancedButtonVariants = cva(
     defaultVariants: {
       variant: 'default',
       size: 'default',
-      fullWidth: false,
       rounded: 'default',
     },
   }
@@ -142,9 +142,21 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     ...props 
   }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    
+
     const isDisabled = disabled || loading;
-    
+
+    const handleKeyDown = (
+      e: React.KeyboardEvent<HTMLButtonElement>
+    ) => {
+      props.onKeyDown?.(e);
+      if (e.defaultPrevented) return;
+      if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
+        // Trigger click manually for better keyboard support
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (props.onClick as any)?.(e);
+      }
+    };
+
     return (
       <Comp
         className={cn(
@@ -153,10 +165,13 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         )}
         ref={ref}
         disabled={isDisabled}
+        aria-disabled={isDisabled ? true : undefined}
+        aria-busy={loading ? true : undefined}
+        onKeyDown={handleKeyDown}
         {...props}
       >
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 data-testid="loading-spinner" className="h-4 w-4 animate-spin" />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
@@ -167,7 +182,7 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {!loading && rightIcon && (
           <span className="flex-shrink-0">{rightIcon}</span>
         )}
-        
+
         {/* Ripple effect overlay */}
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
