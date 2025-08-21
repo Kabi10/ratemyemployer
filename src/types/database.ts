@@ -98,6 +98,7 @@ export type CompanyWithReviews = Company & {
   reviews: Review[];
   average_rating: number;
   total_reviews: number;
+  recommend_percentage?: number;
 };
 
 export type ReviewWithLikes = Review & {
