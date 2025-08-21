@@ -55,7 +55,7 @@ export function withAuth<P extends object>(
   WrappedComponent: ComponentType<P>,
   options: WithAuthProps = {}
 ) {
-  const { requiredRole, redirectTo = '/login' } = options;
+  const { requiredRole, redirectTo = '/auth/login' } = options;
   
   return function ProtectedRoute(props: P) {
     const router = useRouter();

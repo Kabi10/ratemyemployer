@@ -327,8 +327,12 @@ const EnhancedNavbar: React.FC<EnhancedNavbarProps> = ({
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <EnhancedButton variant="ghost">Sign In</EnhancedButton>
-                <EnhancedButton>Sign Up</EnhancedButton>
+                <EnhancedButton asChild variant="ghost">
+                  <Link href="/auth/login">Sign In</Link>
+                </EnhancedButton>
+                <EnhancedButton asChild>
+                  <Link href="/auth/login?signup=true">Sign Up</Link>
+                </EnhancedButton>
               </div>
             )}
 

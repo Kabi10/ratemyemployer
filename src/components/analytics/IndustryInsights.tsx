@@ -98,7 +98,7 @@ export function IndustryInsights({
   }
 
   const topIndustries = industryStats.slice(0, limit);
-  const maxRating = Math.max(...topIndustries.map(stat => stat.average_rating));
+  const maxRating = Math.max(...topIndustries.map(stat => stat.average_rating ?? 0));
   const totalCompanies = topIndustries.reduce((sum, stat) => sum + stat.company_count, 0);
   const totalReviews = topIndustries.reduce((sum, stat) => sum + stat.review_count, 0);
 
@@ -153,19 +153,19 @@ export function IndustryInsights({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`font-bold ${getRatingColor(stat.average_rating)}`}>
-                    {stat.average_rating.toFixed(1)}
+                    {Number(stat.average_rating ?? 0).toFixed(2)}
                   </span>
                   <div className={`px-2 py-1 rounded text-xs ${getRatingBgColor(stat.average_rating)}`}>
-                    {stat.average_rating >= 4 ? 'Excellent' : 
-                     stat.average_rating >= 3.5 ? 'Good' : 
+                    {stat.average_rating >= 4 ? 'Excellent' :
+                     stat.average_rating >= 3.5 ? 'Good' :
                      stat.average_rating >= 2.5 ? 'Fair' : 'Poor'}
                   </div>
                 </div>
               </div>
-              
+
               <div className="ml-9">
-                <Progress 
-                  value={(stat.average_rating / 5) * 100} 
+                <Progress
+                  value={((stat.average_rating ?? 0) / 5) * 100}
                   className="h-2"
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -186,11 +186,11 @@ export function IndustryInsights({
             <h4 className="font-medium text-blue-800 mb-2">Key Insights</h4>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>
-                • <strong>{topIndustries[0].industry}</strong> leads with {topIndustries[0].average_rating.toFixed(1)}/5 rating
+                • <strong>{topIndustries[0].industry}</strong> leads with {Number(topIndustries[0].average_rating ?? 0).toFixed(2)}/5 rating
               </li>
               {topIndustries.length > 1 && (
                 <li>
-                  • Rating gap of {(topIndustries[0].average_rating - topIndustries[topIndustries.length - 1].average_rating).toFixed(1)} points between top and bottom industries
+                  • Rating gap of {Number((topIndustries[0].average_rating ?? 0) - (topIndustries[topIndustries.length - 1].average_rating ?? 0)).toFixed(2)} points between top and bottom industries
                 </li>
               )}
               <li>

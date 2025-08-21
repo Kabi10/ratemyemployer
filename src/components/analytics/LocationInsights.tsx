@@ -110,7 +110,7 @@ export function LocationInsights({
   const topLocations = locationStats.slice(0, limit);
   const totalCompanies = topLocations.reduce((sum, stat) => sum + stat.company_count, 0);
   const totalReviews = topLocations.reduce((sum, stat) => sum + stat.review_count, 0);
-  const averageRating = topLocations.reduce((sum, stat) => sum + stat.average_rating, 0) / topLocations.length;
+  const averageRating = topLocations.reduce((sum, stat) => sum + (stat.average_rating ?? 0), 0) / topLocations.length;
 
   return (
     <Card className={className}>
@@ -140,7 +140,7 @@ export function LocationInsights({
           </div>
           <div className="text-center">
             <div className={`text-xl font-bold ${getRatingColor(averageRating)}`}>
-              {averageRating.toFixed(1)}
+              {Number(averageRating ?? 0).toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">Avg Rating</div>
           </div>
@@ -163,13 +163,13 @@ export function LocationInsights({
                     </div>
                   </div>
                   <div className={`px-2 py-1 rounded-full text-sm font-medium ${getRatingBadgeColor(stat.average_rating)}`}>
-                    {stat.average_rating.toFixed(1)}
+                    {Number(stat.average_rating ?? 0).toFixed(2)}
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <Progress 
-                    value={(stat.average_rating / 5) * 100} 
+                  <Progress
+                    value={((stat.average_rating ?? 0) / 5) * 100}
                     className="h-2"
                   />
                 </div>
@@ -204,9 +204,9 @@ export function LocationInsights({
           <div className="p-4 bg-green-50 rounded-lg">
             <h4 className="font-medium text-green-800 mb-2">Market Analysis</h4>
             <div className="text-sm text-green-700 space-y-1">
-              <p>
-                • <strong>{topLocations[0].location}</strong> leads with {topLocations[0].average_rating.toFixed(1)}/5 rating
-              </p>
+                <p>
+                  • <strong>{topLocations[0].location}</strong> leads with {Number(topLocations[0].average_rating ?? 0).toFixed(2)}/5 rating
+                </p>
               <p>
                 • {topLocations.filter(stat => stat.company_count >= 50).length} major employment hubs identified
               </p>
@@ -214,10 +214,10 @@ export function LocationInsights({
                 • {topLocations.filter(stat => stat.average_rating >= 4).length} locations rated "Excellent" (4.0+)
               </p>
               {topLocations.length > 1 && (
-                <p>
-                  • Rating spread: {(topLocations[0].average_rating - topLocations[topLocations.length - 1].average_rating).toFixed(1)} points
-                </p>
-              )}
+                  <p>
+                    • Rating spread: {Number((topLocations[0].average_rating ?? 0) - (topLocations[topLocations.length - 1].average_rating ?? 0)).toFixed(2)} points
+                  </p>
+                )}
             </div>
           </div>
         )}
