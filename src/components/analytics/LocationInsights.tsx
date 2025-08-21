@@ -110,7 +110,11 @@ export function LocationInsights({
   const topLocations = locationStats.slice(0, limit);
   const totalCompanies = topLocations.reduce((sum, stat) => sum + stat.company_count, 0);
   const totalReviews = topLocations.reduce((sum, stat) => sum + stat.review_count, 0);
-  const averageRating = topLocations.reduce((sum, stat) => sum + (stat.average_rating ?? 0), 0) / topLocations.length;
+  const averageRating =
+    topLocations.reduce(
+      (sum, stat) => sum + (stat.average_rating ?? stat.avg_rating ?? 0),
+      0
+    ) / topLocations.length;
 
   return (
     <Card className={className}>
@@ -162,14 +166,14 @@ export function LocationInsights({
                       <p className="text-sm text-gray-500">{getLocationSize(stat.company_count)}</p>
                     </div>
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-sm font-medium ${getRatingBadgeColor(stat.average_rating)}`}>
-                    {Number(stat.average_rating ?? 0).toFixed(2)}
+                  <div className={`px-2 py-1 rounded-full text-sm font-medium ${getRatingBadgeColor(stat.average_rating ?? stat.avg_rating ?? 0)}`}>
+                    {Number(stat.average_rating ?? stat.avg_rating ?? 0).toFixed(2)}
                   </div>
                 </div>
 
                 <div className="mb-3">
                   <Progress
-                    value={((stat.average_rating ?? 0) / 5) * 100}
+                    value={((stat.average_rating ?? stat.avg_rating ?? 0) / 5) * 100}
                     className="h-2"
                   />
                 </div>
@@ -188,9 +192,9 @@ export function LocationInsights({
                   <div className="flex items-center gap-1 text-gray-600">
                     <Star className="h-3 w-3" />
                     <span className="text-xs">
-                      {stat.average_rating >= 4 ? 'Excellent' : 
-                       stat.average_rating >= 3.5 ? 'Good' : 
-                       stat.average_rating >= 2.5 ? 'Fair' : 'Poor'}
+                      {(stat.average_rating ?? stat.avg_rating ?? 0) >= 4 ? 'Excellent' :
+                       (stat.average_rating ?? stat.avg_rating ?? 0) >= 3.5 ? 'Good' :
+                       (stat.average_rating ?? stat.avg_rating ?? 0) >= 2.5 ? 'Fair' : 'Poor'}
                     </span>
                   </div>
                 </div>
@@ -205,17 +209,17 @@ export function LocationInsights({
             <h4 className="font-medium text-green-800 mb-2">Market Analysis</h4>
             <div className="text-sm text-green-700 space-y-1">
                 <p>
-                  • <strong>{topLocations[0].location}</strong> leads with {Number(topLocations[0].average_rating ?? 0).toFixed(2)}/5 rating
+                  • <strong>{topLocations[0].location}</strong> leads with {Number(topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0).toFixed(2)}/5 rating
                 </p>
               <p>
                 • {topLocations.filter(stat => stat.company_count >= 50).length} major employment hubs identified
               </p>
               <p>
-                • {topLocations.filter(stat => stat.average_rating >= 4).length} locations rated "Excellent" (4.0+)
+                • {topLocations.filter(stat => (stat.average_rating ?? stat.avg_rating ?? 0) >= 4).length} locations rated "Excellent" (4.0+)
               </p>
               {topLocations.length > 1 && (
                   <p>
-                    • Rating spread: {Number((topLocations[0].average_rating ?? 0) - (topLocations[topLocations.length - 1].average_rating ?? 0)).toFixed(2)} points
+                    • Rating spread: {Number((topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0) - (topLocations[topLocations.length - 1].average_rating ?? topLocations[topLocations.length - 1].avg_rating ?? 0)).toFixed(2)} points
                   </p>
                 )}
             </div>
