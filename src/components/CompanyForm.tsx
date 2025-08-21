@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { companySchema, type CompanyFormData } from '@/lib/schemas';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
@@ -28,6 +29,18 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Auth gate: show CTA instead of a dead form when not signed in
+  if (!user) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p className="mb-2 font-medium">Please sign in to add a company.</p>
+        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
+          Sign in / Create account
+        </Link>
+      </div>
+    );
+  }
 
   const {
     register,
