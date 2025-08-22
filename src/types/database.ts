@@ -144,7 +144,7 @@ export interface GetReviewsOptions {
   page?: number;
   limit?: number;
   companyId?: number | string;
-  userId?: string;
+  userId?: number | string;
   withCompany?: boolean;
   withLikes?: boolean;
 }
