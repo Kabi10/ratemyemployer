@@ -16,7 +16,8 @@ const enhancedButtonVariants = cva(
     'rounded-lg font-medium transition-all duration-200',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
-    'relative overflow-hidden',
+    // Allows ripple effect via group-active
+    'relative overflow-hidden group',
     // Improved accessibility
     'focus-visible:ring-blue-500 focus-visible:ring-offset-2',
     // Better hover states
@@ -96,7 +97,7 @@ const enhancedButtonVariants = cva(
       },
       fullWidth: {
         true: 'w-full',
-        false: 'w-auto',
+        false: '',
       },
       rounded: {
         default: 'rounded-lg',
@@ -126,37 +127,85 @@ export interface EnhancedButtonProps
 }
 
 const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    fullWidth,
-    rounded,
-    asChild = false, 
-    loading = false,
-    loadingText,
-    leftIcon,
-    rightIcon,
-    children,
-    disabled,
-    ...props 
-  }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-    
+  (
+    {
+      className,
+      variant,
+      size,
+      fullWidth,
+      rounded,
+      asChild = false,
+      loading = false,
+      loadingText,
+      leftIcon,
+      rightIcon,
+      children,
+      disabled,
+      onKeyDown,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
     const isDisabled = disabled || loading;
-    
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      onKeyDown?.(event);
+      if (isDisabled) return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onClick?.(event as any);
+      }
+    };
+
+    if (asChild) {
+      return (
+        <Slot
+          ref={ref as any}
+          className={cn(
+            enhancedButtonVariants({
+              variant,
+              size,
+              fullWidth,
+              rounded,
+              className,
+            }),
+            loading && 'cursor-not-allowed'
+          )}
+          aria-disabled={isDisabled ? 'true' : undefined}
+          onKeyDown={handleKeyDown}
+          onClick={onClick}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
+      <button
+        ref={ref}
         className={cn(
-          enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
+          enhancedButtonVariants({
+            variant,
+            size,
+            fullWidth,
+            rounded,
+            className,
+          }),
           loading && 'cursor-not-allowed'
         )}
-        ref={ref}
         disabled={isDisabled}
+        aria-disabled={isDisabled ? 'true' : undefined}
+        onKeyDown={handleKeyDown}
+        onClick={onClick}
         {...props}
       >
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2
+            data-testid="loading-spinner"
+            className="h-4 w-4 animate-spin"
+          />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
@@ -167,12 +216,12 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {!loading && rightIcon && (
           <span className="flex-shrink-0">{rightIcon}</span>
         )}
-        
+
         {/* Ripple effect overlay */}
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
-      </Comp>
+      </button>
     );
   }
 );
