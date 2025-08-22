@@ -10,6 +10,7 @@ const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 export type IndustryStatistic = {
   industry: string;
   avg_rating: number;
+  average_rating: number;
   company_count: number;
   review_count: number;
 };
@@ -17,6 +18,7 @@ export type IndustryStatistic = {
 export type LocationStatistic = {
   location: string;
   avg_rating: number;
+  average_rating: number;
   company_count: number;
   review_count: number;
 };
@@ -69,14 +71,18 @@ export async function getIndustryStatistics(): Promise<IndustryStatistic[]> {
     });
 
     // Convert map to array of statistics
-    const statistics: IndustryStatistic[] = Array.from(industryMap.entries()).map(([industry, stats]) => ({
-      industry,
-      avg_rating: stats.ratings.length > 0 
-        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length 
-        : 0,
-      company_count: stats.companies.size,
-      review_count: stats.reviews
-    }));
+    const statistics: IndustryStatistic[] = Array.from(industryMap.entries()).map(([industry, stats]) => {
+      const avg_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+      return {
+        industry,
+        avg_rating,
+        average_rating: avg_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
 
     // Sort by average rating descending
     return statistics.sort((a, b) => b.avg_rating - a.avg_rating);
@@ -134,14 +140,18 @@ export async function getLocationStatistics(): Promise<LocationStatistic[]> {
     });
 
     // Convert map to array of statistics
-    const statistics: LocationStatistic[] = Array.from(locationMap.entries()).map(([location, stats]) => ({
-      location,
-      avg_rating: stats.ratings.length > 0 
-        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length 
-        : 0,
-      company_count: stats.companies.size,
-      review_count: stats.reviews
-    }));
+    const statistics: LocationStatistic[] = Array.from(locationMap.entries()).map(([location, stats]) => {
+      const avg_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+      return {
+        location,
+        avg_rating,
+        average_rating: avg_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
 
     // Sort by average rating descending
     return statistics.sort((a, b) => b.avg_rating - a.avg_rating);
@@ -207,14 +217,18 @@ export async function getAllIndustryStatistics(): Promise<IndustryStatistic[]> {
     });
 
     // Convert map to array of statistics
-    const statistics: IndustryStatistic[] = Array.from(industryMap.entries()).map(([industry, stats]) => ({
-      industry,
-      avg_rating: stats.ratings.length > 0 
-        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length 
-        : 0,
-      company_count: stats.companies.size,
-      review_count: stats.reviews
-    }));
+    const statistics: IndustryStatistic[] = Array.from(industryMap.entries()).map(([industry, stats]) => {
+      const avg_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+      return {
+        industry,
+        avg_rating,
+        average_rating: avg_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
 
     // Sort by average rating descending
     return statistics.sort((a, b) => b.avg_rating - a.avg_rating);
@@ -280,14 +294,18 @@ export async function getAllLocationStatistics(): Promise<LocationStatistic[]> {
     });
 
     // Convert map to array of statistics
-    const statistics: LocationStatistic[] = Array.from(locationMap.entries()).map(([location, stats]) => ({
-      location,
-      avg_rating: stats.ratings.length > 0 
-        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length 
-        : 0,
-      company_count: stats.companies.size,
-      review_count: stats.reviews
-    }));
+    const statistics: LocationStatistic[] = Array.from(locationMap.entries()).map(([location, stats]) => {
+      const avg_rating = stats.ratings.length > 0
+        ? stats.ratings.reduce((sum, rating) => sum + rating, 0) / stats.ratings.length
+        : 0;
+      return {
+        location,
+        avg_rating,
+        average_rating: avg_rating,
+        company_count: stats.companies.size,
+        review_count: stats.reviews
+      };
+    });
 
     // Sort by average rating descending
     return statistics.sort((a, b) => b.avg_rating - a.avg_rating);
