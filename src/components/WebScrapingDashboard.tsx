@@ -6,13 +6,14 @@
  */
 
 import { useState, useEffect } from 'react';
+import SetupRequired from '@/components/SetupRequired';
 import { motion } from 'framer-motion';
-import { 
-  Bot, 
-  Play, 
-  Pause, 
-  Plus, 
-  RefreshCw, 
+import {
+  Bot,
+  Play,
+  Pause,
+  Plus,
+  RefreshCw,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -62,6 +63,7 @@ export function WebScrapingDashboard({
   const [error, setError] = useState<string | null>(null);
   const [engineRunning, setEngineRunning] = useState(false);
   const [selectedJob, setSelectedJob] = useState<ScrapingJob | null>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -72,8 +74,8 @@ export function WebScrapingDashboard({
   const fetchData = async () => {
     try {
       setError(null);
-      
-      // Fetch jobs and stats in parallel
+      setSetupRequired(false);
+
       const [jobsResponse, statsResponse] = await Promise.all([
         scrapingApi.getScrapingJobs({}, 20, 0),
         scrapingApi.getScrapingStats()
@@ -81,9 +83,14 @@ export function WebScrapingDashboard({
 
       setJobs(jobsResponse.jobs);
       setStats(statsResponse);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching scraping data:', err);
-      setError('Failed to load scraping data. Please try again.');
+      const msg = String(err?.message || err);
+      if (msg.includes('42P01') || (msg.includes('relation') && msg.includes('scraping_'))) {
+        setSetupRequired(true);
+      } else {
+        setError('Failed to load scraping data. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -153,17 +160,29 @@ export function WebScrapingDashboard({
     return `${minutes}m ${seconds}s`;
   };
 
-  if (error) {
+  if (setupRequired) {
     return (
-      <Alert className="border-red-200 bg-red-50">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="max-w-2xl mx-auto">
+        <SetupRequired
+          title="Web Scraping: Setup Required"
+          steps={[
+            'Run: supabase link --project-ref <your-project-ref>',
+            'Run: supabase db push to create tables: scraping_jobs, scraped_items, company_data_enhancements.',
+            'Configure env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+          ]}
+          note="After completing these steps, reload this page."
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {error}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">

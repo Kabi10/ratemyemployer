@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabaseClient';
 import { reviewSchema, type ReviewFormData, employmentStatusEnum } from '@/lib/schemas';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 import type { CompanyId, JoinedCompany, ReviewInsert, Review } from '@/types/database';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -67,6 +68,18 @@ export const ReviewForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<JoinedCompany | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Auth gate: show CTA instead of form when not signed in
+  if (!user) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p className="mb-2 font-medium">Please sign in to write a review.</p>
+        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
+          Sign in / Create account
+        </Link>
+      </div>
+    );
+  }
 
   const {
     register,

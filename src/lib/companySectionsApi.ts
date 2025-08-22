@@ -36,7 +36,12 @@ export async function getFinancialDistressCompanies(
 
     if (error) {
       console.error('Error fetching distress companies:', error);
-      throw error;
+      return {
+        companies: [],
+        total_count: 0,
+        average_distress_score: 0,
+        most_common_indicator: 'layoffs' as any
+      };
     }
 
     if (!companiesData || companiesData.length === 0) {
@@ -168,7 +173,13 @@ export async function getRisingStartupCompanies(
 
     if (error) {
       console.error('Error fetching rising startups:', error);
-      throw error;
+      return {
+        companies: [],
+        total_count: 0,
+        average_growth_score: 0,
+        total_funding: 0,
+        most_common_indicator: 'hiring_spree' as any
+      };
     }
 
     if (!companiesData || companiesData.length === 0) {
@@ -375,7 +386,15 @@ export async function getDistressStatistics(): Promise<DistressStatistics> {
     const { data: companies, error } = await supabase
       .rpc('get_financial_distress_companies', { limit_param: 1000 });
 
-    if (error) throw error;
+    if (error) {
+      return {
+        total_companies: 0,
+        average_score: 0,
+        by_industry: [],
+        by_indicator_type: [],
+        trend_data: []
+      };
+    }
 
     const totalCompanies = companies?.length || 0;
     const averageScore = totalCompanies > 0 
@@ -421,7 +440,16 @@ export async function getGrowthStatistics(): Promise<GrowthStatistics> {
     const { data: companies, error } = await supabase
       .rpc('get_rising_startup_companies', { limit_param: 1000 });
 
-    if (error) throw error;
+    if (error) {
+      return {
+        total_companies: 0,
+        average_score: 0,
+        total_funding: 0,
+        by_industry: [],
+        by_indicator_type: [],
+        trend_data: []
+      };
+    }
 
     const totalCompanies = companies?.length || 0;
     const averageScore = totalCompanies > 0 
