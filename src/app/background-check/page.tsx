@@ -1,7 +1,8 @@
 'use client'
 
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { motion } from 'framer-motion';
 
@@ -12,6 +13,8 @@ import { AssessmentList } from '@/components/AssessmentList';
 
 export default function BackgroundCheck() {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [term, setTerm] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     // Set initial dimensions
@@ -109,24 +112,35 @@ export default function BackgroundCheck() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className="max-w-2xl mx-auto mb-12"
             >
-              <div className="relative group">
+              <form
+                className="relative group"
+                onSubmit={(e: FormEvent) => {
+                  e.preventDefault();
+                  const q = term.trim();
+                  if (!q) return;
+                  router.push(`/companies?query=${encodeURIComponent(q)}`);
+                }}
+              >
                 <input
                   type="text"
-                  placeholder="Enter company name..."
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 
-                           backdrop-blur-lg text-white placeholder-gray-400 outline-none focus:ring-2 
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
+                  placeholder="Search a company or ticker..."
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20
+                           backdrop-blur-lg text-white placeholder-gray-400 outline-none focus:ring-2
                            focus:ring-blue-400/50 transition-all duration-300 shadow-lg text-base sm:text-lg"
                 />
-                <button 
-                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-1.5 sm:py-2 
-                           rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500/80 to-purple-500/80 
-                           text-white font-medium text-sm sm:text-base hover:from-blue-500 hover:to-purple-500 
-                           transition-all duration-300 backdrop-blur-lg shadow-lg hover:shadow-xl 
+                <button
+                  type="submit"
+                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-1.5 sm:py-2
+                           rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500/80 to-purple-500/80
+                           text-white font-medium text-sm sm:text-base hover:from-blue-500 hover:to-purple-500
+                           transition-all duration-300 backdrop-blur-lg shadow-lg hover:shadow-xl
                            hover:scale-105 active:scale-95 touch-manipulation"
                 >
                   Search
                 </button>
-              </div>
+              </form>
             </motion.div>
 
             {/* Assessment List */}
