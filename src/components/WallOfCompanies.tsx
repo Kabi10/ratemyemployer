@@ -122,7 +122,6 @@ export function WallOfCompanies({
             title,
             pros,
             cons,
-            recommend,
             created_at,
             status
           )
@@ -157,7 +156,7 @@ export function WallOfCompanies({
           ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
           : 0;
         
-        const recommendCount = reviews.filter(review => review.recommend).length;
+        const recommendCount = reviews.filter(review => review.rating >= 4).length;
         const recommendPercentage = reviews.length > 0
           ? Math.round((recommendCount / reviews.length) * 100)
           : 0;

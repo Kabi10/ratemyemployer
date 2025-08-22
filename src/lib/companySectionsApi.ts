@@ -48,8 +48,30 @@ export async function getFinancialDistressCompanies(
       };
     }
 
+    // 3. Fetch company details for the companies with indicators
+    const companyIds = companiesData.map((c: any) => c.company_id);
+    const { data: companyDetails, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .in('id', companyIds);
+
+    if (companyError) {
+      console.error('Error fetching company details:', companyError);
+      throw companyError;
+    }
+
+    // 4. Merge company details with indicator data
+    const mergedData = companiesData.map((companyData: any) => {
+      const details = companyDetails?.find(c => c.id === companyData.company_id);
+      return {
+        ...companyData,
+        ...details,
+        company_name: details?.name, // ensure company_name is present
+      };
+    });
+
     // Apply client-side filtering if needed
-    let filteredData = companiesData;
+    let filteredData = mergedData;
 
     if (filters.industry) {
       filteredData = filteredData.filter(company => 
@@ -162,16 +184,18 @@ export async function getRisingStartupCompanies(
   offset: number = 0
 ): Promise<RisingStartupsResponse> {
   try {
-    // Use the database function for initial data
-    const { data: companiesData, error } = await supabase
-      .rpc('get_rising_startup_companies', { limit_param: limit + offset });
+    // 1. Fetch all rising startup indicators
+    const { data: indicators, error: indicatorsError } = await supabase
+      .from('rising_startup_indicators')
+      .select('*')
+      .eq('verified', true);
 
-    if (error) {
-      console.error('Error fetching rising startups:', error);
-      throw error;
+    if (indicatorsError) {
+      console.error('Error fetching rising startup indicators:', indicatorsError);
+      throw indicatorsError;
     }
 
-    if (!companiesData || companiesData.length === 0) {
+    if (!indicators || indicators.length === 0) {
       return {
         companies: [],
         total_count: 0,
@@ -180,6 +204,34 @@ export async function getRisingStartupCompanies(
         most_common_indicator: 'funding_round'
       };
     }
+
+    // 2. Group indicators by company_id and calculate growth_score
+    const companiesData = Object.values(
+      indicators.reduce((acc, indicator) => {
+        if (!acc[indicator.company_id]) {
+          acc[indicator.company_id] = {
+            company_id: indicator.company_id,
+            growth_score: 0,
+            indicator_count: 0,
+            latest_indicator: '',
+            latest_indicator_date: '',
+            latest_funding: 0,
+            indicators: [],
+          };
+        }
+        acc[indicator.company_id].growth_score += indicator.growth_score;
+        acc[indicator.company_id].indicator_count++;
+        acc[indicator.company_id].indicators.push(indicator);
+        if (indicator.funding_amount) {
+            acc[indicator.company_id].latest_funding = Math.max(acc[indicator.company_id].latest_funding || 0, indicator.funding_amount);
+        }
+        if (!acc[indicator.company_id].latest_indicator_date || new Date(indicator.detected_at) > new Date(acc[indicator.company_id].latest_indicator_date)) {
+            acc[indicator.company_id].latest_indicator_date = indicator.detected_at;
+            acc[indicator.company_id].latest_indicator = indicator.description;
+        }
+        return acc;
+      }, {} as any)
+    );
 
     // Apply client-side filtering if needed
     let filteredData = companiesData;
@@ -252,31 +304,13 @@ export async function getRisingStartupCompanies(
     // Apply pagination
     const paginatedData = filteredData.slice(offset, offset + limit);
 
-    // Fetch additional details for each company
-    const companiesWithDetails = await Promise.all(
-      paginatedData.map(async (company) => {
-        // Fetch growth indicators
-        const { data: indicators } = await supabase
-          .from('rising_startup_indicators')
-          .select('*')
-          .eq('company_id', company.company_id)
-          .eq('verified', true)
-          .order('detected_at', { ascending: false });
-
-        return {
-          id: company.company_id,
-          name: company.company_name,
-          industry: company.industry,
-          location: company.location,
-          average_rating: company.average_rating,
-          growth_score: company.growth_score,
-          latest_indicator: company.latest_indicator,
-          indicator_count: company.indicator_count,
-          latest_funding: company.latest_funding,
-          growth_indicators: indicators || []
-        } as CompanyWithGrowthData;
-      })
-    );
+    // The data is already in the correct shape, so we can just use paginatedData
+    const companiesWithDetails = paginatedData.map(company => ({
+        ...company,
+        id: company.company_id,
+        name: company.company_name,
+        growth_indicators: company.indicators || []
+    }));
 
     // Calculate statistics
     const totalCount = filteredData.length;
