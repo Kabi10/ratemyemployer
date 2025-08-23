@@ -285,3 +285,15 @@ export async function fetchCompanyNewsWithFreeAPIs(companies: string[]): Promise
   
   return rssSuccess;
 }
+
+// Simple wrapper used by legacy scrapers to fetch articles for a single company
+export async function fetchCompanyNews(company: string, max = 20) {
+  const articles = await fetchFromGoogleNewsRSS(company);
+  return articles.slice(0, max).map((article) => ({
+    title: article.title,
+    description: article.description,
+    link: article.url,
+    date: article.publishedAt,
+    source: { name: article.source.name },
+  }));
+}

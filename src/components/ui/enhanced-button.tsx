@@ -126,28 +126,43 @@ export interface EnhancedButtonProps
 }
 
 const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
+  ({
+    className,
+    variant,
+    size,
     fullWidth,
     rounded,
-    asChild = false, 
+    asChild = false,
     loading = false,
     loadingText,
     leftIcon,
     rightIcon,
     children,
     disabled,
-    ...props 
+    ...props
   }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-
     const isDisabled = disabled || loading;
 
+    if (asChild) {
+      return (
+        <Slot
+          ref={ref as any}
+          aria-busy={loading}
+          aria-disabled={isDisabled || undefined}
+          className={cn(
+            enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
+            loading && 'cursor-not-allowed'
+          )}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        type={asChild ? undefined : (props.type ?? 'button')}
+      <button
+        type={props.type ?? 'button'}
         aria-busy={loading}
         aria-disabled={isDisabled || undefined}
         className={cn(
@@ -174,12 +189,11 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {!loading && rightIcon && (
           <span className="flex-shrink-0">{rightIcon}</span>
         )}
-        
         {/* Ripple effect overlay */}
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
-      </Comp>
+      </button>
     );
   }
 );

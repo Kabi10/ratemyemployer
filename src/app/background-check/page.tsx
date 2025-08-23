@@ -1,7 +1,7 @@
+
 'use client'
 
-
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { motion } from 'framer-motion';
@@ -11,7 +11,7 @@ import { AssessmentList } from '@/components/AssessmentList';
 
 
 
-export default function BackgroundCheck() {
+function BackgroundCheckContent() {
   const router = useRouter();
   const params = useSearchParams();
   const initialTerm = params.get('search')?.toString() || '';
@@ -154,5 +154,13 @@ export default function BackgroundCheck() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function BackgroundCheck() {
+  return (
+    <Suspense fallback={null}>
+      <BackgroundCheckContent />
+    </Suspense>
   );
 }

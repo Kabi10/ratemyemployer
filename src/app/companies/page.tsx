@@ -42,7 +42,7 @@ function CompanyListSkeleton() {
   );
 }
 
-export default function CompaniesPage() {
+function CompaniesPageContent() {
   const params = useSearchParams();
   const initialSearch = params.get('search')?.toString() || '';
   const [selectedLocation, setSelectedLocation] = useState('all');
@@ -115,5 +115,13 @@ export default function CompaniesPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function CompaniesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CompaniesPageContent />
+    </Suspense>
   );
 }
