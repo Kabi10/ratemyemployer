@@ -33,7 +33,7 @@ export function WallOfCompanies({
   const [filteredCompanies, setFilteredCompanies] = useState<CompanyWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
+  const [companyNews, setCompanyNews] = useState<{ [key: number]: NewsArticle[] }>({});
   const [industries, setIndustries] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [statsLoading, setStatsLoading] = useState(true);
@@ -152,21 +152,22 @@ export function WallOfCompanies({
         // Only include approved reviews
         const reviews = (company.reviews || []).filter(review => review.status === 'approved');
         const validRatings = reviews.filter(review => review.rating >= 1 && review.rating <= 5);
-        
+
         const averageRating = validRatings.length > 0
           ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
           : 0;
-        
+
         const recommendCount = reviews.filter(review => review.recommend).length;
         const recommendPercentage = reviews.length > 0
           ? Math.round((recommendCount / reviews.length) * 100)
           : 0;
-        
+
         return {
           ...company,
           average_rating: averageRating,
           recommend_percentage: recommendPercentage,
-          reviews: reviews
+          review_count: reviews.length,
+          reviews
         };
       });
 
@@ -223,16 +224,18 @@ export function WallOfCompanies({
 
   // Fetch news for companies
   const fetchNewsForCompanies = async (companies: CompanyWithReviews[]) => {
-    const newsData: { [key: string]: NewsArticle[] } = {};
-    for (const company of companies) {
-      try {
-        const articles = await fetchCompanyNews(company.name);
-        newsData[company.name] = articles;
-      } catch (err) {
-        console.error(`Error fetching news for ${company.name}:`, err);
-        newsData[company.name] = [];
-      }
-    }
+    const newsData: { [key: number]: NewsArticle[] } = {};
+    await Promise.all(
+      companies.map(async company => {
+        try {
+          const articles = await fetchCompanyNews(company.name);
+          newsData[company.id] = articles;
+        } catch (err) {
+          console.error(`Error fetching news for ${company.name}:`, err);
+          newsData[company.id] = [];
+        }
+      })
+    );
     setCompanyNews(newsData);
   };
   
@@ -562,7 +565,7 @@ export function WallOfCompanies({
           {showStats && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Industry Statistics */}
-              {industryStats.length > 0 && (
+              {industryStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -606,7 +609,7 @@ export function WallOfCompanies({
               )}
               
               {/* Location Statistics */}
-              {locationStats.length > 0 && (
+              {locationStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -698,7 +701,7 @@ export function WallOfCompanies({
                 key={company.id}
                 company={company}
                 rank={index + 1}
-                news={companyNews[company.name] || []}
+                news={companyNews[company.id] || []}
                 isWallOfFame={type === 'fame'}
               />
             ))
