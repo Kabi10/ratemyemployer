@@ -96,7 +96,7 @@ const enhancedButtonVariants = cva(
       },
       fullWidth: {
         true: 'w-full',
-        false: 'w-auto',
+        false: '',
       },
       rounded: {
         default: 'rounded-lg',
@@ -149,6 +149,7 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
       <Comp
         type={asChild ? undefined : (props.type ?? 'button')}
         aria-busy={loading}
+        aria-disabled={isDisabled || undefined}
         className={cn(
           enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
           loading && 'cursor-not-allowed'
@@ -158,7 +159,11 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          <Loader2
+            data-testid="loading-spinner"
+            className="h-4 w-4 animate-spin"
+            aria-hidden="true"
+          />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
