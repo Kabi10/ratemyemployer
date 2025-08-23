@@ -13,12 +13,12 @@ const enhancedButtonVariants = cva(
   [
     // Base styles
     'inline-flex items-center justify-center gap-2',
-    'rounded-lg font-medium transition-all duration-200',
+    'rounded-lg font-medium',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
     'relative overflow-hidden',
     // Improved accessibility
-    'focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+    'focus-visible:ring-blue-500',
     // Better hover states
     'transform-gpu hover:scale-[1.02] active:scale-[0.98]',
     // Smooth transitions
@@ -142,11 +142,13 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     ...props 
   }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    
+
     const isDisabled = disabled || loading;
-    
+
     return (
       <Comp
+        type={asChild ? undefined : (props.type ?? 'button')}
+        aria-busy={loading}
         className={cn(
           enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
           loading && 'cursor-not-allowed'
@@ -156,7 +158,7 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>

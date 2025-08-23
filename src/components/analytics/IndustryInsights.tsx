@@ -153,7 +153,7 @@ export function IndustryInsights({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`font-bold ${getRatingColor(stat.average_rating ?? stat.avg_rating ?? 0)}`}>
-                    {Number(stat.average_rating ?? stat.avg_rating ?? 0).toFixed(2)}
+                    {Number(stat.average_rating ?? stat.avg_rating ?? 0).toFixed(1)}
                   </span>
                   <div className={`px-2 py-1 rounded text-xs ${getRatingBgColor(stat.average_rating ?? stat.avg_rating ?? 0)}`}>
                     {(stat.average_rating ?? stat.avg_rating ?? 0) >= 4 ? 'Excellent' :
@@ -186,11 +186,11 @@ export function IndustryInsights({
             <h4 className="font-medium text-blue-800 mb-2">Key Insights</h4>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>
-                • <strong>{topIndustries[0].industry}</strong> leads with {Number(topIndustries[0].average_rating ?? topIndustries[0].avg_rating ?? 0).toFixed(2)}/5 rating
+                • <strong>{topIndustries[0].industry}</strong> leads with {Number(topIndustries[0].average_rating ?? topIndustries[0].avg_rating ?? 0).toFixed(1)}/5 rating
               </li>
               {topIndustries.length > 1 && (
                 <li>
-                  • Rating gap of {Number((topIndustries[0].average_rating ?? topIndustries[0].avg_rating ?? 0) - (topIndustries[topIndustries.length - 1].average_rating ?? topIndustries[topIndustries.length - 1].avg_rating ?? 0)).toFixed(2)} points between top and bottom industries
+                  • Rating gap of {Number((topIndustries[0].average_rating ?? topIndustries[0].avg_rating ?? 0) - (topIndustries[topIndustries.length - 1].average_rating ?? topIndustries[topIndustries.length - 1].avg_rating ?? 0)).toFixed(1)} points between top and bottom industries
                 </li>
               )}
               <li>
