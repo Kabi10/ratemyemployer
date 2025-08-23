@@ -2,7 +2,7 @@
 
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { motion } from 'framer-motion';
 
@@ -13,8 +13,10 @@ import { AssessmentList } from '@/components/AssessmentList';
 
 export default function BackgroundCheck() {
   const router = useRouter();
+  const params = useSearchParams();
+  const initialTerm = params.get('search')?.toString() || '';
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(initialTerm);
 
   useEffect(() => {
     // Set initial dimensions

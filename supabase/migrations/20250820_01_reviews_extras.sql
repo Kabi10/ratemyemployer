@@ -1,4 +1,12 @@
 -- Reviews extras migration
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'review_status') THEN
+    CREATE TYPE review_status AS ENUM ('pending','approved','rejected');
+  END IF;
+END;
+$$;
+
 ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS recommend boolean;
 ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS status review_status NOT NULL DEFAULT 'approved';
 

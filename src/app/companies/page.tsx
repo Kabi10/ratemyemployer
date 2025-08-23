@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { CompanyList } from '@/components/CompanyList';
 import { CompanyForm } from '@/components/CompanyForm';
 import { Button } from '@/components/ui/button';
@@ -42,9 +43,11 @@ function CompanyListSkeleton() {
 }
 
 export default function CompaniesPage() {
+  const params = useSearchParams();
+  const initialSearch = params.get('search')?.toString() || '';
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [showAddCompany, setShowAddCompany] = useState(false);
 
   return (
@@ -61,6 +64,7 @@ export default function CompaniesPage() {
         </div>
 
         <SearchAndFilter
+          initialQuery={searchQuery}
           onLocationChange={setSelectedLocation}
           onIndustryChange={setSelectedIndustry}
           onSearch={setSearchQuery}

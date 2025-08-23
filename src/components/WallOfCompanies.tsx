@@ -701,7 +701,7 @@ export function WallOfCompanies({
                 key={company.id}
                 company={company}
                 rank={index + 1}
-                news={companyNews[company.name] || []}
+                news={companyNews[company.id] || []}
                 isWallOfFame={type === 'fame'}
               />
             ))

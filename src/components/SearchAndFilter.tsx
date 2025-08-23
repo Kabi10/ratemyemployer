@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,7 @@ interface SearchAndFilterProps {
   onLocationChange?: (location: string) => void;
   selectedIndustry?: string;
   selectedLocation?: string;
+  initialQuery?: string;
 }
 
 const COMPANY_SIZES = [
@@ -36,17 +36,17 @@ const COMPANY_SIZES = [
   '5000+'
 ];
 
-const SearchAndFilter = ({ 
-  onSearch, 
-  onIndustryChange, 
+const SearchAndFilter = ({
+  onSearch,
+  onIndustryChange,
   onLocationChange,
   selectedIndustry = '',
-  selectedLocation = ''
+  selectedLocation = '',
+  initialQuery = ''
 }: SearchAndFilterProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery || '');
   const [industries, setIndustries] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchFilters = async () => {
