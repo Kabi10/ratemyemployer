@@ -12,17 +12,14 @@ import { Loader2 } from 'lucide-react';
 const enhancedButtonVariants = cva(
   [
     // Base styles
-    'inline-flex items-center justify-center gap-2',
-    'rounded-lg font-medium',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'group relative inline-flex items-center justify-center gap-2 font-medium',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ring-offset-background',
     'disabled:pointer-events-none disabled:opacity-50',
-    'relative overflow-hidden',
-    // Improved accessibility
-    'focus-visible:ring-blue-500',
+    'overflow-hidden',
     // Better hover states
-    'transform-gpu hover:scale-[1.02] active:scale-[0.98]',
+    'motion-safe:transform-gpu motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]',
     // Smooth transitions
-    'transition-all duration-200 ease-out',
+    'motion-safe:transition-all motion-safe:duration-200 motion-safe:ease-out motion-reduce:transition-none',
   ],
   {
     variants: {
@@ -144,16 +141,29 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     const isDisabled = disabled || loading;
 
     if (asChild) {
+      const { onClick, tabIndex, ...rest } = props as any;
+      const handleClick = (e: React.MouseEvent) => {
+        if (isDisabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        onClick?.(e);
+      };
       return (
         <Slot
           ref={ref as any}
           aria-busy={loading}
           aria-disabled={isDisabled || undefined}
+          data-disabled={isDisabled || undefined}
+          tabIndex={isDisabled ? -1 : tabIndex}
           className={cn(
             enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-            loading && 'cursor-not-allowed'
+            loading && 'cursor-not-allowed',
+            isDisabled && 'pointer-events-none opacity-50'
           )}
-          {...props}
+          onClick={handleClick}
+          {...rest}
         >
           {children}
         </Slot>

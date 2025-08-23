@@ -158,7 +158,7 @@ describe('EnhancedButton', () => {
     const button = screen.getByRole('button');
     
     fireEvent.mouseEnter(button);
-    expect(button).toHaveClass('hover:scale-[1.02]');
+    expect(button).toHaveClass('motion-safe:hover:scale-[1.02]');
     
     fireEvent.focus(button);
     expect(button).toHaveClass('focus-visible:ring-2');

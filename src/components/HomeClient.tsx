@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { INDUSTRIES, type Industry } from '@/types';
 import { companySchema, type CompanyFormData, type ReviewFormData } from '@/lib/schemas';
 import type { Database } from '@/types/supabase';
-import { Review } from '@/types/review';
+import type { Review } from '@/types';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -328,14 +328,26 @@ export function HomeClient() {
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
             <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex">
-              <div className="relative w-screen max-w-md">
+              <div
+                className="relative w-screen max-w-md"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="home-add-company-title"
+                aria-describedby="home-add-company-description"
+              >
                 <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
                   <div className="flex-1 h-0 overflow-y-auto">
                     <div className="py-6 px-4 sm:px-6">
                       <div className="flex items-start justify-between">
-                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                        <h2
+                          id="home-add-company-title"
+                          className="text-lg font-medium text-gray-900 dark:text-white"
+                        >
                           Add New Company
                         </h2>
+                        <p id="home-add-company-description" className="sr-only">
+                          Provide company details to add it to the directory.
+                        </p>
                         <Button
                           variant="ghost"
                           size="icon"

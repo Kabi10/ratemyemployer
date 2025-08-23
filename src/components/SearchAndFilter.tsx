@@ -22,6 +22,7 @@ interface SearchAndFilterProps {
   onLocationChange?: (location: string) => void;
   selectedIndustry?: string;
   selectedLocation?: string;
+  /** Pre-fills the search input, typically from a `?search=` URL param */
   initialQuery?: string;
 }
 

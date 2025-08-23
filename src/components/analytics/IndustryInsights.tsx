@@ -97,8 +97,14 @@ export function IndustryInsights({
     );
   }
 
-  const topIndustries = industryStats.slice(0, limit);
-  const maxRating = Math.max(...topIndustries.map(stat => stat.average_rating ?? stat.avg_rating ?? 0));
+  const ratingOf = (s: { average_rating?: number | null; avg_rating?: number | null }) =>
+    s.average_rating ?? s.avg_rating ?? 0;
+
+  const topIndustries = [...industryStats]
+    .sort((a, b) => ratingOf(b) - ratingOf(a))
+    .slice(0, limit);
+
+  const maxRating = Math.max(...topIndustries.map((stat) => ratingOf(stat)));
   const totalCompanies = topIndustries.reduce((sum, stat) => sum + stat.company_count, 0);
   const totalReviews = topIndustries.reduce((sum, stat) => sum + stat.review_count, 0);
 

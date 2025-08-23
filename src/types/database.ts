@@ -41,6 +41,8 @@ export interface Review {
   reviewer_name?: string;
   created_at: string;
   updated_at: string | null;
+  status?: ReviewStatus | null;
+  recommend?: boolean | null;
 }
 
 // Mock types for missing tables in the Database type

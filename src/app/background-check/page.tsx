@@ -17,6 +17,17 @@ function BackgroundCheckContent() {
   const initialTerm = params.get('search')?.toString() || '';
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const [term, setTerm] = useState(initialTerm);
+  const [debouncedTerm, setDebouncedTerm] = useState(initialTerm);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedTerm(term), 300);
+    return () => clearTimeout(handler);
+  }, [term]);
+
+  useEffect(() => {
+    const q = debouncedTerm.trim();
+    router.replace(q ? `/background-check?search=${encodeURIComponent(q)}` : '/background-check');
+  }, [debouncedTerm, router]);
 
   useEffect(() => {
     // Set initial dimensions

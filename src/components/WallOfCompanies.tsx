@@ -565,7 +565,7 @@ export function WallOfCompanies({
           {showStats && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Industry Statistics */}
-              {industryStats.length > 0 && (
+              {industryStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -609,7 +609,7 @@ export function WallOfCompanies({
               )}
               
               {/* Location Statistics */}
-              {locationStats.length > 0 && (
+              {locationStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
