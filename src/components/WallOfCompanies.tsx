@@ -33,7 +33,7 @@ export function WallOfCompanies({
   const [filteredCompanies, setFilteredCompanies] = useState<CompanyWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [companyNews, setCompanyNews] = useState<{ [key: string]: NewsArticle[] }>({});
+  const [companyNews, setCompanyNews] = useState<{ [key: number]: NewsArticle[] }>({});
   const [industries, setIndustries] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [statsLoading, setStatsLoading] = useState(true);
@@ -166,8 +166,9 @@ export function WallOfCompanies({
           ...company,
           average_rating: averageRating,
           recommend_percentage: recommendPercentage,
+          review_count: reviews.length,
           reviews: reviews
-        };
+        } as CompanyWithReviews;
       });
 
       // Filter companies with at least 3 reviews and a valid average rating
@@ -223,16 +224,18 @@ export function WallOfCompanies({
 
   // Fetch news for companies
   const fetchNewsForCompanies = async (companies: CompanyWithReviews[]) => {
-    const newsData: { [key: string]: NewsArticle[] } = {};
-    for (const company of companies) {
-      try {
-        const articles = await fetchCompanyNews(company.name);
-        newsData[company.name] = articles;
-      } catch (err) {
-        console.error(`Error fetching news for ${company.name}:`, err);
-        newsData[company.name] = [];
-      }
-    }
+    const newsData: { [key: number]: NewsArticle[] } = {};
+    await Promise.all(
+      companies.map(async company => {
+        try {
+          const articles = await fetchCompanyNews(company.name);
+          newsData[company.id] = articles;
+        } catch (err) {
+          console.error(`Error fetching news for ${company.name}:`, err);
+          newsData[company.id] = [];
+        }
+      })
+    );
     setCompanyNews(newsData);
   };
   
@@ -322,7 +325,7 @@ export function WallOfCompanies({
         filtered = filtered.sort((a, b) => a.average_rating - b.average_rating);
         break;
       case 'reviews-desc':
-        filtered = filtered.sort((a, b) => b.review_count - a.review_count);
+        filtered = filtered.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
         break;
       case 'name-asc':
         filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -562,7 +565,7 @@ export function WallOfCompanies({
           {showStats && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Industry Statistics */}
-              {industryStats.length > 0 && (
+              {industryStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -606,7 +609,7 @@ export function WallOfCompanies({
               )}
               
               {/* Location Statistics */}
-              {locationStats.length > 0 && (
+              {locationStats?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -698,7 +701,7 @@ export function WallOfCompanies({
                 key={company.id}
                 company={company}
                 rank={index + 1}
-                news={companyNews[company.name] || []}
+                news={companyNews[company.id] || []}
                 isWallOfFame={type === 'fame'}
               />
             ))
