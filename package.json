@@ -1,7 +1,27 @@
 {
   "name": "ratemyemployer",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "license": "MIT",
+  "author": "RateMyEmployer Team",
+  "description": "A modern platform for anonymous company reviews and employer ratings",
+  "homepage": "https://github.com/yourusername/ratemyemployer#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/ratemyemployer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ratemyemployer/issues"
+  },
+  "keywords": [
+    "employer-reviews",
+    "company-ratings",
+    "workplace-transparency",
+    "nextjs",
+    "supabase",
+    "typescript",
+    "tailwindcss"
+  ],
   "type": "commonjs",
   "scripts": {
     "dev": "next dev",
