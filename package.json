@@ -1,8 +1,36 @@
 {
   "name": "ratemyemployer",
   "version": "1.0.0",
-  "private": true,
+  "description": "A comprehensive, modern platform for rating and reviewing employers with advanced features including AI-powered insights, web scraping infrastructure, financial distress tracking, and enterprise-grade security monitoring.",
   "type": "commonjs",
+  "keywords": [
+    "employer-reviews",
+    "company-ratings",
+    "workplace-reviews",
+    "employee-feedback",
+    "company-intelligence",
+    "nextjs",
+    "supabase",
+    "typescript",
+    "tailwindcss"
+  ],
+  "author": {
+    "name": "RateMyEmployer Team",
+    "url": "https://github.com/your-username/ratemyemployer"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ratemyemployer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/ratemyemployer/issues"
+  },
+  "homepage": "https://github.com/your-username/ratemyemployer#readme",
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -40,7 +68,8 @@
     "ai:verify": "node scripts/verify-rule-compliance.js",
     "ai:setup-hooks": "cp .git/hooks/pre-commit.rule-check .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "mcp:update-schema": "tsx scripts/update-mcp-schema.ts",
-    "migrations:run": "tsx scripts/run-migrations.ts"
+    "migrations:run": "tsx scripts/run-migrations.ts",
+    "update:repo-urls": "node scripts/update-repo-urls.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

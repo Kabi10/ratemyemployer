@@ -5,6 +5,10 @@
 [![Supabase](https://img.shields.io/badge/Supabase-Database-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
 A comprehensive, modern platform for rating and reviewing employers with advanced features including AI-powered insights, web scraping infrastructure, financial distress tracking, and enterprise-grade security monitoring.
 
@@ -905,5 +909,111 @@ This will apply any pending migrations to your Supabase instance.
 - Include both "up" and "down" migrations when possible
 - Document complex migrations with comments
 
-For more details on database management, see the [Database Guide](docs/DATABASE_GUIDE.md). 
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Kabi10/ratemyemployer?utm_source=oss&utm_medium=github&utm_campaign=Kabi10%2Fratemyemployer&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+For more details on database management, see the [Database Guide](docs/DATABASE_GUIDE.md).
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Here's how you can help:
+
+### Ways to Contribute
+
+- 🐛 **Report Bugs**: Use our [issue tracker](https://github.com/your-username/ratemyemployer/issues)
+- 💡 **Suggest Features**: Open an issue with the "enhancement" label
+- 🔧 **Fix Issues**: Pick up issues labeled "good first issue" or "help wanted"
+- 📝 **Improve Documentation**: Help make our docs clearer and more comprehensive
+- 🧪 **Add Tests**: Improve our test coverage
+- 🎨 **UI/UX Improvements**: Enhance the user interface and experience
+
+### Development Setup
+
+1. **Fork the repository**
+2. **Clone your fork**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/ratemyemployer.git
+   cd ratemyemployer
+   ```
+3. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+4. **Set up environment**:
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
+5. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
+### Making Changes
+
+1. Create a feature branch: `git checkout -b feature/your-feature-name`
+2. Make your changes following our [coding standards](CONTRIBUTING.md#code-style)
+3. Run tests: `npm run test:all`
+4. Commit your changes: `git commit -m "feat: add amazing feature"`
+5. Push to your fork: `git push origin feature/your-feature-name`
+6. Open a pull request
+
+### Code Standards
+
+- Follow TypeScript best practices
+- Write comprehensive tests
+- Update documentation as needed
+- Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
+- Ensure all CI checks pass
+
+For detailed guidelines, see our [Contributing Guide](CONTRIBUTING.md).
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+The MIT License is a permissive license that allows for:
+- Commercial use
+- Modification
+- Distribution
+- Private use
+
+The only requirement is that the license and copyright notice be included in all copies or substantial portions of the software.
+
+## 🆘 Support
+
+### Getting Help
+
+- 📖 **Documentation**: Check our [docs](docs/) directory
+- 🐛 **Bug Reports**: [Open an issue](https://github.com/your-username/ratemyemployer/issues)
+- 💬 **Discussions**: Use [GitHub Discussions](https://github.com/your-username/ratemyemployer/issues)
+- 📧 **Email**: Contact us at support@ratemyemployer.com
+
+### Community
+
+- 🌟 **Star the repo** if you find it useful
+- 🔔 **Watch the repo** to stay updated
+- 🗣️ **Share** with your network
+- 💪 **Contribute** to make it better
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [Supabase](https://supabase.com/) for the backend infrastructure
+- [Tailwind CSS](https://tailwindcss.com/) for the styling system
+- [Vercel](https://vercel.com/) for deployment
+- All our contributors and users
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by the RateMyEmployer Team</p>
+  <p>
+    <a href="https://github.com/your-username/ratemyemployer/stargazers">
+      <img src="https://img.shields.io/github/stars/your-username/ratemyemployer?style=social" alt="Stars">
+    </a>
+    <a href="https://github.com/your-username/ratemyemployer/network/members">
+      <img src="https://img.shields.io/github/forks/your-username/ratemyemployer?style=social" alt="Forks">
+    </a>
+    <a href="https://github.com/your-username/ratemyemployer/issues">
+      <img src="https://img.shields.io/github/issues/your-username/ratemyemployer" alt="Issues">
+    </a>
+  </p>
+</div>

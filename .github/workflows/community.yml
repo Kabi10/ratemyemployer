@@ -1,0 +1,95 @@
+name: Community Health
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  stale-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark stale issues and pull requests
+        uses: actions/stale@v8
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs. Thank you for your contributions.
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs. Thank you for your contributions.
+          stale-issue-label: 'no-remove'
+          stale-pr-label: 'no-remove'
+          days-before-stale: 30
+          days-before-close: 7
+          exempt-issue-labels: 'pinned,security,good first issue,help wanted'
+          exempt-pr-labels: 'pinned,security'
+          exempt-all-milestones: true
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: moderate
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+  community-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate community metrics
+        run: |
+          echo "## Community Health Report" >> community-report.md
+          echo "Generated on: $(date)" >> community-report.md
+          echo "" >> community-report.md
+          echo "### Repository Statistics" >> community-report.md
+          echo "- Stars: [Check manually]" >> community-report.md
+          echo "- Forks: [Check manually]" >> community-report.md
+          echo "- Issues: [Check manually]" >> community-report.md
+          echo "- Pull Requests: [Check manually]" >> community-report.md
+          echo "" >> community-report.md
+          echo "### Recent Activity" >> community-report.md
+          echo "- Last commit: $(git log -1 --format='%cd' --date=short)" >> community-report.md
+          echo "- Contributors this week: [Check manually]" >> community-report.md
+
+      - name: Upload community report
+        uses: actions/upload-artifact@v3
+        with:
+          name: community-report
+          path: community-report.md
