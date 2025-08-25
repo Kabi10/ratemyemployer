@@ -9,24 +9,31 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // Mock Supabase client before any imports
 vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
+  createClient: vi.fn(() => {
+    const chain: any = {
       select: vi.fn().mockReturnThis(),
       insert: vi.fn().mockReturnThis(),
       update: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
       eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      ilike: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    auth: {
-      signInWithPassword: vi.fn().mockResolvedValue({ data: null, error: null }),
-      signUp: vi.fn().mockResolvedValue({ data: null, error: null }),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-    },
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-  }))
+    };
+    return {
+      from: vi.fn(() => chain),
+      auth: {
+        signInWithPassword: vi.fn().mockResolvedValue({ data: null, error: null }),
+        signUp: vi.fn().mockResolvedValue({ data: null, error: null }),
+        signOut: vi.fn().mockResolvedValue({ error: null }),
+        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+        onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      },
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    };
+  })
 }));
 
 
@@ -77,3 +84,13 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 beforeEach(() => {
   vi.clearAllMocks();
 });
+
+// Provide a basic global fetch mock for tests that expect network behavior
+// Always define a vi-mockable global fetch for tests
+// @ts-ignore
+global.fetch = vi.fn(async (input: RequestInfo | URL) => ({
+  ok: true,
+  status: 200,
+  text: async () => 'User-agent: *\nDisallow: /private/\nAllow: /',
+  json: async () => ({}),
+})) as any;
