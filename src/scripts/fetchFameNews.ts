@@ -50,7 +50,7 @@ function formatDate(dateStr: string): string {
       return new Date().toISOString();
     }
     return date.toISOString();
-  } catch (error) {
+  } catch (_error) {
     console.error('Error parsing date:', dateStr);
     return new Date().toISOString();
   }

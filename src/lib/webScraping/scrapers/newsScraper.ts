@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabaseClient';
-import { fetchCompanyNews } from '@/lib/freeNewsApi';
+import { fetchCompanyNewsWithFreeAPIs } from '@/lib/freeNewsApi';
 import type { 
   ScrapingResult, 
   NewsResult, 
@@ -99,22 +99,34 @@ export class NewsScraper {
 
     try {
       // Use the existing RSS news fetching system
-      const rssArticles = await fetchCompanyNews(companyName, config.max_articles || 20);
+      const success = await fetchCompanyNewsWithFreeAPIs([companyName]);
+      
+      if (success) {
+        // Fetch stored articles from database
+        const { data: storedArticles } = await supabase
+          .from('company_news')
+          .select('*')
+          .eq('company_name', companyName)
+          .order('created_at', { ascending: false })
+          .limit(config.max_articles || 20);
 
-      for (const rssArticle of rssArticles) {
-        if (signal.aborted) break;
+        if (storedArticles) {
+          for (const rssArticle of storedArticles) {
+            if (signal.aborted) break;
 
-        const article: NewsResult = {
-          title: rssArticle.title || '',
-          content: rssArticle.description || '',
-          url: rssArticle.link || '',
-          published_date: rssArticle.date || new Date().toISOString(),
-          source: rssArticle.source?.name || 'Unknown',
-          keywords: this.extractKeywords(rssArticle.title + ' ' + rssArticle.description, companyName),
-          relevance_score: this.calculateRelevanceScore(rssArticle, companyName)
-        };
+            const article: NewsResult = {
+              title: rssArticle.title || '',
+              content: rssArticle.description || '',
+              url: rssArticle.url || '',
+              published_date: rssArticle.published_at || new Date().toISOString(),
+              source: rssArticle.source_name || 'Unknown',
+              keywords: this.extractKeywords(rssArticle.title + ' ' + rssArticle.description, companyName),
+              relevance_score: this.calculateRelevanceScore(rssArticle, companyName)
+            };
 
-        articles.push(article);
+            articles.push(article);
+          }
+        }
       }
 
       // Filter by date range if specified
@@ -294,7 +306,7 @@ export class NewsScraper {
           published_at: article.published_date,
           source_name: article.source
         });
-    } catch (error) {
+    } catch (_error) {
       // company_news table might not exist, that's okay
       console.log('Note: company_news table not available');
     }

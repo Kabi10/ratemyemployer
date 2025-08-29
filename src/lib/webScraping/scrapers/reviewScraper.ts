@@ -188,7 +188,7 @@ export class ReviewScraper {
             is_current_employee: review.is_current_employee,
             status: 'pending' // Always require moderation
           });
-      } catch (error) {
+      } catch (_error) {
         console.log('Note: Could not create review record, may require manual review');
       }
     }
