@@ -5,7 +5,7 @@ import { UserProfile } from './database';
 // src/types/index.ts
 
 type Tables = Database['public']['Tables'];
-type Enums = Database['public']['Enums'];
+type _Enums = Database['public']['Enums'];
 
 export type CompanyRow = Tables['companies']['Row'];
 export type ReviewRow = Tables['reviews']['Row'];

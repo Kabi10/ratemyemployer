@@ -29,7 +29,7 @@ export default defineConfig({
       shuffle: false,
     },
     reporters: ['basic'],
-    onConsoleLog: (log, type) => {
+    onConsoleLog: (log, _type) => {
       if (log.includes('node_modules')) return false;
       return true;
     },
