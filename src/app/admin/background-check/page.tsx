@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { withAuth } from '@/lib/auth/withAuth';
