@@ -9,7 +9,7 @@ import type { Database } from '@/types/supabase';
 type Review = Database['public']['Tables']['reviews']['Row'] & {
   companies: Database['public']['Tables']['companies']['Row'] | null;
 };
-type User = NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>>['user'];
+type User = NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']>;
 
 export default function AccountPage() {
   const router = useRouter();
@@ -49,7 +49,9 @@ export default function AccountPage() {
     }
   }
 
-  const handleDeleteReview = async (reviewId: number) => {
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!user) return;
+    
     try {
       const { error } = await supabase
         .from('reviews')
@@ -101,7 +103,7 @@ export default function AccountPage() {
                   <h3 className="text-xl font-semibold text-gray-900">
                     {review.companies?.name}
                   </h3>
-                  <p className="text-gray-600 mt-1">{review.position}</p>
+                  <p className="text-gray-600 mt-1">{review.title}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-yellow-500 font-semibold">
@@ -117,15 +119,9 @@ export default function AccountPage() {
               </div>
               
               <div className="mt-4">
-                <h4 className="font-medium text-gray-900">{review.title}</h4>
                 <div className="mt-2 space-y-4">
                   <div>
-                    <h5 className="text-green-600 font-medium">Pros</h5>
-                    <p className="text-gray-700">{review.pros}</p>
-                  </div>
-                  <div>
-                    <h5 className="text-red-600 font-medium">Cons</h5>
-                    <p className="text-gray-700">{review.cons}</p>
+                    <p className="text-gray-700">{review.content}</p>
                   </div>
                 </div>
               </div>
