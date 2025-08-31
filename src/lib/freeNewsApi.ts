@@ -4,9 +4,16 @@
  */
 
 import { supabase } from './supabaseClient';
-import type { Database } from '@/types/supabase';
-
-type CompanyNewsInsert = Database['public']['Tables']['company_news']['Insert'];
+// Inline type for company_news insert to avoid tight coupling with generated types
+type CompanyNewsInsert = {
+  company_name: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  published_at: string;
+  source_name: string;
+  created_at: string;
+};
 
 interface RSSItem {
   title: string;
@@ -285,3 +292,6 @@ export async function fetchCompanyNewsWithFreeAPIs(companies: string[]): Promise
   
   return rssSuccess;
 }
+
+// Backward-compatible export for existing imports
+export const fetchCompanyNews = fetchCompanyNewsWithFreeAPIs;

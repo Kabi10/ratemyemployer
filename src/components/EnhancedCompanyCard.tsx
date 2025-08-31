@@ -312,14 +312,14 @@ export function EnhancedCompanyCard({
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Compensation</span>
-                    <span className={getRatingColor(company.compensation || 0)}>
-                      {company.compensation?.toFixed(1) || 'N/A'}
+                    <span className={getRatingColor(company.compensation_rating || 0)}>
+                      {company.compensation_rating?.toFixed(1) || 'N/A'}
                     </span>
                   </div>
                   <Progress 
-                    value={(company.compensation || 0) * 20} 
+                    value={(company.compensation_rating || 0) * 20} 
                     className="h-2"
-                    indicatorClassName={getProgressColor(company.compensation || 0)}
+                    indicatorClassName={getProgressColor(company.compensation_rating || 0)}
                   />
                 </div>
                 

@@ -53,7 +53,7 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     resolver: zodResolver(companySchema),
     defaultValues: {
       name: initialData?.name || '',
-      industry: initialData?.industry || undefined,
+      industry: (initialData?.industry as any) || undefined,
       location: initialData?.location || '',
       website: initialData?.website || '',
     },

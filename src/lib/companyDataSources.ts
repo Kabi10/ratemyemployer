@@ -127,10 +127,8 @@ async function insertCompany(company: ExternalCompany): Promise<boolean> {
       location: company.location || null,
       website: company.website || null,
       description: company.description || null,
-      size: company.size ? normalizeSize(company.size) : null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      verified: false,
     };
 
     const { error } = await supabase

@@ -100,7 +100,7 @@ export class DataQualityValidator {
         .from('data_quality_checks')
         .upsert(check);
       
-      this.qualityChecks.set(check.check_name, check as DataQualityCheck);
+      this.qualityChecks.set(check.check_name, (check as unknown) as DataQualityCheck);
     }
   }
 
@@ -156,7 +156,7 @@ export class DataQualityValidator {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const companyData = data.processed_data as CompanyDataResult;
+    const companyData = (data.processed_data as unknown) as CompanyDataResult;
     const rules = check.validation_rule;
 
     let score = 1.0;
@@ -164,8 +164,8 @@ export class DataQualityValidator {
     let optionalFieldsPresent = 0;
 
     // Check required fields
-    if (rules.required_fields) {
-      for (const field of rules.required_fields) {
+    if (Array.isArray((rules as any).required_fields)) {
+      for (const field of ((rules as any).required_fields as string[])) {
         if (!this.hasField(companyData, field)) {
           errors.push(`Missing required field: ${field}`);
           score -= 0.2;
@@ -176,15 +176,16 @@ export class DataQualityValidator {
     }
 
     // Check optional fields
-    if (rules.optional_fields) {
-      for (const field of rules.optional_fields) {
+    if (Array.isArray((rules as any).optional_fields)) {
+      for (const field of ((rules as any).optional_fields as string[])) {
         if (this.hasField(companyData, field)) {
           optionalFieldsPresent++;
         }
       }
 
-      if (rules.min_optional_fields && optionalFieldsPresent < rules.min_optional_fields) {
-        warnings.push(`Only ${optionalFieldsPresent} of ${rules.min_optional_fields} recommended optional fields present`);
+      const minOptional = (rules as any).min_optional_fields ?? 0;
+      if (minOptional && optionalFieldsPresent < minOptional) {
+        warnings.push(`Only ${optionalFieldsPresent} of ${minOptional} recommended optional fields present`);
         score -= 0.1;
       }
     }
@@ -230,7 +231,7 @@ export class DataQualityValidator {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const reviewData = data.processed_data as ReviewResult;
+    const reviewData = (data.processed_data as unknown) as ReviewResult;
     const rules = check.validation_rule;
 
     let score = 1.0;
@@ -239,11 +240,14 @@ export class DataQualityValidator {
     if (!reviewData.rating) {
       errors.push('Missing rating');
       score -= 0.3;
-    } else if (rules.rating_range) {
-      const [min, max] = rules.rating_range;
-      if (reviewData.rating < min || reviewData.rating > max) {
-        errors.push(`Rating ${reviewData.rating} outside valid range [${min}, ${max}]`);
-        score -= 0.2;
+    } else {
+      const range = (rules as any).rating_range as [number, number] | undefined;
+      if (Array.isArray(range) && range.length === 2) {
+        const [min, max] = range;
+        if (reviewData.rating < min || reviewData.rating > max) {
+          errors.push(`Rating ${reviewData.rating} outside valid range [${min}, ${max}]`);
+          score -= 0.2;
+        }
       }
     }
 
@@ -256,12 +260,12 @@ export class DataQualityValidator {
       errors.push('Missing review content');
       score -= 0.3;
     } else {
-      if (reviewData.content.length < (rules.min_content_length || 20)) {
+      if (reviewData.content.length < (((rules as any).min_content_length as number | undefined) ?? 20)) {
         errors.push(`Review content too short (${reviewData.content.length} chars)`);
         score -= 0.2;
       }
       
-      if (reviewData.content.length > (rules.max_content_length || 5000)) {
+      if (reviewData.content.length > (((rules as any).max_content_length as number | undefined) ?? 5000)) {
         warnings.push(`Review content very long (${reviewData.content.length} chars)`);
         score -= 0.1;
       }
@@ -300,28 +304,37 @@ export class DataQualityValidator {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const newsData = data.processed_data as NewsResult;
+    const newsData = (data.processed_data as unknown) as NewsResult;
     const rules = check.validation_rule;
 
     let score = 1.0;
 
     // Check required fields
-    if (!newsData.title || newsData.title.length < (rules.min_title_length || 10)) {
+    {
+      const minTitle = (((rules as any).min_title_length as number | undefined) ?? 10);
+      if (!newsData.title || newsData.title.length < minTitle) {
       errors.push('Missing or too short article title');
       score -= 0.2;
+      }
     }
 
-    if (!newsData.content || newsData.content.length < (rules.min_content_length || 50)) {
+    {
+      const minContent = (((rules as any).min_content_length as number | undefined) ?? 50);
+      if (!newsData.content || newsData.content.length < minContent) {
       errors.push('Missing or too short article content');
       score -= 0.3;
+      }
     }
 
     if (!newsData.url) {
       errors.push('Missing article URL');
       score -= 0.2;
-    } else if (rules.url_pattern && !new RegExp(rules.url_pattern).test(newsData.url)) {
-      errors.push('Invalid URL format');
-      score -= 0.2;
+    } else {
+      const urlPattern = (rules as any).url_pattern as string | undefined;
+      if (urlPattern && !new RegExp(urlPattern).test(newsData.url)) {
+        errors.push('Invalid URL format');
+        score -= 0.2;
+      }
     }
 
     if (!newsData.published_date) {
@@ -362,7 +375,7 @@ export class DataQualityValidator {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const jobData = data.processed_data as JobListingResult;
+    const jobData = (data.processed_data as unknown) as JobListingResult;
     const rules = check.validation_rule;
 
     let score = 1.0;
@@ -373,9 +386,12 @@ export class DataQualityValidator {
       score -= 0.2;
     }
 
-    if (!jobData.description || jobData.description.length < (rules.min_description_length || 50)) {
+    {
+      const minDesc = (((rules as any).min_description_length as number | undefined) ?? 50);
+      if (!jobData.description || jobData.description.length < minDesc) {
       errors.push('Missing or too short job description');
       score -= 0.3;
+      }
     }
 
     if (!jobData.location) {
@@ -384,10 +400,13 @@ export class DataQualityValidator {
     }
 
     // Validate employment type
-    if (rules.employment_types && jobData.employment_type) {
-      if (!rules.employment_types.includes(jobData.employment_type)) {
+    {
+      const types = (rules as any).employment_types as string[] | undefined;
+      if (types && jobData.employment_type) {
+        if (!types.includes(jobData.employment_type)) {
         warnings.push(`Unusual employment type: ${jobData.employment_type}`);
         score -= 0.1;
+        }
       }
     }
 

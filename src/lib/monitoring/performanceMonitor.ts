@@ -73,12 +73,17 @@ export class PerformanceMonitor {
     if (typeof window === 'undefined') return;
 
     // Dynamic import for client-side only
-    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-      getCLS(this.onWebVital.bind(this));
-      getFID(this.onWebVital.bind(this));
-      getFCP(this.onWebVital.bind(this));
-      getLCP(this.onWebVital.bind(this));
-      getTTFB(this.onWebVital.bind(this));
+    import('web-vitals').then((mod: any) => {
+      const getCLS = mod.getCLS || mod.onCLS;
+      const getFID = mod.getFID || mod.onFID;
+      const getFCP = mod.getFCP || mod.onFCP;
+      const getLCP = mod.getLCP || mod.onLCP;
+      const getTTFB = mod.getTTFB || mod.onTTFB;
+      if (getCLS) getCLS(this.onWebVital.bind(this));
+      if (getFID) getFID(this.onWebVital.bind(this));
+      if (getFCP) getFCP(this.onWebVital.bind(this));
+      if (getLCP) getLCP(this.onWebVital.bind(this));
+      if (getTTFB) getTTFB(this.onWebVital.bind(this));
     }).catch(error => {
       console.warn('Web Vitals not available:', error);
     });
@@ -251,7 +256,12 @@ export class PerformanceMonitor {
         : 0,
       request_response: navigation.responseEnd - navigation.requestStart,
       dom_processing: navigation.domComplete - navigation.responseEnd,
-      total_load_time: navigation.loadEventEnd - navigation.navigationStart,
+      total_load_time: (() => {
+        const navStart = (navigation as any).navigationStart !== undefined
+          ? (navigation as any).navigationStart
+          : navigation.startTime;
+        return navigation.loadEventEnd - navStart;
+      })(),
     };
 
     Object.entries(metrics).forEach(([name, value]) => {

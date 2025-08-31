@@ -115,7 +115,7 @@ function AdminCompaniesPage() {
   }, [verificationFilter, searchQuery, currentPage])
 
   // Handle company verification
-  const handleVerifyCompany = async (companyId: number, verified: boolean) => {
+  const handleVerifyCompany = async (companyId: string, verified: boolean) => {
     try {
       const { error: updateError } = await supabase
         .from('companies')
@@ -132,7 +132,7 @@ function AdminCompaniesPage() {
 
       // Update local state
       setCompanies(companies.map(company => 
-        Number(company.id) === companyId 
+        company.id === companyId 
           ? { 
               ...company, 
               verified: verified,
@@ -159,7 +159,7 @@ function AdminCompaniesPage() {
   }
 
   // Handle company deletion
-  const handleDeleteCompany = async (companyId: number) => {
+  const handleDeleteCompany = async (companyId: string) => {
     if (!confirm('Are you sure you want to delete this company? This action cannot be undone.')) {
       return
     }
@@ -175,7 +175,7 @@ function AdminCompaniesPage() {
       }
 
       // Update local state
-      setCompanies(companies.filter(company => Number(company.id) !== companyId))
+      setCompanies(companies.filter(company => company.id !== companyId))
       
       // Show success toast
       toast({

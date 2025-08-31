@@ -39,6 +39,7 @@ export interface Review {
   company_id: number;
   user_id: string | null;
   reviewer_name?: string;
+  recommend?: boolean | null;
   created_at: string;
   updated_at: string | null;
 }

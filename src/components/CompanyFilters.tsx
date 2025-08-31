@@ -63,14 +63,14 @@ export function CompanyFilters({
   const searchParams = useSearchParams();
   
   const [filters, setFilters] = useState<CompanyFilters>({
-    search: initialFilters.search || searchParams.get('search') || '',
-    industry: initialFilters.industry || searchParams.get('industry') || '',
-    location: initialFilters.location || searchParams.get('location') || '',
-    size: initialFilters.size || searchParams.get('size') || '',
-    minRating: initialFilters.minRating || Number(searchParams.get('minRating')) || 0,
-    maxRating: initialFilters.maxRating || Number(searchParams.get('maxRating')) || 5,
-    hasNews: initialFilters.hasNews || searchParams.get('hasNews') === 'true' || false,
-    sortBy: (initialFilters.sortBy || searchParams.get('sortBy') || 'rating-desc') as CompanyFilters['sortBy']
+    search: initialFilters.search || searchParams?.get('search') || '',
+    industry: initialFilters.industry || searchParams?.get('industry') || '',
+    location: initialFilters.location || searchParams?.get('location') || '',
+    size: initialFilters.size || searchParams?.get('size') || '',
+    minRating: initialFilters.minRating || Number(searchParams?.get('minRating')) || 0,
+    maxRating: initialFilters.maxRating || Number(searchParams?.get('maxRating')) || 5,
+    hasNews: initialFilters.hasNews || searchParams?.get('hasNews') === 'true' || false,
+    sortBy: (initialFilters.sortBy || searchParams?.get('sortBy') || 'rating-desc') as CompanyFilters['sortBy']
   });
   
   const [expanded, setExpanded] = useState(false);
@@ -88,8 +88,8 @@ export function CompanyFilters({
     if (filters.industry) params.set('industry', filters.industry);
     if (filters.location) params.set('location', filters.location);
     if (filters.size) params.set('size', filters.size);
-    if (filters.minRating > 0) params.set('minRating', filters.minRating.toString());
-    if (filters.maxRating < 5) params.set('maxRating', filters.maxRating.toString());
+    if ((filters.minRating ?? 0) > 0) params.set('minRating', (filters.minRating ?? 0).toString());
+    if ((filters.maxRating ?? 5) < 5) params.set('maxRating', (filters.maxRating ?? 5).toString());
     if (filters.hasNews) params.set('hasNews', 'true');
     if (filters.sortBy) params.set('sortBy', filters.sortBy);
     
@@ -163,8 +163,8 @@ export function CompanyFilters({
     filters.industry || 
     filters.location || 
     filters.size || 
-    filters.minRating > 0 || 
-    filters.maxRating < 5 || 
+    (filters.minRating ?? 0) > 0 || 
+    (filters.maxRating ?? 5) < 5 || 
     filters.hasNews || 
     filters.sortBy !== 'rating-desc';
   
@@ -216,11 +216,11 @@ export function CompanyFilters({
       );
     }
     
-    if (filters.minRating > 0 || filters.maxRating < 5) {
+    if ((filters.minRating ?? 0) > 0 || (filters.maxRating ?? 5) < 5) {
       badges.push(
         <Badge key="rating" variant="secondary" className="flex items-center gap-1">
           <Star className="h-3 w-3" />
-          {filters.minRating} - {filters.maxRating}
+          {(filters.minRating ?? 0)} - {(filters.maxRating ?? 5)}
           <button 
             onClick={() => handleRatingRangeChange([0, 5])}
             className="ml-1 rounded-full hover:bg-gray-200 p-0.5"

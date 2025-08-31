@@ -204,12 +204,12 @@ export function SupabaseMonitoringDashboard({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{formatBytes(metrics.databaseSize)}</span>
-                  <span className={getUsageColor(costEstimate.freeTierStatus.databaseUsage)}>
-                    {costEstimate.freeTierStatus.databaseUsage}%
+                  <span className={getUsageColor(costEstimate?.freeTierStatus?.databaseUsage ?? 0)}>
+                    {costEstimate?.freeTierStatus?.databaseUsage}%
                   </span>
                 </div>
                 <Progress 
-                  value={costEstimate.freeTierStatus.databaseUsage} 
+                  value={costEstimate?.freeTierStatus?.databaseUsage ?? 0} 
                   className="h-2"
                 />
                 <div className="text-xs text-gray-500">
@@ -231,12 +231,12 @@ export function SupabaseMonitoringDashboard({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{formatBytes(metrics.bandwidth, 'GB')}</span>
-                  <span className={getUsageColor(costEstimate.freeTierStatus.bandwidthUsage)}>
-                    {costEstimate.freeTierStatus.bandwidthUsage}%
+                  <span className={getUsageColor(costEstimate?.freeTierStatus?.bandwidthUsage ?? 0)}>
+                    {costEstimate?.freeTierStatus?.bandwidthUsage}%
                   </span>
                 </div>
                 <Progress 
-                  value={costEstimate.freeTierStatus.bandwidthUsage} 
+                  value={costEstimate?.freeTierStatus?.bandwidthUsage ?? 0} 
                   className="h-2"
                 />
                 <div className="text-xs text-gray-500">
@@ -258,12 +258,12 @@ export function SupabaseMonitoringDashboard({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{formatBytes(metrics.storage, 'GB')}</span>
-                  <span className={getUsageColor(costEstimate.freeTierStatus.storageUsage)}>
-                    {costEstimate.freeTierStatus.storageUsage}%
+                  <span className={getUsageColor(costEstimate?.freeTierStatus?.storageUsage ?? 0)}>
+                    {costEstimate?.freeTierStatus?.storageUsage}%
                   </span>
                 </div>
                 <Progress 
-                  value={costEstimate.freeTierStatus.storageUsage} 
+                  value={costEstimate?.freeTierStatus?.storageUsage ?? 0} 
                   className="h-2"
                 />
                 <div className="text-xs text-gray-500">
@@ -285,12 +285,12 @@ export function SupabaseMonitoringDashboard({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{metrics.activeUsers.toLocaleString()}</span>
-                  <span className={getUsageColor(costEstimate.freeTierStatus.usersUsage)}>
-                    {costEstimate.freeTierStatus.usersUsage}%
+                  <span className={getUsageColor(costEstimate?.freeTierStatus?.usersUsage ?? 0)}>
+                    {costEstimate?.freeTierStatus?.usersUsage}%
                   </span>
                 </div>
                 <Progress 
-                  value={costEstimate.freeTierStatus.usersUsage} 
+                  value={costEstimate?.freeTierStatus?.usersUsage ?? 0} 
                   className="h-2"
                 />
                 <div className="text-xs text-gray-500">
@@ -362,7 +362,7 @@ export function SupabaseMonitoringDashboard({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {costEstimate?.freeTierStatus.databaseUsage > 70 && (
+            {(costEstimate?.freeTierStatus?.databaseUsage ?? 0) > 70 && (
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
                 <div className="text-sm">
@@ -371,7 +371,7 @@ export function SupabaseMonitoringDashboard({
               </div>
             )}
             
-            {costEstimate?.freeTierStatus.bandwidthUsage > 70 && (
+            {(costEstimate?.freeTierStatus?.bandwidthUsage ?? 0) > 70 && (
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
                 <div className="text-sm">

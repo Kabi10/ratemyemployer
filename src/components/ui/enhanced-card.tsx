@@ -112,7 +112,7 @@ const enhancedCardVariants = cva(
 export interface EnhancedCardProps
   extends Omit<HTMLMotionProps<'div'>, 'children'>,
     VariantProps<typeof enhancedCardVariants> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   header?: React.ReactNode;
   footer?: React.ReactNode;
   loading?: boolean;

@@ -65,9 +65,8 @@ export function CompanyCard({ company, showActions = true, isAdmin = false }: Co
       interactive
       className="group cursor-pointer"
       onClick={() => router.push(`/companies/${company.id}`)}
-    >
-      <EnhancedCardHeader
-        title={
+      header={
+        <EnhancedCardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -95,8 +94,9 @@ export function CompanyCard({ company, showActions = true, isAdmin = false }: Co
             </div>
             {showActions && <CompanyActions company={company} isAdmin={isAdmin} />}
           </div>
-        }
-      />
+        </EnhancedCardHeader>
+      }
+    >
 
       <EnhancedCardContent>
         <div className="space-y-4">
@@ -165,7 +165,7 @@ export function CompanyCard({ company, showActions = true, isAdmin = false }: Co
                   variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(company.website, '_blank');
+                    window.open(company.website as string, '_blank');
                   }}
                 >
                   Website

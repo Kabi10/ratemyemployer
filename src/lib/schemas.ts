@@ -32,6 +32,10 @@ export const ERROR_MESSAGES = {
   position: 'Position must be between 2 and 255 characters'
 };
 
+// Helper for optional date fields (stored as ISO strings)
+const createOptionalDateSchema = (_label: string) =>
+  z.string().optional().nullable();
+
 // Company schema
 export const companySchema = z.object({
   name: z.string()

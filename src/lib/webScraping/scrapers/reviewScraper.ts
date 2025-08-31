@@ -320,6 +320,6 @@ export class ReviewScraper {
       .eq('data_hash', hash)
       .limit(1);
 
-    return existing && existing.length > 0;
+    return ((existing?.length ?? 0) > 0);
   }
 }

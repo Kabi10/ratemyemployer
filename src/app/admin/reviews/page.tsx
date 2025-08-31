@@ -21,6 +21,7 @@ import { ModerationHistoryModal } from '@/components/modals/ModerationHistoryMod
 
 import { supabase } from '@/lib/supabaseClient';
 import { formatDateDisplay } from '@/utils/date';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Review {
   id: number;
@@ -54,6 +55,7 @@ function AdminReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // State
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -69,9 +71,9 @@ function AdminReviewsPage() {
   const [selectedReviewForHistory, setSelectedReviewForHistory] = useState<Review | null>(null);
   
   // Filters
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [statusFilter, setStatusFilter] = useState(searchParams?.get('status') || 'all');
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || '');
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1', 10));
   const itemsPerPage = 10;
 
   // Fetch reviews with enhanced filters and sorting
