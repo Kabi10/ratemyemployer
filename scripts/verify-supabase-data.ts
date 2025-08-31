@@ -223,17 +223,17 @@ async function generateReport() {
   const reportPath = path.resolve(process.cwd(), 'supabase-verification-report.json');
   
   // Get counts for each table
-  const { data: companiesCount, error: companiesError } = await supabase
+  const { count: companiesCount, error: companiesError } = await supabase
     .from('companies')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
   
-  const { data: reviewsCount, error: reviewsError } = await supabase
+  const { count: reviewsCount, error: reviewsError } = await supabase
     .from('reviews')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
   
-  const { data: usersCount, error: usersError } = await supabase
+  const { count: usersCount, error: usersError } = await supabase
     .from('user_profiles')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
   
   // Get latest entries
   const { data: latestCompany, error: latestCompanyError } = await supabase
@@ -253,9 +253,9 @@ async function generateReport() {
   const report = {
     timestamp: new Date().toISOString(),
     counts: {
-      companies: companiesCount?.count ?? 0,
-      reviews: reviewsCount?.count ?? 0,
-      users: usersCount?.count ?? 0,
+      companies: companiesCount ?? 0,
+      reviews: reviewsCount ?? 0,
+      users: usersCount ?? 0,
     },
     latest: {
       company: latestCompany ?? null,

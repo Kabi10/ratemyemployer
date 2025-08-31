@@ -90,9 +90,9 @@ const enhancedButtonVariants = cva(
         default: 'h-10 px-4 py-2',
         lg: 'h-12 px-6 text-lg',
         xl: 'h-14 px-8 text-xl',
-        icon: 'h-10 w-10',
-        'icon-sm': 'h-8 w-8',
-        'icon-lg': 'h-12 w-12',
+        icon: 'h-10 p-0 gap-0',
+        'icon-sm': 'h-8 w-8 p-0',
+        'icon-lg': 'h-12 w-12 p-0',
       },
       fullWidth: {
         true: 'w-full',
@@ -139,24 +139,33 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     rightIcon,
     children,
     disabled,
+    onClick,
+    onKeyDown,
     ...props 
   }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-    
     const isDisabled = disabled || loading;
     
-    return (
-      <Comp
-        className={cn(
-          enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-          loading && 'cursor-not-allowed'
-        )}
-        ref={ref}
-        disabled={isDisabled}
-        {...props}
-      >
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (!isDisabled && onClick) {
+          onClick(e as any);
+        }
+      }
+      onKeyDown?.(e);
+    };
+    
+    const buttonClasses = cn(
+      enhancedButtonVariants({ variant, size, fullWidth, rounded }),
+      loading && 'cursor-not-allowed',
+      size === 'icon' && 'w-10', // Force icon width
+      className
+    );
+    
+    const buttonContent = (
+      <>
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
@@ -172,7 +181,33 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
-      </Comp>
+      </>
+    );
+    
+    if (asChild) {
+      return (
+        <Slot
+          className={buttonClasses}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+    
+    return (
+      <button
+        className={buttonClasses}
+        ref={ref}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        {...props}
+      >
+        {buttonContent}
+      </button>
     );
   }
 );

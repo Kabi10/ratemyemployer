@@ -15,7 +15,7 @@ import type {
   ScrapingJobFilter,
   DataEnhancementFilter,
   ScrapingStatus,
-  ScraperType,
+  ScraperType as _ScraperType,
   DataSource
 } from '@/types/webScraping';
 

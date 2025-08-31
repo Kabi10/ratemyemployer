@@ -98,12 +98,8 @@ async function populateCompanies(count: number = 50) {
       name: `${template.name}${suffix}`,
       industry: template.industry,
       location: template.location,
-      size: template.size,
       website: template.website.replace('.example.com', `${i}.example.com`),
       description: template.description,
-      average_rating: Math.round((Math.random() * 4 + 1) * 10) / 10, // 1.0 to 5.0
-      review_count: Math.floor(Math.random() * 200) + 5, // 5 to 204
-      recommend_percentage: Math.round((Math.random() * 60 + 20) * 10) / 10, // 20% to 80%
       created_at: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
