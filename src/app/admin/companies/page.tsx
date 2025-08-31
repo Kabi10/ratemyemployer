@@ -22,7 +22,17 @@ import Link from 'next/link'
 import { Building2, Edit, Trash2, ExternalLink } from 'lucide-react'
 import type { Database } from '@/types/supabase'
 
-type Company = Database['public']['Tables']['companies']['Row']
+// Extended Company type with all the properties we actually use
+type Company = Database['public']['Tables']['companies']['Row'] & {
+  verified?: boolean;
+  verification_status?: string;
+  verification_date?: string;
+  average_rating?: number;
+  total_reviews?: number;
+  recommendation_rate?: number;
+  ceo?: string;
+  created_by?: string;
+}
 
 function AdminCompaniesPage() {
   const router = useRouter()
@@ -36,9 +46,9 @@ function AdminCompaniesPage() {
   const [totalCount, setTotalCount] = useState(0)
   
   // Filters
-  const [verificationFilter, setVerificationFilter] = useState(searchParams.get('verification') || 'all')
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10))
+  const [verificationFilter, setVerificationFilter] = useState(searchParams?.get('verification') || 'all')
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || '')
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1', 10))
   const itemsPerPage = 10
 
   // Fetch companies with filters and pagination
@@ -122,7 +132,7 @@ function AdminCompaniesPage() {
 
       // Update local state
       setCompanies(companies.map(company => 
-        company.id === companyId 
+        Number(company.id) === companyId 
           ? { 
               ...company, 
               verified: verified,
@@ -165,7 +175,7 @@ function AdminCompaniesPage() {
       }
 
       // Update local state
-      setCompanies(companies.filter(company => company.id !== companyId))
+      setCompanies(companies.filter(company => Number(company.id) !== companyId))
       
       // Show success toast
       toast({

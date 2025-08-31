@@ -37,7 +37,16 @@ const testId = uuidv4().substring(0, 8);
 console.log(`🔑 Test ID: ${testId}`);
 
 // Test company data
-const testCompany = {
+const testCompany: {
+  name: string;
+  industry: string;
+  location: string;
+  website: string;
+  logo_url: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+} = {
   name: `Test Company ${testId}`,
   industry: 'Technology',
   location: 'Test Location',
@@ -49,7 +58,18 @@ const testCompany = {
 };
 
 // Test review data (will be populated after company is created)
-let testReview = {
+let testReview: {
+  company_id: number | null;
+  rating: number;
+  title: string;
+  pros: string;
+  cons: string;
+  employment_status: string;
+  position: string;
+  created_at: string;
+  user_id: string | null;
+  status: string;
+} = {
   company_id: null, // Will be set after company creation
   rating: 4,
   title: `Test Review ${testId}`,
@@ -425,11 +445,14 @@ runTests()
       process.stdin.once('data', async (data) => {
         const input = data.toString().trim().toLowerCase();
         if (input === 'y' || input === 'yes') {
-          await cleanupTestData(
-            result.testCompanyData.id, 
-            result.testReviewData.id, 
-            result.testUser.id
-          );
+          // Additional type guards inside the callback
+          if (result.testUser && result.testCompanyData && result.testReviewData) {
+            await cleanupTestData(
+              result.testCompanyData.id, 
+              result.testReviewData.id, 
+              result.testUser.id
+            );
+          }
         } else {
           console.log('⚠️ Test data will remain in the database. Clean it up manually if needed.');
           console.log(`   Test ID: ${testId}`);

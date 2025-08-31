@@ -141,20 +141,15 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-    
     const isDisabled = disabled || loading;
     
-    return (
-      <Comp
-        className={cn(
-          enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-          loading && 'cursor-not-allowed'
-        )}
-        ref={ref}
-        disabled={isDisabled}
-        {...props}
-      >
+    const buttonClasses = cn(
+      enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
+      loading && 'cursor-not-allowed'
+    );
+    
+    const buttonContent = (
+      <>
         {loading && (
           <Loader2 className="h-4 w-4 animate-spin" />
         )}
@@ -172,7 +167,33 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
-      </Comp>
+      </>
+    );
+    
+    if (asChild) {
+      return (
+        <Slot
+          className={buttonClasses}
+          ref={ref}
+          {...props}
+        >
+          {React.cloneElement(children as React.ReactElement, {
+            disabled: isDisabled,
+            children: buttonContent
+          })}
+        </Slot>
+      );
+    }
+    
+    return (
+      <button
+        className={buttonClasses}
+        ref={ref}
+        disabled={isDisabled}
+        {...props}
+      >
+        {buttonContent}
+      </button>
     );
   }
 );

@@ -85,13 +85,47 @@ export function RisingStartupsSection({
       setError(null);
 
       const offset = (currentPage - 1) * itemsPerPage;
-      const response = await getRisingStartupCompanies(filters, itemsPerPage, offset);
       
-      setCompanies(response.companies);
-      setTotalCount(response.total_count);
+      // Add timeout and error boundary
+      const response = await Promise.race([
+        getRisingStartupCompanies(filters, itemsPerPage, offset),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 30000)
+        )
+      ]) as Awaited<ReturnType<typeof getRisingStartupCompanies>>;
+      
+      // Validate response structure
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid response from server');
+      }
+      
+      setCompanies(response.companies || []);
+      setTotalCount(response.total_count || 0);
     } catch (err) {
       console.error('Error fetching rising startups:', err);
-      setError('Failed to load rising startups. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to load rising startups. ';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('timeout')) {
+          errorMessage += 'The request timed out. Please try again.';
+        } else if (err.message.includes('fetch')) {
+          errorMessage += 'Network error. Please check your connection.';
+        } else if (err.message.includes('function')) {
+          errorMessage += 'Database function unavailable. Please contact support.';
+        } else {
+          errorMessage += err.message;
+        }
+      } else {
+        errorMessage += 'Please try again later.';
+      }
+      
+      setError(errorMessage);
+      
+      // Set fallback data to prevent UI crashes
+      setCompanies([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -100,9 +134,30 @@ export function RisingStartupsSection({
   const fetchStatistics = async () => {
     try {
       const stats = await getGrowthStatistics();
-      setStatistics(stats);
+      
+      // Validate statistics structure
+      if (stats && typeof stats === 'object') {
+        setStatistics({
+          total_companies: stats.total_companies || 0,
+          average_score: stats.average_score || 0,
+          total_funding: stats.total_funding || 0,
+          by_industry: stats.by_industry || [],
+          by_indicator_type: stats.by_indicator_type || [],
+          trend_data: stats.trend_data || []
+        });
+      }
     } catch (err) {
       console.error('Error fetching growth statistics:', err);
+      // Don't show error for statistics, just log it
+      // Set fallback statistics
+      setStatistics({
+        total_companies: 0,
+        average_score: 0,
+        total_funding: 0,
+        by_industry: [],
+        by_indicator_type: [],
+        trend_data: []
+      });
     }
   };
 
@@ -117,8 +172,13 @@ export function RisingStartupsSection({
   };
 
   const getGrowthColor = (score: number) => {
-    const category = getGrowthCategory(score);
-    return GROWTH_COLORS[category];
+    try {
+      const category = getGrowthCategory(score);
+      return GROWTH_COLORS[category] || '#6B7280'; // fallback to gray
+    } catch (error) {
+      console.warn('Error getting growth color for score:', score, error);
+      return '#6B7280'; // fallback to gray
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -397,10 +457,11 @@ export function RisingStartupsSection({
                           <span className="text-sm font-medium">Growth Score</span>
                           <Badge 
                             variant="outline" 
+                            className={`border-2`}
                             style={{ 
                               borderColor: getGrowthColor(company.growth_score),
                               color: getGrowthColor(company.growth_score)
-                            }}
+                            } as React.CSSProperties}
                           >
                             {company.growth_score}/100
                           </Badge>
@@ -435,21 +496,23 @@ export function RisingStartupsSection({
                         </div>
 
                         {/* Recent Indicators */}
-                        {company.growth_indicators.length > 0 && (
+                        {company.growth_indicators && company.growth_indicators.length > 0 && (
                           <div className="mt-3">
                             <div className="flex flex-wrap gap-2">
-                              {company.growth_indicators.slice(0, 3).map((indicator) => (
-                                <Badge 
-                                  key={indicator.id} 
-                                  variant="secondary"
-                                  className="text-xs bg-green-50 text-green-700 border-green-200"
-                                >
-                                  {GROWTH_INDICATOR_LABELS[indicator.indicator_type]}
-                                </Badge>
-                              ))}
-                              {company.growth_indicators.length > 3 && (
+                              {company.growth_indicators && company.growth_indicators.length > 0 && (
+                                company.growth_indicators.slice(0, 3).map((indicator) => (
+                                  <Badge 
+                                    key={indicator.id} 
+                                    variant="secondary"
+                                    className="text-xs bg-green-50 text-green-700 border-green-200"
+                                  >
+                                    {GROWTH_INDICATOR_LABELS[indicator.indicator_type] || indicator.indicator_type}
+                                  </Badge>
+                                ))
+                              )}
+                              {company.growth_indicators && company.growth_indicators.length > 3 && (
                                 <Badge variant="outline" className="text-xs">
-                                  +{company.growth_indicators.length - 3} more
+                                  +{(company.growth_indicators?.length || 0) - 3} more
                                 </Badge>
                               )}
                             </div>

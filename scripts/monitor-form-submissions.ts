@@ -191,35 +191,35 @@ async function generateSummaryReport() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const { data: todayCompanies, error: todayCompaniesError } = await supabase
+  const { count: todayCompaniesCount, error: todayCompaniesError } = await supabase
     .from('companies')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .gte('created_at', today.toISOString());
   
-  const { data: todayReviews, error: todayReviewsError } = await supabase
+  const { count: todayReviewsCount, error: todayReviewsError } = await supabase
     .from('reviews')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .gte('created_at', today.toISOString());
   
   // Get counts for all time
-  const { data: totalCompanies, error: totalCompaniesError } = await supabase
+  const { count: totalCompaniesCount, error: totalCompaniesError } = await supabase
     .from('companies')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
   
-  const { data: totalReviews, error: totalReviewsError } = await supabase
+  const { count: totalReviewsCount, error: totalReviewsError } = await supabase
     .from('reviews')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
   
   // Generate report
   const report = {
     timestamp: new Date().toISOString(),
     today: {
-      companies: todayCompanies?.count || 0,
-      reviews: todayReviews?.count || 0,
+      companies: todayCompaniesCount || 0,
+      reviews: todayReviewsCount || 0,
     },
     total: {
-      companies: totalCompanies?.count || 0,
-      reviews: totalReviews?.count || 0,
+      companies: totalCompaniesCount || 0,
+      reviews: totalReviewsCount || 0,
     },
     errors: {
       todayCompanies: todayCompaniesError ? todayCompaniesError.message : null,
