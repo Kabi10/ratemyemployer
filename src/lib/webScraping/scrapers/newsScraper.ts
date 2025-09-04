@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabaseClient';
-import { fetchCompanyNews } from '@/lib/freeNewsApi';
+import { fetchFromGoogleNewsRSS } from '@/lib/freeNewsApi';
 import type { 
   ScrapingResult, 
   NewsResult, 
@@ -98,8 +98,16 @@ export class NewsScraper {
     const articles: NewsResult[] = [];
 
     try {
-      // Use the existing RSS news fetching system
-      const rssArticles = await fetchCompanyNews(companyName, config.max_articles || 20);
+      // Use the free Google News RSS helper and map to expected shape
+      const rawArticles = await fetchFromGoogleNewsRSS(companyName);
+      const limit = config.max_articles || 20;
+      const rssArticles = rawArticles.slice(0, limit).map(a => ({
+        title: a.title,
+        description: a.description ?? '',
+        link: a.url ?? '',
+        date: a.publishedAt,
+        source: { name: a.source?.name ?? 'Unknown' }
+      }));
 
       for (const rssArticle of rssArticles) {
         if (signal.aborted) break;

@@ -96,7 +96,6 @@ const enhancedButtonVariants = cva(
       },
       fullWidth: {
         true: 'w-full',
-        false: 'w-auto',
       },
       rounded: {
         default: 'rounded-lg',
@@ -141,22 +140,40 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-    
     const isDisabled = disabled || loading;
-    
+    const computedClassName = cn(
+      enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
+      loading && 'cursor-not-allowed'
+    );
+
+    // When rendering asChild, Radix Slot enforces a single child via React.Children.only.
+    // We must not add siblings (icons, loaders, overlays). Delegate content to the child.
+    if (asChild) {
+      return (
+        <Slot className={computedClassName} ref={ref as any} {...props}>
+          {children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        className={cn(
-          enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-          loading && 'cursor-not-allowed'
-        )}
+      <button
+        className={computedClassName}
         ref={ref}
         disabled={isDisabled}
+        aria-disabled={isDisabled ? true : undefined}
+        aria-busy={loading ? true : undefined}
+        onKeyDown={(event) => {
+          props.onKeyDown?.(event);
+          if (isDisabled) return;
+          if (event.key === 'Enter' || event.key === ' ') {
+            props.onClick?.(event as any);
+          }
+        }}
         {...props}
       >
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 data-testid="loading-spinner" className="h-4 w-4 animate-spin" />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
@@ -167,12 +184,10 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {!loading && rightIcon && (
           <span className="flex-shrink-0">{rightIcon}</span>
         )}
-        
-        {/* Ripple effect overlay */}
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
-      </Comp>
+      </button>
     );
   }
 );
