@@ -1,6 +1,6 @@
 'use client'
 
-import { Toaster } from 'sonner'
+import { Toaster as SonnerToaster } from 'sonner'
 import * as React from 'react'
 
 export type ToastProps = {
@@ -12,7 +12,7 @@ export type ToastProps = {
 export type ToastActionElement = React.ReactElement
 
 export function Toast() {
-  return <Toaster richColors />
+  return <SonnerToaster richColors />
 }
 
 export { toast } from 'sonner'

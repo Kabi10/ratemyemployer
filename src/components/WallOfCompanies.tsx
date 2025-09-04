@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, isSupabaseConfigured, getSupabaseConfig } from '@/lib/supabaseClient';
 import type { CompanyWithReviews } from '@/types/database';
 import { EnhancedCompanyCard } from '@/components/EnhancedCompanyCard';
 import { CompanyFilters } from '@/components/CompanyFilters';
@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useIndustryStatistics, useLocationStatistics } from '@/hooks/useMCPQuery';
+import { IndustryStatistic, LocationStatistic } from '@/types/mcp';
 
 interface WallOfCompaniesProps {
   type: 'fame' | 'shame';
@@ -45,22 +47,46 @@ export function WallOfCompanies({
     averageRating: 0
   });
   const [locations, setLocations] = useState<string[]>([]);
-  const [sizes, setSizes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [sortBy, setSortBy] = useState('rating');
-  
-  // New state for statistics
-  const [industryStats, setIndustryStats] = useState<any[]>([]);
-  const [locationStats, setLocationStats] = useState<any[]>([]);
-  const [sizeStats, setSizeStats] = useState<any[]>([]);
+
+  // MCP-powered statistics hooks
+  const {
+    data: industryStats,
+    loading: industryLoading
+  } = useIndustryStatistics({
+    enabled: true,
+    refreshInterval: 300000 // 5 minutes
+  });
+
+  const {
+    data: locationStats,
+    loading: locationLoading
+  } = useLocationStatistics({
+    enabled: true,
+    refreshInterval: 300000 // 5 minutes
+  });
+
   const [showStats, setShowStats] = useState(false);
 
   // Fetch companies with ratings
   const fetchCompanies = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log('Starting companies fetch...');
+
+      // Check if Supabase is properly configured
+      if (!isSupabaseConfigured()) {
+        const config = getSupabaseConfig();
+        console.error('Supabase configuration issue:', config);
+        throw new Error(
+          `Database not configured. Please check your environment variables:\n` +
+          `- NEXT_PUBLIC_SUPABASE_URL: ${config.hasUrl ? '✓' : '✗'}\n` +
+          `- NEXT_PUBLIC_SUPABASE_ANON_KEY: ${config.hasKey ? '✓' : '✗'}`
+        );
+      }
 
       // First, test a simple query
       const { data: testData, error: testError } = await supabase
@@ -89,9 +115,7 @@ export function WallOfCompanies({
           location,
           description,
           logo_url,
-          website_url,
-          size,
-          founded_year,
+          website,
           reviews (
             id,
             rating,
@@ -138,12 +162,12 @@ export function WallOfCompanies({
           ? Math.round((recommendCount / reviews.length) * 100)
           : 0;
         
-        return {
+        return ({
           ...company,
           average_rating: averageRating,
           recommend_percentage: recommendPercentage,
           reviews: reviews
-        };
+        } as any) as CompanyWithReviews;
       });
 
       // Filter companies with at least 3 reviews and a valid average rating
@@ -188,12 +212,10 @@ export function WallOfCompanies({
       // Fetch news for companies
       fetchNewsForCompanies(selectedCompanies);
       
-      // Fetch statistics
-      fetchStatistics();
-      
     } catch (err: any) {
       console.error('Error fetching companies:', err);
-      setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies`);
+      const errorMessage = err?.message || 'Unknown error occurred';
+      setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -214,75 +236,32 @@ export function WallOfCompanies({
     setCompanyNews(newsData);
   };
   
-  // Fetch statistics using stored procedures
-  const fetchStatistics = async () => {
-    try {
-      // Fetch industry statistics
-      const { data: industryData, error: industryError } = await supabase.rpc('get_industry_statistics');
-      
-      if (industryError) {
-        console.error('Error fetching industry statistics:', industryError);
+  // Process MCP statistics data based on wall type
+  const processedIndustryStats = industryStats ? [...industryStats]
+    .sort((a, b) => {
+      if (type === 'fame') {
+        return b.average_rating - a.average_rating;
       } else {
-        // Sort based on type (fame = highest ratings first, shame = lowest ratings first)
-        const sortedIndustryData = [...industryData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setIndustryStats(sortedIndustryData.slice(0, 5));
+        return a.average_rating - b.average_rating;
       }
-      
-      // Fetch location statistics
-      const { data: locationData, error: locationError } = await supabase.rpc('get_location_statistics');
-      
-      if (locationError) {
-        console.error('Error fetching location statistics:', locationError);
+    })
+    .slice(0, 5) : [];
+
+  const processedLocationStats = locationStats ? [...locationStats]
+    .sort((a, b) => {
+      if (type === 'fame') {
+        return b.average_rating - a.average_rating;
       } else {
-        // Sort based on type
-        const sortedLocationData = [...locationData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setLocationStats(sortedLocationData.slice(0, 5));
+        return a.average_rating - b.average_rating;
       }
-      
-      // Fetch size statistics
-      const { data: sizeData, error: sizeError } = await supabase.rpc('get_size_statistics');
-      
-      if (sizeError) {
-        console.error('Error fetching size statistics:', sizeError);
-      } else {
-        // Sort based on type
-        const sortedSizeData = [...sizeData].sort((a, b) => {
-          if (type === 'fame') {
-            return b.average_rating - a.average_rating;
-          } else {
-            return a.average_rating - b.average_rating;
-          }
-        });
-        
-        setSizeStats(sortedSizeData.slice(0, 5));
-      }
-    } catch (err) {
-      console.error('Error fetching statistics:', err);
-    }
-  };
+    })
+    .slice(0, 5) : [];
   
   useEffect(() => {
-    // Extract unique locations and sizes from companies
+    // Extract unique locations from companies
     if (companies.length > 0) {
       const uniqueLocations = Array.from(new Set(companies.map(company => company.location).filter(Boolean)));
-      const uniqueSizes = Array.from(new Set(companies.map(company => company.size).filter(Boolean)));
-      
       setLocations(uniqueLocations as string[]);
-      setSizes(uniqueSizes as string[]);
     }
   }, [companies]);
 
@@ -309,15 +288,8 @@ export function WallOfCompanies({
     
     // Filter by location
     if (filters.location) {
-      filtered = filtered.filter(company => 
+      filtered = filtered.filter(company =>
         company.location === filters.location
-      );
-    }
-    
-    // Filter by size
-    if (filters.size) {
-      filtered = filtered.filter(company => 
-        company.size === filters.size
       );
     }
     
@@ -342,16 +314,29 @@ export function WallOfCompanies({
     }
     
     // Sort companies
-    if (filters.sortBy === 'rating') {
-      filtered = filtered.sort((a, b) => 
-        type === 'fame' 
-          ? b.average_rating - a.average_rating 
-          : a.average_rating - b.average_rating
-      );
-    } else if (filters.sortBy === 'reviews') {
-      filtered = filtered.sort((a, b) => b.review_count - a.review_count);
-    } else if (filters.sortBy === 'name') {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    switch (filters.sortBy) {
+      case 'rating-desc':
+        filtered = filtered.sort((a, b) => b.average_rating - a.average_rating);
+        break;
+      case 'rating-asc':
+        filtered = filtered.sort((a, b) => a.average_rating - b.average_rating);
+        break;
+      case 'reviews-desc':
+        filtered = filtered.sort((a, b) => (b as any).total_reviews - (a as any).total_reviews);
+        break;
+      case 'name-asc':
+        filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'recommend-desc':
+        filtered = filtered.sort((a, b) => ((b as any).recommend_percentage || 0) - ((a as any).recommend_percentage || 0));
+        break;
+      default:
+        // Default to rating-desc for fame, rating-asc for shame
+        filtered = filtered.sort((a, b) =>
+          type === 'fame'
+            ? b.average_rating - a.average_rating
+            : a.average_rating - b.average_rating
+        );
     }
     
     setFilteredCompanies(filtered);
@@ -577,7 +562,7 @@ export function WallOfCompanies({
           {showStats && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Industry Statistics */}
-              {industryStats.length > 0 && (
+              {(industryStats?.length ?? 0) > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -586,7 +571,13 @@ export function WallOfCompanies({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {industryStats.map((stat) => (
+                    {industryLoading ? (
+                      <div className="space-y-2">
+                        {[...Array(3)].map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    ) : processedIndustryStats.map((stat) => (
                       <div key={stat.industry} className="space-y-2">
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.industry}</span>
@@ -606,7 +597,7 @@ export function WallOfCompanies({
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
+                          <span>{(stat as any).total_reviews} reviews</span>
                         </div>
                       </div>
                     ))}
@@ -615,7 +606,7 @@ export function WallOfCompanies({
               )}
               
               {/* Location Statistics */}
-              {locationStats.length > 0 && (
+              {(locationStats?.length ?? 0) > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -624,7 +615,13 @@ export function WallOfCompanies({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {locationStats.map((stat) => (
+                    {locationLoading ? (
+                      <div className="space-y-2">
+                        {[...Array(3)].map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    ) : processedLocationStats.map((stat) => (
                       <div key={stat.location} className="space-y-2">
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.location}</span>
@@ -644,7 +641,7 @@ export function WallOfCompanies({
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
+                          <span>{(stat as any).total_reviews} reviews</span>
                         </div>
                       </div>
                     ))}
@@ -652,59 +649,23 @@ export function WallOfCompanies({
                 </Card>
               )}
               
-              {/* Size Statistics */}
-              {sizeStats.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      {type === 'fame' ? 'Top Rated by Company Size' : 'Lowest Rated by Company Size'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {sizeStats.map((stat) => (
-                      <div key={stat.size} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{stat.size}</span>
-                          <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
-                            {type === 'fame' ? (
-                              <TrendingUp className="ml-1 inline h-4 w-4" />
-                            ) : (
-                              <TrendingDown className="ml-1 inline h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={stat.average_rating * 20} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(stat.average_rating)}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+
             </div>
           )}
         </div>
         
         {/* Filters */}
         <div className="mb-8">
-          <CompanyFilters 
+          <CompanyFilters
             industries={industries}
             locations={locations}
-            sizes={sizes}
             onFiltersChange={handleFiltersChange}
             initialFilters={{
               search: searchTerm,
               industry: selectedIndustry,
-              sortBy: sortBy,
+              sortBy: type === 'fame' ? 'rating-desc' : 'rating-asc',
             }}
+            showSortOptions={true}
           />
         </div>
         

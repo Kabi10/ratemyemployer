@@ -123,11 +123,12 @@ export function HomeClient() {
 
     setIsSubmitting(true);
     try {
+      const d = data as any;
       const cleanData = {
-        name: data.name.trim(),
-        website: data.website && data.website.length > 0 ? data.website : null,
-        industry: data.industry as Industry,
-        location: data.location,
+        name: (d.name as string).trim(),
+        website: d.website && (d.website as string).length > 0 ? (d.website as string) : null,
+        industry: d.industry as Industry,
+        location: d.location as string,
       };
 
       console.log('Submitting data:', cleanData, 'User:', user);
@@ -294,7 +295,7 @@ export function HomeClient() {
                       </div>
                       <div className="mt-6">
                         <ReviewForm
-                          companyId={selectedCompany.id}
+                          companyId={selectedCompany.id as any}
                           onSuccess={() => {
                             setShowAddReview(false);
                             router.refresh();

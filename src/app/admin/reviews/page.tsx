@@ -1,5 +1,7 @@
-'use client'
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
+<<<<<<< HEAD
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { withAuth } from '@/lib/auth/withAuth';
@@ -708,3 +710,10 @@ function AdminReviewsPage() {
 }
 
 export default withAuth(AdminReviewsPage, { requiredRole: 'moderator' });
+=======
+import AdminReviewsClient from './AdminReviewsClient';
+
+export default function Page() {
+  return <AdminReviewsClient />;
+}
+>>>>>>> feature/remove-mcp-demo-pages

@@ -7,9 +7,10 @@ interface BadgeProps {
   children: ReactNode;
   variant?: 'default' | 'secondary' | 'destructive' | 'outline';
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Badge({ children, variant = 'default', className }: BadgeProps) {
+export function Badge({ children, variant = 'default', className, style }: BadgeProps) {
   const variants = {
     default: 'bg-primary text-primary-foreground',
     secondary: 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
@@ -24,6 +25,7 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
         variants[variant],
         className
       )}
+      style={style}
     >
       {children}
     </span>

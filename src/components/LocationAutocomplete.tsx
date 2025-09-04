@@ -1,7 +1,6 @@
 import { useLoadScript } from '@react-google-maps/api';
-
 import { useEffect, useRef, useState } from 'react';
-
+import { FreeLocationAutocomplete } from './FreeLocationAutocomplete';
 
 /// <reference types="@types/google.maps" />
 
@@ -21,6 +20,22 @@ export function LocationAutocomplete({
   placeholder = 'Enter a location',
   required = false,
 }: LocationAutocompleteProps) {
+  // Check if Google Maps API key is available
+  const hasGoogleMapsKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+
+  // If no Google Maps API key, use free alternative
+  if (!hasGoogleMapsKey) {
+    return (
+      <FreeLocationAutocomplete
+        value={value}
+        onChange={onChange}
+        className={className}
+        placeholder={placeholder}
+        required={required}
+      />
+    );
+  }
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: ['places'],

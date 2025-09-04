@@ -34,6 +34,10 @@ export const ERROR_MESSAGES = {
   cons: 'Cons must be at least 10 characters'
 };
 
+// Helper for optional date fields (stored as ISO strings)
+const createOptionalDateSchema = (_label: string) =>
+  z.string().optional().nullable();
+
 // Company schema
 export const companySchema = z.object({
   name: z.string()
@@ -66,6 +70,9 @@ export const companySchema = z.object({
     .max(255, 'Logo URL must be less than 255 characters')
     .optional()
     .nullable(),
+  created_at: createOptionalDateSchema('Created date'),
+  updated_at: createOptionalDateSchema('Updated date'),
+  verification_date: createOptionalDateSchema('Verification date'),
 });
 
 // Review schema
@@ -89,15 +96,82 @@ export const reviewSchema = z.object({
   employment_status: employmentStatusEnum,
   is_current_employee: z.boolean(),
   status: reviewStatusEnum.default('pending'),
+<<<<<<< HEAD
+=======
+  reviewer_name: z.string()
+    .max(100, 'Reviewer name must be less than 100 characters')
+    .optional()
+    .nullable(),
+  reviewer_email: z.string()
+    .email('Invalid email address')
+    .max(255, 'Email must be less than 255 characters')
+    .optional()
+    .nullable(),
+  created_at: createOptionalDateSchema('Created date'),
+  updated_at: createOptionalDateSchema('Updated date'),
+  recommend: z.boolean().optional().nullable(),
+  content: z.string().min(10, 'Content must be at least 10 characters').optional().nullable(),
+>>>>>>> feature/remove-mcp-demo-pages
 });
 
-// Validation Utilities
-export const validateForm = async <T extends z.ZodSchema>(
+// Database verification schemas with proper datetime handling
+export const companyVerificationSchema = z.object({
+  id: z.number(),
+  name: z.string().min(2),
+  industry: z.string().nullable().optional(),
+  location: z.string().min(1),
+  created_at: createOptionalDateSchema('Created date'),
+  created_by: z.string().uuid().nullable().optional(),
+  website: z.string().url().nullable().optional(),
+  logo_url: z.string().url().nullable().optional(),
+  average_rating: z.number().min(0).max(5).nullable().optional(),
+  total_reviews: z.number().min(0).nullable().optional(),
+  updated_at: createOptionalDateSchema('Updated date'),
+  verified: z.boolean().optional(),
+  verification_date: createOptionalDateSchema('Verification date'),
+});
+
+export const reviewVerificationSchema = z.object({
+  id: z.number(),
+  company_id: z.number().nullable().optional(),
+  rating: z.number().min(1).max(5).nullable().optional(),
+  title: z.string().nullable().optional(),
+  pros: z.string().nullable().optional(),
+  cons: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  created_at: createOptionalDateSchema('Created date'),
+  updated_at: createOptionalDateSchema('Updated date'),
+  user_id: z.string().uuid().nullable().optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).nullable().optional(),
+  recommend: z.boolean().nullable().optional(),
+  is_current_employee: z.boolean().nullable().optional(),
+});
+
+// Safe date parsing utility
+export const safeDateParse = (dateValue: unknown): Date | null => {
+  if (!dateValue) return null;
+  
+  try {
+    if (dateValue instanceof Date) return dateValue;
+    if (typeof dateValue === 'string') {
+      const parsed = new Date(dateValue);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+// Validation utility with better error handling
+export const validateFormWithDateHandling = async <T extends z.ZodSchema>(
   schema: T,
   data: unknown
 ): Promise<{ success: boolean; data?: z.infer<T>; errors?: z.ZodError }> => {
   try {
-    const validData = await schema.parseAsync(data);
+    // Pre-process dates in the data
+    const processedData = preprocessDates(data);
+    const validData = await schema.parseAsync(processedData);
     return { success: true, data: validData };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -106,6 +180,25 @@ export const validateForm = async <T extends z.ZodSchema>(
     throw error;
   }
 };
+
+// Helper to preprocess date fields
+function preprocessDates(data: unknown): unknown {
+  if (!data || typeof data !== 'object') return data;
+  
+  const processed = { ...data as Record<string, unknown> };
+  
+  // Common date fields to process
+  const dateFields = ['created_at', 'updated_at', 'verification_date'];
+  
+  for (const field of dateFields) {
+    if (processed[field]) {
+      const safeDate = safeDateParse(processed[field]);
+      processed[field] = safeDate?.toISOString() || null;
+    }
+  }
+  
+  return processed;
+}
 
 // Form data types
 export type CompanyFormData = z.infer<typeof companySchema>;

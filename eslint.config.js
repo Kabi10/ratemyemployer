@@ -6,6 +6,21 @@ const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
 
 module.exports = [
+  {
+    ignores: [
+      '.next/**/*',
+      'deploy/.next/**/*',
+      'deploy/**/*',
+      'out/**/*',
+      'node_modules/**/*',
+      '.vercel/**/*',
+      'dist/**/*',
+      'build/**/*',
+      'coverage/**/*',
+      '*.config.js',
+      'schema.ts' // Binary file
+    ]
+  },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],

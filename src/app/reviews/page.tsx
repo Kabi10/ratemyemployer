@@ -4,10 +4,25 @@ import { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getReviews } from '@/lib/database';
 
+<<<<<<< HEAD
 export const metadata: Metadata = {
   title: 'All Reviews | RateMyEmployer',
   description: 'Browse all employer reviews from RateMyEmployer, filtered and sorted to find exactly what you need.',
 };
+=======
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Database } from '@/types/supabase';
+>>>>>>> feature/remove-mcp-demo-pages
 
 export default async function ReviewsPage() {
   // Server-side initial data fetch for SEO and initial render

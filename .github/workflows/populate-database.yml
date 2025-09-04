@@ -1,0 +1,195 @@
+name: Automated Database Population
+
+on:
+  # Run weekly on Sundays at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * 0'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      data_sources:
+        description: 'Data sources to populate'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - fortune500
+          - startups
+          - csv-only
+      dry_run:
+        description: 'Dry run (no database changes)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  populate-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install tsx globally
+        run: npm install -g tsx
+
+      - name: Verify environment variables
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
+            echo "❌ SUPABASE_URL secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "❌ SUPABASE_SERVICE_ROLE_KEY secret is not set"
+            exit 1
+          fi
+          echo "✅ Required environment variables are set"
+
+      - name: Create data directory
+        run: mkdir -p data logs
+
+      - name: Run database population (Dry Run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: tsx scripts/populate-database-automation.ts --dry-run
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run Fortune 500 population only
+        if: ${{ github.event.inputs.data_sources == 'fortune500' && github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "🏢 Running Fortune 500 companies population..."
+          tsx -e "
+          import { populateFortune500Companies } from './src/lib/companyDataSources.js';
+          populateFortune500Companies().then(result => {
+            console.log('Fortune 500 Results:', result);
+            process.exit(result.errors > 0 ? 1 : 0);
+          }).catch(err => {
+            console.error('Error:', err);
+            process.exit(1);
+          });
+          "
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run Tech Startups population only
+        if: ${{ github.event.inputs.data_sources == 'startups' && github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "🚀 Running tech startups population..."
+          tsx -e "
+          import { populateTechStartups } from './src/lib/companyDataSources.js';
+          populateTechStartups().then(result => {
+            console.log('Tech Startups Results:', result);
+            process.exit(result.errors > 0 ? 1 : 0);
+          }).catch(err => {
+            console.error('Error:', err);
+            process.exit(1);
+          });
+          "
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run full database population
+        if: ${{ (github.event.inputs.data_sources == 'all' || github.event.inputs.data_sources == '') && github.event.inputs.dry_run != 'true' }}
+        run: tsx scripts/populate-database-automation.ts --verbose
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload population logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: population-logs-${{ github.run_number }}
+          path: logs/
+          retention-days: 30
+
+      - name: Get database statistics
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "📊 Fetching database statistics..."
+          tsx -e "
+          import { createClient } from '@supabase/supabase-js';
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
+          
+          async function getStats() {
+            try {
+              const { count: totalCompanies } = await supabase
+                .from('companies')
+                .select('*', { count: 'exact', head: true });
+              
+              const { count: recentCompanies } = await supabase
+                .from('companies')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+              
+              const { count: pendingSuggestions } = await supabase
+                .from('company_suggestions')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'pending');
+              
+              console.log('📈 Database Statistics:');
+              console.log(\`  Total Companies: \${totalCompanies}\`);
+              console.log(\`  Added Last 24h: \${recentCompanies}\`);
+              console.log(\`  Pending Suggestions: \${pendingSuggestions || 0}\`);
+              
+              // Set GitHub output for use in other steps
+              console.log(\`::set-output name=total_companies::\${totalCompanies}\`);
+              console.log(\`::set-output name=recent_companies::\${recentCompanies}\`);
+              console.log(\`::set-output name=pending_suggestions::\${pendingSuggestions || 0}\`);
+            } catch (error) {
+              console.error('Error fetching statistics:', error);
+              process.exit(1);
+            }
+          }
+          
+          getStats();
+          "
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Create summary comment
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "## 🎉 Database Population Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Data Sources**: ${{ github.event.inputs.data_sources || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Execution Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Database Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for detailed statistics and results." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- Review the uploaded logs for detailed results" >> $GITHUB_STEP_SUMMARY
+          echo "- Check for any pending company suggestions in the admin panel" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor application performance with the new data" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Database population failed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Troubleshooting" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the workflow logs for specific error messages" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify Supabase connection and permissions" >> $GITHUB_STEP_SUMMARY
+          echo "3. Ensure all required secrets are properly configured" >> $GITHUB_STEP_SUMMARY
+          echo "4. Check for API rate limiting or network issues" >> $GITHUB_STEP_SUMMARY

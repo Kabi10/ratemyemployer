@@ -7,7 +7,7 @@
 - `src/components/EnhancedCompanyCard.tsx` - Card component for displaying companies
 - `src/components/CompanyFilters.tsx` - Filtering component for companies
 - `src/lib/newsApi.ts` - API for fetching company news
-- `src/lib/klusterAi.ts` - AI integration for news fetching
+
 
 ## Existing Functionality:
 - Basic Wall of Fame and Wall of Shame pages exist but have issues

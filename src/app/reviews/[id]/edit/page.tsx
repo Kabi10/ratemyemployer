@@ -75,23 +75,22 @@ export default function EditReview() {
 
   // Transform review data to match ReviewFormData type
   const formData: Partial<ReviewFormData> = {
-    company_id: review.company_id,
     rating: review.rating ?? undefined,
     title: review.title,
-    pros: review.pros || '',
-    cons: review.cons || '',
-    position: review.position || '',
-    employment_status: review.employment_status as 'Full-time' | 'Part-time' | 'Contract' | 'Intern' || 'Full-time',
-    is_current_employee: review.is_current_employee ?? false,
-    reviewer_name: review.reviewer_name || undefined,
-    reviewer_email: review.reviewer_email || undefined
+    pros: (review as any).pros || '',
+    cons: (review as any).cons || '',
+    position: (review as any).position || '',
+    employment_status: (review as any).employment_status as 'Full-time' | 'Part-time' | 'Contract' | 'Intern' || 'Full-time',
+    is_current_employee: (review as any).is_current_employee ?? false,
+    reviewer_name: (review as any).reviewer_name || undefined,
+    reviewer_email: (review as any).reviewer_email || undefined
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit Review</h1>
       <ReviewForm
-        companyId={review.company_id}
+        companyId={review.company_id as any}
         initialData={formData}
         onSuccess={() => {
           router.push('/account');

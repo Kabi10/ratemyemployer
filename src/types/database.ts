@@ -1,4 +1,4 @@
-import { Database } from './supabase';
+import { Database as _Database } from './supabase';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Base table types
@@ -14,7 +14,7 @@ export interface Company {
   total_reviews: number | null
   created_at: string
   updated_at: string
-  metadata?: Record<string, any> | null | string | any
+  metadata?: Record<string, unknown> | null | string | Record<string, unknown>
   recommendation_rate?: number | null
   size?: string | null
   created_by?: string | null
@@ -23,7 +23,7 @@ export interface Company {
   compensation_rating?: number | null
   career_growth?: number | null
   culture_rating?: number | null
-  [key: string]: any
+    [key: string]: unknown
 }
 
 export interface Review {
@@ -39,6 +39,7 @@ export interface Review {
   company_id: number;
   user_id: string | null;
   reviewer_name?: string;
+  recommend?: boolean | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -58,7 +59,7 @@ interface MockUserProfile {
 interface MockErrorLog {
   id: number;
   message: string;
-  details: any;
+  details: Record<string, unknown>;
   created_at: string;
   user_id: string | null;
 }
@@ -144,7 +145,7 @@ export interface GetReviewsOptions {
   page?: number;
   limit?: number;
   companyId?: number | string;
-  userId?: string;
+  userId?: number | string;
   withCompany?: boolean;
   withLikes?: boolean;
 }

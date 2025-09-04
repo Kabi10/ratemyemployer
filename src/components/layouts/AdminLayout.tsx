@@ -5,21 +5,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { withAuth } from '@/lib/auth/withAuth';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  FileText, 
-  Settings, 
-  BarChart3, 
-  Shield, 
-  Menu, 
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  FileText,
+  Settings,
+  BarChart3,
+  Shield,
+  Menu,
   X,
-  LogOut
+  LogOut,
+
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { isFeatureEnabled } from '@/lib/featureFlags';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -42,6 +44,7 @@ function AdminLayoutBase({ children }: AdminLayoutProps) {
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3, current: pathname === '/admin/analytics', visible: isAdmin },
     { name: 'Background Checks', href: '/admin/background-check', icon: Shield, current: pathname === '/admin/background-check', visible: isAdmin },
     { name: 'Settings', href: '/admin/settings', icon: Settings, current: pathname === '/admin/settings', visible: isAdmin },
+
   ];
 
   const toggleSidebar = () => {

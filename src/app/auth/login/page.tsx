@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { supabase } from '@/lib/supabaseClient';
+import { fetchCompanyNewsWithFreeAPIs } from '@/lib/freeNewsApi';
 import type { Database } from '@/types/supabase';
 
 
@@ -11,7 +12,7 @@ dotenv.config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const SERP_API_KEY = 'db313510e725130ead277b13cb64416fd4ed6f8551c7f00cbc9b9163d44e548f';
+const SERP_API_KEY = process.env.SERP_API_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
@@ -49,18 +50,25 @@ function formatDate(dateStr: string): string {
       return new Date().toISOString();
     }
     return date.toISOString();
-  } catch (error) {
+  } catch (_error) {
     console.error('Error parsing date:', dateStr);
     return new Date().toISOString();
   }
 }
 
 async function fetchAndStoreCompanyNews(companies: string[]): Promise<boolean> {
+  // Check if SERP_API_KEY is available, otherwise use free alternatives
+  if (!SERP_API_KEY) {
+    console.log('🆓 SERP_API_KEY not found, using free news sources...');
+    return await fetchCompanyNewsWithFreeAPIs(companies);
+  }
+
   try {
-    const companyQueries = companies.map(company => 
+    console.log('💰 Using SerpAPI (paid service)...');
+    const companyQueries = companies.map(company =>
       `("${company}") ("best places to work" OR "great workplace" OR "employee satisfaction" OR "workplace awards" OR "employee benefits" OR "workplace culture" OR "diversity award" OR "sustainability initiatives")`
     );
-    
+
     const response = await axios.get(`https://serpapi.com/search.json`, {
       params: {
         engine: 'google_news',
@@ -72,8 +80,8 @@ async function fetchAndStoreCompanyNews(companies: string[]): Promise<boolean> {
     });
 
     if (!response.data || !response.data.news_results) {
-      console.error('No news results found in the response:', response.data);
-      return false;
+      console.error('No news results found in the response, falling back to free sources...');
+      return await fetchCompanyNewsWithFreeAPIs(companies);
     }
 
     const allArticles = response.data.news_results as SerpApiNewsResult[];
@@ -111,8 +119,8 @@ async function fetchAndStoreCompanyNews(companies: string[]): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error('Error fetching and storing news:', error);
-    return false;
+    console.error('Error with SerpAPI, falling back to free sources:', error);
+    return await fetchCompanyNewsWithFreeAPIs(companies);
   }
 }
 

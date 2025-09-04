@@ -1,7 +1,11 @@
 'use client'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { Suspense, useState } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { X } from 'lucide-react';
 import { CompanyList } from '@/components/CompanyList';
 import { CompanyForm } from '@/components/CompanyForm';
@@ -10,7 +14,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabaseClient';
 
 // Lazy load SearchAndFilter with no SSR
-const SearchAndFilter = dynamic(() => import('@/components/SearchAndFilter'), {
+const SearchAndFilter = dynamicImport(() => import('@/components/SearchAndFilter'), {
   ssr: false,
   loading: () => <SearchSkeleton />
 });

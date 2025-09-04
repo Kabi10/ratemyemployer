@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient';
-import { fetchNewsWithKluster } from './klusterAi';
 
 // Define our own types instead of trying to access them from the Database type
 interface CompanyNewsInsert {
@@ -35,41 +34,9 @@ export async function fetchNewsForCompanies(companies: string[]): Promise<{ [com
     const results: { [company: string]: NewsArticle[] } = {};
 
     for (const company of companies) {
-      const articles = await fetchNewsWithKluster(company);
+      // Get cached news from database only (KlusterAI removed)
+      const articles = await fetchCompanyNews(company);
       results[company] = articles;
-
-      // Store the articles in the database for caching
-      if (articles.length > 0) {
-        const newsArticles: DatabaseNewsArticle[] = articles.map(article => ({
-          company_name: company,
-          title: article.title,
-          description: article.description,
-          url: article.url,
-          published_at: article.publishedAt,
-          source_name: article.source.name,
-          created_at: new Date().toISOString()
-        }));
-
-        try {
-          // Delete existing news for this company before inserting new ones
-          const { error: deleteError } = await supabase
-            .from('company_news')
-            .delete()
-            .eq('company_name', company);
-
-          if (deleteError) {
-            console.error('Error deleting old news for', company, ':', deleteError);
-            continue;
-          }
-
-          const { error: insertError } = await supabase.from('company_news').insert(newsArticles);
-          if (insertError) {
-            console.error('Error inserting news for', company, ':', insertError);
-          }
-        } catch (dbError) {
-          console.error('Database operation failed for', company, ':', dbError);
-        }
-      }
     }
 
     return results;
@@ -101,10 +68,52 @@ export const fetchCompanyNews = async (companyName: string): Promise<NewsArticle
       }));
     }
 
-    // If no cached articles, fetch fresh ones from Kluster AI
-    return await fetchNewsWithKluster(companyName);
+    // No cached articles found, return empty array (KlusterAI removed)
+    return [];
   } catch (error) {
     console.error('Error fetching news:', error);
     return [];
+  }
+};
+
+// Function to manually store news articles (for future integration with other news sources)
+export async function storeNewsArticles(companyName: string, articles: NewsArticle[]): Promise<boolean> {
+  try {
+    if (articles.length === 0) return true;
+
+    const newsArticles: DatabaseNewsArticle[] = articles.map(article => ({
+      company_name: companyName,
+      title: article.title,
+      description: article.description,
+      url: article.url,
+      published_at: article.publishedAt,
+      source_name: article.source.name,
+      created_at: new Date().toISOString()
+    }));
+
+    // Delete existing news for this company before inserting new ones
+    const { error: deleteError } = await supabase
+      .from('company_news')
+      .delete()
+      .eq('company_name', companyName);
+
+    if (deleteError) {
+      console.error('Error deleting old news for', companyName, ':', deleteError);
+      return false;
+    }
+
+    const { error: insertError } = await supabase
+      .from('company_news')
+      .insert(newsArticles);
+
+    if (insertError) {
+      console.error('Error inserting news for', companyName, ':', insertError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error storing news articles:', error);
+    return false;
   }
 };

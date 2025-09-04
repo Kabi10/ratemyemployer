@@ -1,0 +1,312 @@
+/**
+ * Design Tokens - RateMyEmployer Design System
+ * Comprehensive design tokens for consistent visual identity
+ */
+
+:root {
+  /* === SPACING SYSTEM === */
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
+
+  /* === TYPOGRAPHY SCALE === */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  --text-5xl: 3rem;      /* 48px */
+  --text-6xl: 3.75rem;   /* 60px */
+  --text-7xl: 4.5rem;    /* 72px */
+  --text-8xl: 6rem;      /* 96px */
+  --text-9xl: 8rem;      /* 128px */
+
+  /* === FONT WEIGHTS === */
+  --font-thin: 100;
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+
+  /* === LINE HEIGHTS === */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* === BORDER RADIUS === */
+  --radius-none: 0;
+  --radius-sm: 0.125rem;   /* 2px */
+  --radius-base: 0.25rem;  /* 4px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-3xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* === Z-INDEX SCALE === */
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-auto: auto;
+
+  /* === TRANSITIONS === */
+  --transition-none: none;
+  --transition-all: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-colors: color 150ms cubic-bezier(0.4, 0, 0.2, 1), 
+                       background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), 
+                       border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-opacity: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-shadow: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-transform: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === BRAND COLORS === */
+  --brand-primary: #3b82f6;      /* Blue 500 */
+  --brand-primary-dark: #1d4ed8; /* Blue 700 */
+  --brand-primary-light: #93c5fd; /* Blue 300 */
+  --brand-secondary: #8b5cf6;     /* Violet 500 */
+  --brand-accent: #06b6d4;        /* Cyan 500 */
+  --brand-success: #10b981;       /* Emerald 500 */
+  --brand-warning: #f59e0b;       /* Amber 500 */
+  --brand-error: #ef4444;         /* Red 500 */
+
+  /* === SEMANTIC COLORS (Light Mode) === */
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-subtle: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-text-inverse: #ffffff;
+  --color-text-link: var(--brand-primary);
+  --color-text-link-hover: var(--brand-primary-dark);
+
+  /* === COMPONENT SPECIFIC === */
+  --color-input-background: #ffffff;
+  --color-input-border: #d1d5db;
+  --color-input-border-focus: var(--brand-primary);
+  --color-input-text: var(--color-text-primary);
+  --color-input-placeholder: var(--color-text-tertiary);
+
+  --color-button-primary-bg: var(--brand-primary);
+  --color-button-primary-bg-hover: var(--brand-primary-dark);
+  --color-button-primary-text: #ffffff;
+  --color-button-secondary-bg: #f1f5f9;
+  --color-button-secondary-bg-hover: #e2e8f0;
+  --color-button-secondary-text: var(--color-text-primary);
+
+  --color-card-background: #ffffff;
+  --color-card-border: var(--color-border);
+  --color-card-shadow: var(--shadow-base);
+
+  /* === STATUS COLORS === */
+  --color-success-bg: #dcfce7;
+  --color-success-border: #bbf7d0;
+  --color-success-text: #166534;
+  --color-warning-bg: #fef3c7;
+  --color-warning-border: #fde68a;
+  --color-warning-text: #92400e;
+  --color-error-bg: #fee2e2;
+  --color-error-border: #fecaca;
+  --color-error-text: #dc2626;
+  --color-info-bg: #dbeafe;
+  --color-info-border: #bfdbfe;
+  --color-info-text: #1d4ed8;
+
+  /* === RATING COLORS === */
+  --color-rating-excellent: #10b981; /* 4.5+ stars */
+  --color-rating-good: #84cc16;      /* 3.5-4.4 stars */
+  --color-rating-average: #f59e0b;   /* 2.5-3.4 stars */
+  --color-rating-poor: #f97316;      /* 1.5-2.4 stars */
+  --color-rating-terrible: #ef4444;  /* 0-1.4 stars */
+
+  /* === GRADIENTS === */
+  --gradient-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-surface: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+
+  /* === ANIMATION DURATIONS === */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 750ms;
+
+  /* === ANIMATION EASINGS === */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* === DARK MODE OVERRIDES === */
+.dark {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-elevated: #334155;
+  --color-border: #334155;
+  --color-border-subtle: #1e293b;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-text-inverse: #0f172a;
+
+  --color-input-background: #1e293b;
+  --color-input-border: #475569;
+  --color-input-text: var(--color-text-primary);
+
+  --color-button-secondary-bg: #334155;
+  --color-button-secondary-bg-hover: #475569;
+  --color-button-secondary-text: var(--color-text-primary);
+
+  --color-card-background: #1e293b;
+  --color-card-border: var(--color-border);
+  --color-card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+
+  /* Dark mode status colors */
+  --color-success-bg: #064e3b;
+  --color-success-border: #065f46;
+  --color-success-text: #6ee7b7;
+  --color-warning-bg: #78350f;
+  --color-warning-border: #92400e;
+  --color-warning-text: #fbbf24;
+  --color-error-bg: #7f1d1d;
+  --color-error-border: #991b1b;
+  --color-error-text: #fca5a5;
+  --color-info-bg: #1e3a8a;
+  --color-info-border: #1d4ed8;
+  --color-info-text: #93c5fd;
+
+  --gradient-surface: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+/* === UTILITY CLASSES === */
+.design-token-spacing-xs { margin: var(--space-1); }
+.design-token-spacing-sm { margin: var(--space-2); }
+.design-token-spacing-md { margin: var(--space-4); }
+.design-token-spacing-lg { margin: var(--space-6); }
+.design-token-spacing-xl { margin: var(--space-8); }
+
+.design-token-text-xs { font-size: var(--text-xs); }
+.design-token-text-sm { font-size: var(--text-sm); }
+.design-token-text-base { font-size: var(--text-base); }
+.design-token-text-lg { font-size: var(--text-lg); }
+.design-token-text-xl { font-size: var(--text-xl); }
+
+.design-token-radius-sm { border-radius: var(--radius-sm); }
+.design-token-radius-md { border-radius: var(--radius-md); }
+.design-token-radius-lg { border-radius: var(--radius-lg); }
+.design-token-radius-xl { border-radius: var(--radius-xl); }
+
+.design-token-shadow-sm { box-shadow: var(--shadow-sm); }
+.design-token-shadow-md { box-shadow: var(--shadow-md); }
+.design-token-shadow-lg { box-shadow: var(--shadow-lg); }
+.design-token-shadow-xl { box-shadow: var(--shadow-xl); }
+
+/* === COMPONENT BASE STYLES === */
+.design-system-card {
+  background: var(--color-card-background);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-card-shadow);
+  transition: var(--transition-shadow);
+}
+
+.design-system-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.design-system-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  transition: var(--transition-colors);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.design-system-button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.design-system-input {
+  background: var(--color-input-background);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  color: var(--color-input-text);
+  transition: var(--transition-colors);
+}
+
+.design-system-input:focus {
+  border-color: var(--color-input-border-focus);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.design-system-input::placeholder {
+  color: var(--color-input-placeholder);
+}
+
+/* === ACCESSIBILITY IMPROVEMENTS === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === HIGH CONTRAST MODE === */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #000000;
+    --color-text-primary: #000000;
+    --color-text-secondary: #000000;
+  }
+  
+  .dark {
+    --color-border: #ffffff;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #ffffff;
+  }
+}

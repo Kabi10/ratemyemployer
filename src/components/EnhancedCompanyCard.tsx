@@ -127,19 +127,35 @@ export function EnhancedCompanyCard({
   
   // Format the founded date
   const getFoundedDate = () => {
-    if (!company.founded_year) return 'Unknown';
-    return company.founded_year;
+    // Since founded_year doesn't exist in the database, return 'Unknown'
+    return 'Unknown';
   };
-  
+
   // Get company size display
   const getCompanySize = () => {
-    return company.size || 'Unknown';
+    // Since size doesn't exist in the database, return 'Unknown'
+    return 'Unknown';
   };
   
   // Get salary range
   const getSalaryRange = () => {
-    // This would ideally come from actual data
-    return company.salary_range || 'Not reported';
+    // Since salary_range doesn't exist in the database, return 'Not reported'
+    return 'Not reported';
+  };
+
+  // Get data freshness indicator
+  const getDataFreshness = () => {
+    if (news.length > 0) {
+      const latestNews = new Date(news[0].publishedAt);
+      const daysSince = Math.floor((Date.now() - latestNews.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysSince <= 7) {
+        return <Badge variant="outline" className="text-green-600 border-green-600">Fresh Data</Badge>;
+      } else if (daysSince <= 30) {
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Recent Data</Badge>;
+      }
+    }
+    return <Badge variant="outline" className="text-gray-500 border-gray-500">Limited Data</Badge>;
   };
   
   return (
@@ -147,8 +163,10 @@ export function EnhancedCompanyCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: rank * 0.1 }}
+      whileHover={{ y: -4 }}
+      className="group"
     >
-      <Card className={`overflow-hidden border-2 ${getBackgroundColor()} relative`}>
+      <Card className={`overflow-hidden border-2 ${getBackgroundColor()} relative transition-all duration-300 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-blue-900/20`}>
         {getRankBadge()}
         
         <CardHeader className="pb-2">
@@ -184,10 +202,11 @@ export function EnhancedCompanyCard({
                     {company.location}
                   </span>
                 )}
+                {getDataFreshness()}
                 {company.website && (
-                  <a 
-                    href={company.website} 
-                    target="_blank" 
+                  <a
+                    href={company.website}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-500 hover:underline"
                   >
@@ -209,16 +228,29 @@ export function EnhancedCompanyCard({
             
             <TabsContent value="overview">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                  <div className={`text-2xl font-bold ${getRatingColor(company.average_rating)}`}>
+                <motion.div
+                  className="flex flex-col items-center p-3 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <motion.div
+                    className={`text-2xl font-bold ${getRatingColor(company.average_rating)}`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  >
                     {company.average_rating.toFixed(1)}
-                  </div>
+                  </motion.div>
                   <div className="flex items-center mt-1">
-                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                    <motion.div
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ delay: 0.5, duration: 0.6 }}
+                    >
+                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                    </motion.div>
                     <span className="text-sm text-gray-600">Average Rating</span>
                   </div>
                   {getTrendIndicator()}
-                </div>
+                </motion.div>
                 
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
@@ -280,14 +312,14 @@ export function EnhancedCompanyCard({
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Compensation</span>
-                    <span className={getRatingColor(company.compensation || 0)}>
-                      {company.compensation?.toFixed(1) || 'N/A'}
+                    <span className={getRatingColor(company.compensation_rating || 0)}>
+                      {company.compensation_rating?.toFixed(1) || 'N/A'}
                     </span>
                   </div>
                   <Progress 
-                    value={(company.compensation || 0) * 20} 
+                    value={(company.compensation_rating || 0) * 20} 
                     className="h-2"
-                    indicatorClassName={getProgressColor(company.compensation || 0)}
+                    indicatorClassName={getProgressColor(company.compensation_rating || 0)}
                   />
                 </div>
                 
@@ -329,7 +361,7 @@ export function EnhancedCompanyCard({
                   <ThumbsUp className="h-4 w-4 mr-2 text-gray-400" />
                   <div>
                     <div className="text-gray-500">CEO Approval</div>
-                    <div>{company.ceo_approval ? `${company.ceo_approval}%` : 'N/A'}</div>
+                    <div>N/A</div>
                   </div>
                 </div>
                 
@@ -356,28 +388,30 @@ export function EnhancedCompanyCard({
         </CardContent>
         
         <CardFooter className="flex justify-between pt-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setExpanded(!expanded)}
+            className="transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
-            {expanded ? (
-              <>
-                <ChevronUp className="h-4 w-4 mr-1" />
-                Hide News
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4 mr-1" />
-                Show News
-              </>
-            )}
+            <motion.div
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="h-4 w-4 mr-1" />
+            </motion.div>
+            {expanded ? 'Hide News' : 'Show News'}
           </Button>
           
-          <Button asChild>
+          <Button asChild className="transition-all duration-200 hover:scale-105">
             <Link href={`/companies/${company.id}`}>
               View Details
-              <ExternalLink className="h-4 w-4 ml-1" />
+              <motion.div
+                whileHover={{ x: 2 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ExternalLink className="h-4 w-4 ml-1" />
+              </motion.div>
             </Link>
           </Button>
         </CardFooter>

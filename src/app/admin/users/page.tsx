@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useState, useEffect } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
