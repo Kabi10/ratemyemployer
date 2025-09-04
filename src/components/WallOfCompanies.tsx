@@ -70,6 +70,15 @@ export function WallOfCompanies({
 
   const [showStats, setShowStats] = useState(false);
 
+  function avgRating(ratings?: { rating?: number | null }[]) {
+    if (!ratings || ratings.length === 0) return 0;
+    const nums = ratings
+      .map(r => Number(r?.rating ?? 0))
+      .filter(n => !Number.isNaN(n));
+    if (nums.length === 0) return 0;
+    return nums.reduce((a, b) => a + b, 0) / nums.length;
+  }
+
   // Fetch companies with ratings
   const fetchCompanies = async () => {
     try {
@@ -117,17 +126,15 @@ export function WallOfCompanies({
           logo_url,
           website,
           reviews (
-            id,
-            rating,
-            title,
-            pros,
-            cons,
-            recommend,
-            created_at,
-            status
-          )
-        `)
-        .order('id', { ascending: true });
+          id,
+          rating,
+          title,
+          pros,
+          cons,
+          created_at
+        )
+      `)
+      .order('id', { ascending: true });
 
       if (companiesError) {
         console.error('Companies query error:', {
@@ -147,38 +154,27 @@ export function WallOfCompanies({
 
       console.log(`Found ${companiesData.length} companies`);
 
-      // Process companies to calculate average ratings and other metrics
-      const processedCompanies: CompanyWithReviews[] = companiesData.map(company => {
-        // Only include approved reviews
-        const reviews = (company.reviews || []).filter(review => review.status === 'approved');
-        const validRatings = reviews.filter(review => review.rating >= 1 && review.rating <= 5);
-        
-        const averageRating = validRatings.length > 0
-          ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
-          : 0;
-        
-        const recommendCount = reviews.filter(review => review.recommend).length;
-        const recommendPercentage = reviews.length > 0
-          ? Math.round((recommendCount / reviews.length) * 100)
-          : 0;
-        
+      // Process companies to calculate average ratings
+      const processedCompanies: CompanyWithReviews[] = (companiesData || []).map(company => {
+        const reviews = company.reviews || [];
+        const averageRating = avgRating(reviews);
         return {
           ...company,
           average_rating: averageRating,
-          recommend_percentage: recommendPercentage,
-          reviews: reviews
+          total_reviews: reviews.length,
+          reviews
         };
       });
 
       // Filter companies with at least 3 reviews and a valid average rating
       const companiesWithReviews = processedCompanies.filter(
-        company => company.average_rating > 0 && company.reviews && company.reviews.length >= 3
+        company => avgRating(company.reviews) > 0 && company.reviews && company.reviews.length >= 3
       );
 
       // Sort by average rating (highest or lowest first based on type)
       const sortedCompanies = type === 'fame'
-        ? companiesWithReviews.sort((a, b) => b.average_rating - a.average_rating)
-        : companiesWithReviews.sort((a, b) => a.average_rating - b.average_rating);
+        ? companiesWithReviews.sort((a, b) => avgRating(b.reviews) - avgRating(a.reviews))
+        : companiesWithReviews.sort((a, b) => avgRating(a.reviews) - avgRating(b.reviews));
 
       // Get top/bottom companies
       const selectedCompanies = sortedCompanies.slice(0, limit);
@@ -199,7 +195,7 @@ export function WallOfCompanies({
       );
       
       const overallAverageRating = companiesWithReviews.length > 0
-        ? companiesWithReviews.reduce((sum, company) => sum + company.average_rating, 0) / companiesWithReviews.length
+        ? companiesWithReviews.reduce((sum, company) => sum + avgRating(company.reviews), 0) / companiesWithReviews.length
         : 0;
         
       setStats({
@@ -322,7 +318,7 @@ export function WallOfCompanies({
         filtered = filtered.sort((a, b) => a.average_rating - b.average_rating);
         break;
       case 'reviews-desc':
-        filtered = filtered.sort((a, b) => b.review_count - a.review_count);
+        filtered = filtered.sort((a, b) => b.total_reviews - a.total_reviews);
         break;
       case 'name-asc':
         filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -540,7 +536,7 @@ export function WallOfCompanies({
                     {statsLoading ? (
                       <Skeleton className="h-8 w-16" />
                     ) : (
-                      stats.averageRating.toFixed(1)
+                      Number(stats.averageRating ?? 0).toFixed(1)
                     )}
                   </span>
                 </div>
@@ -582,7 +578,7 @@ export function WallOfCompanies({
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.industry}</span>
                           <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
+                            {Number(stat.average_rating ?? 0).toFixed(1)}
                             {type === 'fame' ? (
                               <TrendingUp className="ml-1 inline h-4 w-4" />
                             ) : (
@@ -626,7 +622,7 @@ export function WallOfCompanies({
                         <div className="flex justify-between">
                           <span className="font-medium">{stat.location}</span>
                           <span className={getRatingColor(stat.average_rating)}>
-                            {stat.average_rating.toFixed(1)}
+                            {Number(stat.average_rating ?? 0).toFixed(1)}
                             {type === 'fame' ? (
                               <TrendingUp className="ml-1 inline h-4 w-4" />
                             ) : (

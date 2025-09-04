@@ -238,7 +238,7 @@ export function EnhancedCompanyCard({
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                   >
-                    {company.average_rating.toFixed(1)}
+                    {Number(company.average_rating ?? 0).toFixed(1)}
                   </motion.div>
                   <div className="flex items-center mt-1">
                     <motion.div
@@ -285,7 +285,7 @@ export function EnhancedCompanyCard({
                   <div className="flex justify-between text-sm">
                     <span>Overall Rating</span>
                     <span className={getRatingColor(company.average_rating)}>
-                      {company.average_rating.toFixed(1)}
+                      {Number(company.average_rating ?? 0).toFixed(1)}
                     </span>
                   </div>
                   <Progress 
