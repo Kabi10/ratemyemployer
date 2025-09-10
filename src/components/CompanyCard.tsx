@@ -32,7 +32,7 @@ export function CompanyCard({ company, showActions = true, isAdmin = false }: Co
 
   const rating = company.average_rating || 0;
   const totalReviews = company.total_reviews || 0;
-  const fallbackLogo = `/images/company-placeholder.png`;
+  const fallbackLogo = `/images/company-placeholder.svg`;
 
   useEffect(() => {
     if (!company.logo_url) {
