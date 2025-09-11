@@ -1,7 +1,6 @@
 'use client';
 
 // React and Next.js imports
-import * as React from 'react';
 import Link from 'next/link';
 
 // Components and utilities

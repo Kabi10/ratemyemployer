@@ -1,67 +1,53 @@
-# 🏢 RateMyEmployer - Modern Employer Review Platform
+# 🏢 RateMyEmployer - MVP Employer Review Platform
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/)
 
-A comprehensive, modern platform for rating and reviewing employers with advanced features including AI-powered insights, web scraping infrastructure, financial distress tracking, and enterprise-grade security monitoring.
+A streamlined, focused platform for rating and reviewing employers. Optimized for performance, maintainability, and core user value.
 
-## 🌟 **Key Features**
+## 🎯 **MVP Core Features**
 
-### 🎨 **Modern UI Design System**
-- **Enhanced Components**: Professional design with glassmorphism effects and micro-interactions
-- **Accessibility First**: WCAG 2.1 AA compliant throughout the platform
-- **Dark Mode Support**: Complete light/dark theme system with automatic switching
-- **Mobile Optimized**: Touch-friendly interface with responsive design
-- **Design Tokens**: Consistent theming with CSS custom properties
+### 🔐 **Authentication**
+- User registration and secure login
+- Session management and protected routes
+- Basic user profiles
 
-### 🔍 **Advanced Company Intelligence**
-- **Company Reviews**: Comprehensive employee review system with detailed ratings
-- **Financial Distress Tracking**: Monitor companies facing bankruptcy, layoffs, or financial trouble
-- **Rising Startups**: Track emerging companies with funding rounds and growth metrics
-- **Wall of Fame/Shame**: Interactive showcases of best and worst-rated companies
-- **Real-time Updates**: Live company and review updates using Supabase real-time
+### 🏢 **Company Management**
+- Company profiles with essential information
+- Company search and discovery
+- Basic company statistics
 
-### 🤖 **Automated Data Collection**
-- **Web Scraping Infrastructure**: Ethical, automated data collection from multiple sources
-- **Company Data Enrichment**: Automated population from business directories and APIs
-- **News Integration**: Real-time company news and updates
-- **Data Quality Validation**: Comprehensive validation and deduplication systems
-- **Robots.txt Compliance**: Ethical scraping practices with rate limiting
+### ⭐ **Review System**
+- Create and submit employer reviews
+- 5-star rating system
+- Review browsing and filtering
+- User review management
 
-### 🔒 **Enterprise-Grade Security**
-- **Advanced Threat Detection**: Real-time monitoring for XSS, SQL injection, and path traversal
-- **Rate Limiting**: Intelligent rate limiting with automatic IP blocking
-- **Security Dashboard**: Comprehensive security event monitoring and analytics
-- **Input Validation**: Complete request validation and sanitization
-- **Error Handling**: Advanced error tracking and recovery systems
-
-### 📊 **Performance Monitoring**
-- **Web Vitals Tracking**: Real-time Core Web Vitals monitoring (CLS, FID, FCP, LCP, TTFB)
-- **API Performance**: Response time tracking and optimization insights
-- **Database Monitoring**: Query performance analysis and optimization
-- **Component Performance**: React component render time tracking
-- **User Experience Metrics**: Comprehensive UX analytics and insights
+### 🔍 **Search & Filter**
+- Company search by name and industry
+- Review filtering by rating and date
+- Location-based filtering
 
 ## 🚀 **Recent Major Updates**
 
-### ✨ **8 Major Features Implemented:**
-1. **UI Design System Upgrade** - Modern, accessible design with enhanced components
-2. **Web Scraping Infrastructure** - Ethical, automated data collection system
-3. **Financial Distress & Rising Startups Sections** - New platform sections with auto-population
-4. **Wall of Fame/Shame Enhancements** - Interactive visualizations and social features
-5. **Database Population Automation** - Automated company data collection and validation
-6. **Security & Performance Monitoring** - Enterprise-grade monitoring and threat detection
-7. **Paid API Migration** - Eliminated $600-4,200+ annual costs, achieved zero-cost operations
-8. **Comprehensive Testing Suite** - 90%+ coverage target with component, API, and integration tests
+### ✨ **MVP Streamlining Completed (September 2025)**
+- **37% Code Reduction**: Removed 16,553 lines of unnecessary code
+- **29% File Reduction**: Eliminated 112 redundant files
+- **17% Dependency Reduction**: Removed 13 unused dependencies
+- **Performance**: 2.7MB estimated bundle (802KB gzipped)
+- **Focus**: Concentrated on core employer review functionality
+- **Maintainability**: Simplified architecture with reduced technical debt
 
-### 💰 **Cost Optimization Achievement**
-- **Zero-Cost Operations**: Eliminated all paid API dependencies
-- **Annual Savings**: $600-4,200+ in operational costs
-- **Free Tier Optimization**: Maximized free service utilization
-- **Sustainable Growth**: Clear path for scaling without cost explosion
+### 📊 **Current Metrics**
+- **280 files** (down from 392)
+- **27,589 lines of code** (down from 44,142)
+- **64 dependencies** (down from 77)
+- **100% core functionality validation** passed
+
+### 💰 **Cost-Effective Operation**
+- Built entirely on free tier services
 
 ## 🛠️ **Tech Stack**
 
