@@ -1,34 +1,33 @@
-# 🏢 RateMyEmployer - MVP Employer Review Platform
+# RateMyEmployer - Fighting Unethical Hiring Practices
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-A streamlined, focused platform for rating and reviewing employers. Optimized for performance, maintainability, and core user value.
+An open-source platform exposing unethical hiring practices like ghosting, fake job postings, and wage baiting. Built to empower job seekers with transparency and accountability tools.
 
-## 🎯 **MVP Core Features**
+## Core Features
 
-### 🔐 **Authentication**
-- User registration and secure login
-- Session management and protected routes
-- Basic user profiles
+**Authentication & User Management**
+- Secure user registration and login
+- Protected user profiles and session management
+- Anonymous review submission options
 
-### 🏢 **Company Management**
-- Company profiles with essential information
-- Company search and discovery
-- Basic company statistics
+**Company Transparency Database**
+- Company profiles with hiring practice history
+- Search companies by name, industry, and location
+- Transparency scoring based on user reports
 
-### ⭐ **Review System**
-- Create and submit employer reviews
-- 5-star rating system
-- Review browsing and filtering
-- User review management
+**Evidence-Based Review System**
+- Submit reviews with supporting evidence (screenshots, emails)
+- Rate companies on specific hiring practices (ghosting, wage transparency, process clarity)
+- Community verification of review authenticity
 
-### 🔍 **Search & Filter**
-- Company search by name and industry
-- Review filtering by rating and date
-- Location-based filtering
+**Hiring Practice Tracking**
+- Report ghosting, fake job postings, and wage baiting
+- Track response times and interview process transparency
+- Calculate time and cost waste from poor hiring practices
 
 ## 🚀 **Recent Major Updates**
 
@@ -64,11 +63,12 @@ A streamlined, focused platform for rating and reviewing employers. Optimized fo
 - **Edge Functions**: Serverless functions for complex operations
 - **Real-time**: Live updates and notifications
 
-### **Monitoring & Security**
-- **Custom Security Monitoring**: Advanced threat detection and prevention
-- **Performance Tracking**: Web Vitals and custom metrics monitoring
-- **Error Handling**: Comprehensive error tracking and recovery
-- **Rate Limiting**: Intelligent request throttling and protection
+**Security & Monitoring**
+- Supabase Row Level Security for data protection
+- Input validation and sanitization on all forms
+- Rate limiting to prevent spam and abuse
+- Error tracking with Sentry integration
+- Performance monitoring with Web Vitals
 
 ### **Development & Deployment**
 - **Vercel**: Serverless deployment with edge optimization
@@ -269,11 +269,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 **Acknowledgments**
 
-- **Supabase** for providing an excellent backend-as-a-service platform
-- **Vercel** for seamless deployment and hosting
-- **Next.js** team for the amazing React framework
-- **Tailwind CSS** for the utility-first CSS framework
-- **Radix UI** for accessible component primitives
+Shoutout to the tools that made this possible without breaking the bank:
+
+- **Supabase** - Because who has time to manage PostgreSQL servers?
+- **Vercel** - Deploy with a git push. It just works.
+- **Next.js** - React, but actually good for production
+- **Tailwind** - Finally, CSS that doesn't make me want to quit programming
+- **Radix UI** - Accessibility without the headache
+
+And to everyone who's been ghosted by a recruiter - this one's for you.
 
 ## 📞 **Support**
 
