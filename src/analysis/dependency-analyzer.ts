@@ -349,7 +349,7 @@ export class DependencyAnalyzer {
       // In a real implementation, you'd resolve the relative path
       // For now, we'll do a simple search
       for (const [filePath] of this.dependencyGraph) {
-        if (filePath.includes(dependency.replace('./', '').replace('../', ''))) {
+        if (filePath.includes(dependency.replace(/\.\//g, '').replace(/\.\.\//g, ''))) {
           return filePath;
         }
       }
