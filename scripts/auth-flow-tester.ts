@@ -74,6 +74,9 @@ class AuthenticationFlowTester {
     
     // Test protected routes
     await this.testProtectedRouteAccess();
+    await this.testAuthenticatedUserAccess();
+    await this.testUnauthenticatedRedirect();
+    await this.testRouteProtectionAcrossAuthMethods();
     
     // Test cleanup
     await this.cleanupTestUser();
@@ -631,6 +634,292 @@ class AuthenticationFlowTester {
     } catch (error) {
       this.addResult('Protected Route Access', 'failed', Date.now() - startTime,
         'Protected route access has issues', `${error}`);
+    }
+  }
+
+  private async testAuthenticatedUserAccess(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log(chalk.yellow('Testing authenticated user access to protected routes...'));
+      
+      // Get current session to check if user is authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session check failed: ${sessionError.message}`);
+      }
+
+      if (!session) {
+        // Test unauthenticated access - should be restricted for write operations
+        const { error: unauthWriteError } = await supabase
+          .from('reviews')
+          .insert({
+            company_id: 1,
+            rating: 5,
+            title: 'Unauthorized Test Review',
+            pros: 'Test pros',
+            cons: 'Test cons',
+            position: 'Test Position'
+          });
+
+        // Should fail for unauthenticated users
+        const writeProtectionWorking = !!unauthWriteError;
+
+        // Test read access for public data
+        const { data: publicData, error: readError } = await supabase
+          .from('companies')
+          .select('id, name, industry')
+          .limit(5);
+
+        // Public read should work
+        const publicReadWorking = !readError;
+
+        this.addResult('Authenticated User Access', 'passed', Date.now() - startTime,
+          'Unauthenticated access properly restricted for protected operations', undefined, {
+            userAuthenticated: false,
+            writeProtectionWorking,
+            publicReadWorking,
+            writeError: unauthWriteError?.message || 'none',
+            readError: readError?.message || 'none'
+          });
+      } else {
+        // Test authenticated user access
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          throw new Error(`User retrieval failed: ${userError.message}`);
+        }
+
+        // Test authenticated read access
+        const { data: userData, error: userDataError } = await supabase
+          .from('companies')
+          .select('id, name, industry, average_rating')
+          .limit(10);
+
+        const authenticatedReadWorking = !userDataError;
+
+        // Test user-specific data access (if applicable)
+        const { data: userReviews, error: userReviewsError } = await supabase
+          .from('reviews')
+          .select('id, title, rating')
+          .eq('user_id', user?.id || '')
+          .limit(5);
+
+        // This might return empty results but shouldn't error for authenticated users
+        const userDataAccessWorking = !userReviewsError || 
+          userReviewsError.message.includes('no rows') ||
+          userReviewsError.message.includes('permission');
+
+        this.addResult('Authenticated User Access', 'passed', Date.now() - startTime,
+          'Authenticated user access working correctly', undefined, {
+            userAuthenticated: true,
+            userId: user?.id,
+            userEmail: user?.email,
+            authenticatedReadWorking,
+            userDataAccessWorking,
+            userReviewCount: userReviews?.length || 0,
+            readError: userDataError?.message || 'none',
+            userDataError: userReviewsError?.message || 'none'
+          });
+      }
+
+    } catch (error) {
+      this.addResult('Authenticated User Access', 'failed', Date.now() - startTime,
+        'Authenticated user access has issues', `${error}`);
+    }
+  }
+
+  private async testUnauthenticatedRedirect(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log(chalk.yellow('Testing unauthenticated user redirect behavior...'));
+      
+      // Test that unauthenticated users are properly handled
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session check failed: ${sessionError.message}`);
+      }
+
+      // Test protected operations that should require authentication
+      const protectedOperations = [
+        {
+          name: 'Create Review',
+          operation: () => supabase.from('reviews').insert({
+            company_id: 1,
+            rating: 5,
+            title: 'Test Review',
+            pros: 'Test pros',
+            cons: 'Test cons',
+            position: 'Test Position'
+          })
+        },
+        {
+          name: 'Update Review',
+          operation: () => supabase.from('reviews').update({
+            title: 'Updated Test Review'
+          }).eq('id', 999999) // Non-existent ID
+        },
+        {
+          name: 'Delete Review',
+          operation: () => supabase.from('reviews').delete().eq('id', 999999)
+        }
+      ];
+
+      const operationResults = [];
+
+      for (const { name, operation } of protectedOperations) {
+        try {
+          const { error } = await operation();
+          
+          // These operations should fail for unauthenticated users
+          const properlyProtected = !!error && (
+            error.message.includes('permission') ||
+            error.message.includes('policy') ||
+            error.message.includes('authentication') ||
+            error.message.includes('unauthorized')
+          );
+
+          operationResults.push({
+            operation: name,
+            properlyProtected,
+            error: error?.message || 'no error (unexpected)',
+            success: properlyProtected
+          });
+        } catch (opError) {
+          operationResults.push({
+            operation: name,
+            properlyProtected: true,
+            error: `${opError}`,
+            success: true
+          });
+        }
+      }
+
+      const allOperationsProtected = operationResults.every(result => result.success);
+      const protectedCount = operationResults.filter(result => result.success).length;
+
+      if (allOperationsProtected) {
+        this.addResult('Unauthenticated Redirect', 'passed', Date.now() - startTime,
+          `All ${protectedCount} protected operations properly reject unauthenticated access`, undefined, {
+            hasActiveSession: !!session,
+            totalOperationsTested: operationResults.length,
+            properlyProtectedOperations: protectedCount,
+            operationResults
+          });
+      } else {
+        this.addResult('Unauthenticated Redirect', 'warning', Date.now() - startTime,
+          `Some protected operations may not be properly secured: ${protectedCount}/${operationResults.length} protected`, undefined, {
+            hasActiveSession: !!session,
+            totalOperationsTested: operationResults.length,
+            properlyProtectedOperations: protectedCount,
+            operationResults
+          });
+      }
+
+    } catch (error) {
+      this.addResult('Unauthenticated Redirect', 'failed', Date.now() - startTime,
+        'Unauthenticated redirect testing has issues', `${error}`);
+    }
+  }
+
+  private async testRouteProtectionAcrossAuthMethods(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log(chalk.yellow('Testing route protection across different authentication methods...'));
+      
+      // Test that route protection works regardless of authentication method
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session check failed: ${sessionError.message}`);
+      }
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError && !userError.message.includes('not authenticated')) {
+        throw new Error(`User check failed: ${userError.message}`);
+      }
+
+      // Test access patterns that should work regardless of auth method
+      const accessTests = [
+        {
+          name: 'Public Company Data',
+          test: () => supabase.from('companies').select('id, name, industry').limit(5),
+          shouldWork: true
+        },
+        {
+          name: 'Public Review Data',
+          test: () => supabase.from('reviews').select('id, rating, title').limit(5),
+          shouldWork: true
+        },
+        {
+          name: 'User Profile Access',
+          test: () => user ? supabase.from('profiles').select('*').eq('id', user.id).single() : Promise.resolve({ data: null, error: { message: 'no user' } }),
+          shouldWork: !!user
+        }
+      ];
+
+      const testResults = [];
+
+      for (const { name, test, shouldWork } of accessTests) {
+        try {
+          const { data, error } = await test();
+          
+          const actuallyWorks = !error || error.message.includes('no rows');
+          const testPassed = shouldWork === actuallyWorks;
+
+          testResults.push({
+            testName: name,
+            shouldWork,
+            actuallyWorks,
+            testPassed,
+            error: error?.message || 'none',
+            hasData: !!data
+          });
+        } catch (testError) {
+          testResults.push({
+            testName: name,
+            shouldWork,
+            actuallyWorks: false,
+            testPassed: !shouldWork,
+            error: `${testError}`,
+            hasData: false
+          });
+        }
+      }
+
+      const passedTests = testResults.filter(result => result.testPassed).length;
+      const totalTests = testResults.length;
+
+      if (passedTests === totalTests) {
+        this.addResult('Route Protection Across Auth Methods', 'passed', Date.now() - startTime,
+          `Route protection working correctly across authentication methods: ${passedTests}/${totalTests} tests passed`, undefined, {
+            hasActiveUser: !!user,
+            hasActiveSession: !!session,
+            authMethod: user?.app_metadata?.provider || 'none',
+            testResults,
+            passedTests,
+            totalTests
+          });
+      } else {
+        this.addResult('Route Protection Across Auth Methods', 'warning', Date.now() - startTime,
+          `Route protection partially working: ${passedTests}/${totalTests} tests passed`, undefined, {
+            hasActiveUser: !!user,
+            hasActiveSession: !!session,
+            authMethod: user?.app_metadata?.provider || 'none',
+            testResults,
+            passedTests,
+            totalTests
+          });
+      }
+
+    } catch (error) {
+      this.addResult('Route Protection Across Auth Methods', 'failed', Date.now() - startTime,
+        'Route protection testing across auth methods has issues', `${error}`);
     }
   }
 

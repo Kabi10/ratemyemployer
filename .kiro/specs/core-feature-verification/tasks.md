@@ -29,7 +29,7 @@
   - Test account linking between email/password and Google accounts
   - _Requirements: 1.2, 1.8, 1.9_
 
-- [ ] 2.3 Create protected route access validation
+- [x] 2.3 Create protected route access validation
   - Write tests for authenticated user access to protected routes
   - Implement unauthenticated user redirect testing
   - Test route protection across different authentication methods
@@ -87,7 +87,7 @@
   - _Requirements: 3.1, 3.2_
 
 
-- [ ] 4.2 Implement review filtering and sorting verification
+- [x] 4.2 Implement review filtering and sorting verification
   - Create review filtering by rating functionality testing
   - Write review sorting by date validation tests
   - Implement user review history display verification
@@ -95,7 +95,7 @@
   - _Requirements: 3.3, 3.4, 3.5_
 
 
-- [ ] 4.3 Create review rating calculation verification
+- [x] 4.3 Create review rating calculation verification
   - Write tests for company rating calculation from reviews
   - Implement rating accuracy validation across different scenarios
   - Test rating updates when new reviews are added
