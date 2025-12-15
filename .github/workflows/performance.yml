@@ -24,7 +24,7 @@ jobs:
         configPath: './.github/lighthouse/config.json'
     
     - name: Save results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: lighthouse-results
         path: '.lighthouseci'
@@ -48,7 +48,7 @@ jobs:
       run: ANALYZE=true npm run build
     
     - name: Upload bundle analysis
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: bundle-analysis
         path: '.next/analyze' 
