@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "coverage": "vitest run --coverage",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:supabase": "tsx scripts/verify-supabase-data.ts",

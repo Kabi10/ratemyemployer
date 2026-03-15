@@ -96,8 +96,6 @@ export const reviewSchema = z.object({
   employment_status: employmentStatusEnum,
   is_current_employee: z.boolean(),
   status: reviewStatusEnum.default('pending'),
-<<<<<<< HEAD
-=======
   reviewer_name: z.string()
     .max(100, 'Reviewer name must be less than 100 characters')
     .optional()
@@ -111,7 +109,6 @@ export const reviewSchema = z.object({
   updated_at: createOptionalDateSchema('Updated date'),
   recommend: z.boolean().optional().nullable(),
   content: z.string().min(10, 'Content must be at least 10 characters').optional().nullable(),
->>>>>>> feature/remove-mcp-demo-pages
 });
 
 // Database verification schemas with proper datetime handling

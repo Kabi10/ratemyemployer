@@ -72,6 +72,9 @@ jobs:
   quality-checks:
     name: Quality Checks
     runs-on: ubuntu-latest
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
 
     steps:
       - uses: actions/checkout@v4
