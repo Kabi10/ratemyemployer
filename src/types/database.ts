@@ -34,7 +34,7 @@ export interface Review {
   pros: string;
   cons: string;
   position: string;
-  employment_status: EmploymentStatus;
+  employment_status: EmploymentStatus | null;
   is_current_employee: boolean;
   company_id: number;
   user_id: string | null;

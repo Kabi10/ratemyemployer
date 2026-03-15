@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { fetchCompanyNews, NewsArticle } from '@/lib/newsApi';
 import { supabase, isSupabaseConfigured, getSupabaseConfig } from '@/lib/supabaseClient';
@@ -29,6 +29,7 @@ export function WallOfCompanies({
   description,
   limit = 10
 }: WallOfCompaniesProps) {
+  const cancelRef = useRef(false);
   const [companies, setCompanies] = useState<CompanyWithReviews[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<CompanyWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,6 +139,8 @@ export function WallOfCompanies({
         throw companiesError;
       }
 
+      if (cancelRef.current) return;
+
       if (!companiesData || companiesData.length === 0) {
         console.log('No companies found');
         setCompanies([]);
@@ -214,11 +217,12 @@ export function WallOfCompanies({
       fetchNewsForCompanies(selectedCompanies);
       
     } catch (err: any) {
+      if (cancelRef.current) return;
       console.error('Error fetching companies:', err);
       const errorMessage = err?.message || 'Unknown error occurred';
       setError(`Failed to fetch ${type === 'fame' ? 'top' : 'low'}-rated companies: ${errorMessage}`);
     } finally {
-      setLoading(false);
+      if (!cancelRef.current) setLoading(false);
     }
   };
 
@@ -236,7 +240,9 @@ export function WallOfCompanies({
         }
       })
     );
-    setCompanyNews(newsData);
+    if (!cancelRef.current) {
+      setCompanyNews(newsData);
+    }
   };
   
   // Process MCP statistics data based on wall type
@@ -358,7 +364,9 @@ export function WallOfCompanies({
   };
 
   useEffect(() => {
+    cancelRef.current = false;
     fetchCompanies();
+    return () => { cancelRef.current = true; };
   }, [type]);
 
   // Get the appropriate icon and colors based on type

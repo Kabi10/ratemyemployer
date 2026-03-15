@@ -8,10 +8,14 @@ import { cn } from '@/lib/utils';
 interface RadioGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: string;
   onValueChange?: (value: string) => void;
+  name?: string;
 }
 
 const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ className, children, value, onValueChange, ...props }, ref) => {
+  ({ className, children, value, onValueChange, name, ...props }, ref) => {
+    const generatedName = React.useId();
+    const groupName = name ?? generatedName;
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       onValueChange?.(event.target.value);
     };
@@ -27,6 +31,7 @@ const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
           if (React.isValidElement(child) && child.type === RadioGroupItem) {
             return React.cloneElement(child, {
               ...child.props,
+              name: groupName,
               checked: child.props.value === value,
               onChange: handleChange,
             });
