@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 interface SheetProps {
   children: React.ReactNode;
   className?: string;
+  side?: 'left' | 'right' | 'top' | 'bottom';
+  asChild?: boolean;
 }
 
 const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
@@ -63,4 +65,38 @@ const SheetTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTM
 );
 SheetTitle.displayName = 'SheetTitle';
 
-export { Sheet, SheetContent, SheetHeader, SheetTitle };
+const SheetClose = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+  ({ className, children, ...props }, ref) => (
+    <button ref={ref} className={cn('absolute right-4 top-4', className)} {...props}>
+      {children}
+    </button>
+  )
+);
+SheetClose.displayName = 'SheetClose';
+
+const SheetFooter = React.forwardRef<HTMLDivElement, SheetProps>(
+  ({ className, children, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)} {...props}>
+      {children}
+    </div>
+  )
+);
+SheetFooter.displayName = 'SheetFooter';
+
+const SheetDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => (
+    <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+  )
+);
+SheetDescription.displayName = 'SheetDescription';
+
+const SheetTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+  ({ className, children, ...props }, ref) => (
+    <button ref={ref} className={className} {...props}>
+      {children}
+    </button>
+  )
+);
+SheetTrigger.displayName = 'SheetTrigger';
+
+export { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger };

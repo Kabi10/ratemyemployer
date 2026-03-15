@@ -15,6 +15,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+      ESLINT_USE_FLAT_CONFIG: true
 
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +76,7 @@ jobs:
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
+      ESLINT_USE_FLAT_CONFIG: true
 
     steps:
       - uses: actions/checkout@v4

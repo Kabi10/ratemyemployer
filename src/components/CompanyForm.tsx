@@ -30,18 +30,6 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Auth gate: show CTA instead of a dead form when not signed in
-  if (!user) {
-    return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-        <p className="mb-2 font-medium">Please sign in to add a company.</p>
-        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
-          Sign in / Create account
-        </Link>
-      </div>
-    );
-  }
-
   const {
     register,
     handleSubmit,
@@ -66,6 +54,18 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       setLocationError(null);
     }
   }, [location]);
+
+  // Auth gate: show CTA instead of a dead form when not signed in
+  if (!user) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p className="mb-2 font-medium">Please sign in to add a company.</p>
+        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
+          Sign in / Create account
+        </Link>
+      </div>
+    );
+  }
 
   const onSubmit = async (data: CompanyFormData) => {
     if (!user) {

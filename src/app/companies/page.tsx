@@ -48,7 +48,7 @@ function CompanyListSkeleton() {
 
 function CompaniesPageContent() {
   const params = useSearchParams();
-  const initialSearch = params.get('search')?.toString() || '';
+  const initialSearch = params?.get('search')?.toString() || '';
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [searchQuery, setSearchQuery] = useState(initialSearch);

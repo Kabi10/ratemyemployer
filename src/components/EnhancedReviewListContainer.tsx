@@ -7,7 +7,7 @@ import type { Review } from '@/types/database';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
 import { toast } from './ui/use-toast';
-import { CreateReview } from './CreateReview';
+import CreateReview from './CreateReview';
 import { Dialog, DialogContent } from './ui/dialog';
 
 interface EnhancedReviewListContainerProps {
@@ -126,7 +126,7 @@ export const EnhancedReviewListContainer = ({
     toast({
       title: "Review Submitted",
       description: "Your review has been submitted for moderation",
-      variant: "success",
+      variant: "default",
     });
     // Refresh the page to update the reviews list
     router.refresh();
@@ -138,7 +138,7 @@ export const EnhancedReviewListContainer = ({
         reviews={initialReviews}
         totalCount={initialCount}
         fetchReviews={fetchReviews}
-        companyId={companyId}
+        companyId={companyId || ''}
         showCreateReview={true}
         onCreateReview={handleCreateReview}
       />
@@ -147,7 +147,7 @@ export const EnhancedReviewListContainer = ({
       <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
         <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
           <CreateReview 
-            companyId={companyId} 
+            companyId={companyId || ''}
             onSuccess={handleReviewSuccess}
             onCancel={() => setShowReviewForm(false)}
           />

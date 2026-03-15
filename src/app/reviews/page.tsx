@@ -38,7 +38,7 @@ export default async function ReviewsPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <Suspense fallback={<ReviewsLoading />}>
-                <EnhancedReviewListContainer initialReviews={initialReviewsResult.data || []} initialCount={initialReviewsResult.count || 0} />
+                <EnhancedReviewListContainer initialReviews={initialReviewsResult.data || []} initialCount={initialReviewsResult.data?.length || 0} />
               </Suspense>
             </CardContent>
           </Card>

@@ -34,8 +34,8 @@ export function RateLimitInfo({ type, showAlert = false }: RateLimitInfoProps) {
 
   const getStatusColor = () => {
     if (remaining === 0) return 'destructive';
-    if (remaining <= 2) return 'warning';
-    return 'success';
+    if (remaining <= 2) return 'default';
+    return 'default';
   };
 
   if (remaining === 0) {

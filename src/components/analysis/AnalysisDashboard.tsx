@@ -441,17 +441,17 @@ function FileDetailModal({ file, onClose }: FileDetailModalProps) {
 
             {/* Component-specific details */}
             {file.type === 'component' && (
-              <ComponentDetails component={file as ComponentInfo} />
+              <ComponentDetails component={file as unknown as ComponentInfo} />
             )}
 
             {/* API-specific details */}
             {file.type === 'api' && (
-              <APIDetails api={file as APIInfo} />
+              <APIDetails api={file as unknown as APIInfo} />
             )}
 
             {/* Script-specific details */}
             {file.type === 'script' && (
-              <ScriptDetails script={file as ScriptInfo} />
+              <ScriptDetails script={file as unknown as ScriptInfo} />
             )}
           </div>
         </div>

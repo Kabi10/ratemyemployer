@@ -136,10 +136,10 @@ export function SpamIndicator({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <div>{getSpamBadge()}</div>
         </TooltipTrigger>
-        <TooltipContent className="w-80">
+        <TooltipContent>
           <div className="space-y-2">
             <div className="font-semibold">Spam Analysis</div>
             <div className="text-sm">

@@ -14,7 +14,7 @@ import { AssessmentList } from '@/components/AssessmentList';
 function BackgroundCheckContent() {
   const router = useRouter();
   const params = useSearchParams();
-  const initialTerm = params.get('search')?.toString() || '';
+  const initialTerm = params?.get('search')?.toString() || '';
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const [term, setTerm] = useState(initialTerm);
   const [debouncedTerm, setDebouncedTerm] = useState(initialTerm);
