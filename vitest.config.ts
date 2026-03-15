@@ -28,7 +28,7 @@ export default defineConfig({
     sequence: {
       shuffle: false,
     },
-    reporters: ['basic'],
+    reporters: [['default', { summary: false }]],
     onConsoleLog: (log, _type) => {
       if (log.includes('node_modules')) return false;
       return true;
