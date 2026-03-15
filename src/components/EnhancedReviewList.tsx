@@ -95,13 +95,13 @@ export const EnhancedReviewList = ({
   const [totalCount, setTotalCount] = useState<number>(initialTotalCount);
   
   // Get filters from URL or use defaults
-  const page = Number(searchParams.get('page') || '1');
-  const minRating = Number(searchParams.get('minRating') || '0');
-  const employmentStatus = searchParams.get('employmentStatus') || 'all';
-  const timePeriod = searchParams.get('timePeriod') || 'all';
-  const sortBy = searchParams.get('sortBy') || 'newest';
-  const showVerifiedOnly = searchParams.get('verifiedOnly') === 'true';
-  const showCurrentEmployees = searchParams.get('currentEmployees') === 'true';
+  const page = Number(searchParams?.get('page') || '1');
+  const minRating = Number(searchParams?.get('minRating') || '0');
+  const employmentStatus = searchParams?.get('employmentStatus') || 'all';
+  const timePeriod = searchParams?.get('timePeriod') || 'all';
+  const sortBy = searchParams?.get('sortBy') || 'newest';
+  const showVerifiedOnly = searchParams?.get('verifiedOnly') === 'true';
+  const showCurrentEmployees = searchParams?.get('currentEmployees') === 'true';
 
   // Calculate pagination info
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -204,7 +204,7 @@ export const EnhancedReviewList = ({
 
   // Function to update URL with new filters
   const updateFilters = (newFilters: Record<string, string | number | boolean>) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || '');
     
     // Update each filter in the URL
     Object.entries(newFilters).forEach(([key, value]) => {
@@ -234,7 +234,7 @@ export const EnhancedReviewList = ({
 
   // Helper to reset all filters
   const resetFilters = () => {
-    router.push(pathname);
+    router.push(pathname || '/');
   };
   
   // Count active filters
@@ -433,7 +433,7 @@ export const EnhancedReviewList = ({
                 <SpamIndicator 
                   reviewTitle={review.title || ''}
                   reviewContent={(review.pros || '') + ' ' + (review.cons || '')}
-                  reviewerId={review.reviewer_id || ''}
+                  reviewerId={(review as any).reviewer_id || ''}
                 />
               </div>
             )}
@@ -538,7 +538,7 @@ const FilterDialog = ({
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
+      <SheetTrigger>
         <Button variant="outline" size="sm" className="flex items-center gap-1">
           <Filter className="h-4 w-4" />
           <span>Filters</span>
@@ -664,10 +664,10 @@ const FilterDialog = ({
             Reset All
           </Button>
           <div className="flex gap-3">
-            <SheetClose asChild>
+            <SheetClose>
               <Button variant="outline">Cancel</Button>
             </SheetClose>
-            <SheetClose asChild>
+            <SheetClose>
               <Button onClick={applyFilters}>Apply Filters</Button>
             </SheetClose>
           </div>
