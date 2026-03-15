@@ -65,6 +65,7 @@ jobs:
     name: Notify Team
     needs: deploy
     runs-on: ubuntu-latest
+    if: ${{ secrets.SLACK_BOT_TOKEN != '' }}
     steps:
       - name: Send deployment notification
         uses: slackapi/slack-github-action@v1.24.0

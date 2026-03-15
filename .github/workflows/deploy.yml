@@ -54,6 +54,7 @@ jobs:
     
     - name: Notify on Success
       if: success()
+      continue-on-error: true
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: 'deployments'
