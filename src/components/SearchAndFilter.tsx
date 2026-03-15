@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,8 @@ const SearchAndFilter = ({
   const [searchQuery, setSearchQuery] = useState(initialQuery || '');
   const [industries, setIndustries] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -81,10 +84,22 @@ const SearchAndFilter = ({
     fetchFilters();
   }, []);
 
+  // Sync input when initialQuery changes (e.g. browser back/forward)
+  useEffect(() => {
+    setSearchQuery(initialQuery || '');
+  }, [initialQuery]);
+
+  // Fire onSearch only after debounce, skip initial mount
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onSearch?.(debouncedQuery);
+  }, [debouncedQuery, onSearch]);
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    onSearch?.(query);
+    setSearchQuery(event.target.value);
   };
 
   const handleIndustryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

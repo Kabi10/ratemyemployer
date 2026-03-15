@@ -1,8 +1,10 @@
+'use client';
+
 /**
  * Company Logo or Placeholder Component - Optimized for MVP
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Building2 } from 'lucide-react';
 
 interface Company {
@@ -17,11 +19,13 @@ interface CompanyLogoOrPlaceholderProps {
   className?: string;
 }
 
-export function CompanyLogoOrPlaceholder({ 
-  company, 
-  size = 'md', 
-  className = '' 
+export function CompanyLogoOrPlaceholder({
+  company,
+  size = 'md',
+  className = ''
 }: CompanyLogoOrPlaceholderProps) {
+  const [imgError, setImgError] = useState(false);
+
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-16 w-16',
@@ -34,21 +38,13 @@ export function CompanyLogoOrPlaceholder({
     lg: 'h-12 w-12'
   };
 
-  if (company.logo_url) {
+  if (company.logo_url && !imgError) {
     return (
       <img
         src={company.logo_url}
         alt={`${company.name} logo`}
         className={`${sizeClasses[size]} object-cover rounded ${className}`}
-        onError={(e) => {
-          // Fallback to placeholder if image fails to load
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const placeholder = target.nextElementSibling as HTMLElement;
-          if (placeholder) {
-            placeholder.style.display = 'flex';
-          }
-        }}
+        onError={() => setImgError(true)}
       />
     );
   }

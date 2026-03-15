@@ -10,6 +10,9 @@ interface SheetProps {
   className?: string;
   side?: 'left' | 'right' | 'top' | 'bottom';
   asChild?: boolean;
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+  'aria-describedby'?: string;
 }
 
 const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
@@ -29,6 +32,8 @@ const SheetContent = React.forwardRef<HTMLDivElement, SheetProps>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
+      role="dialog"
+      aria-modal="true"
       className={cn(
         'fixed right-0 top-0 z-50 h-full w-3/4 border-l bg-background p-6 shadow-lg transition ease-in-out sm:max-w-sm',
         className
