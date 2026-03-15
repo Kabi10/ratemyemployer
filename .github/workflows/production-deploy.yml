@@ -10,20 +10,20 @@ jobs:
     name: Verify Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          
+
       - name: Install dependencies
-        run: npm ci
-        
+        run: npm ci --legacy-peer-deps
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-        
+
       - name: Run build verification
         run: npm run verify:ci
         env:
@@ -38,23 +38,23 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
-          
+
       - name: Install dependencies
-        run: npm ci
-        
+        run: npm ci --legacy-peer-deps
+
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
@@ -75,4 +75,4 @@ jobs:
           channel-id: 'deployments'
           slack-message: "🚀 Production deployment completed!\nCommit: ${{ github.sha }}\nBy: ${{ github.actor }}"
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
