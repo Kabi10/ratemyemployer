@@ -45,7 +45,7 @@ class AuthenticationFlowTester {
     const timestamp = Date.now();
     const randomId = randomBytes(4).toString('hex');
     this.testEmail = `test.user.${randomId}@testdomain.com`;
-    this.testPassword = `TestPass123!${randomId}`;
+    this.testPassword = randomBytes(16).toString('base64url');
   }
 
   async runAllTests(): Promise<AuthTestResult[]> {
@@ -223,7 +223,7 @@ class AuthenticationFlowTester {
       // Test with wrong password
       const { data, error } = await supabase.auth.signInWithPassword({
         email: this.testEmail,
-        password: 'wrongpassword123'
+        password: 'invalid-credentials-test'
       });
 
       // We expect this to fail
