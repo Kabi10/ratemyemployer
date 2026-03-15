@@ -1,11 +1,9 @@
 import { ReactNode } from 'react';
-
 import { cn } from '@/lib/utils';
-
 
 interface BadgeProps {
   children: ReactNode;
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
   className?: string;
   style?: React.CSSProperties;
 }
@@ -16,6 +14,8 @@ export function Badge({ children, variant = 'default', className, style }: Badge
     secondary: 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
     destructive: 'bg-red-500 text-white',
     outline: 'border border-gray-200 text-gray-900 dark:border-gray-700 dark:text-gray-100',
+    success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
+    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
   };
 
   return (

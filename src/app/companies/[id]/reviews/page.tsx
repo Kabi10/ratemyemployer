@@ -62,7 +62,7 @@ export default async function CompanyReviewsPage({ params }: Props) {
   }
   
   // Calculate averages
-  const totalReviews = initialReviewsResult.count || 0;
+  const totalReviews = initialReviewsResult.data?.length || 0;
   const averageRating = company.average_rating || 0;
 
   return (
@@ -101,7 +101,7 @@ export default async function CompanyReviewsPage({ params }: Props) {
               <Suspense fallback={<ReviewsLoading />}>
                 <EnhancedReviewListContainer 
                   initialReviews={initialReviewsResult.data || []} 
-                  initialCount={initialReviewsResult.count || 0}
+                  initialCount={initialReviewsResult.data?.length || 0}
                   companyId={id}
                 />
               </Suspense>
@@ -164,7 +164,7 @@ export default async function CompanyReviewsPage({ params }: Props) {
                 
                 <StatCard 
                   title="Recommend to Friend" 
-                  value={company.recommend_percentage || 0}
+                  value={(company as any).recommend_percentage || 0}
                   suffix="%"
                   description="Would recommend to a friend"
                 />

@@ -167,8 +167,8 @@ export function WebScrapingDashboard({
           title="Web Scraping: Setup Required"
           steps={[
             'Run: supabase link --project-ref <your-project-ref>',
-            'Run: supabase db push to create tables: scraping_jobs, scraped_items, company_data_enhancements.',
-            'Configure env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+            'Run: supabase db push to create tables: scraping_jobs, scraped_items.',
+            'Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your .env.local.',
           ]}
           note="After completing these steps, reload this page."
         />

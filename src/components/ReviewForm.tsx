@@ -69,18 +69,6 @@ export const ReviewForm = ({
   const [selectedCompany, setSelectedCompany] = useState<JoinedCompany | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Auth gate: show CTA instead of form when not signed in
-  if (!user) {
-    return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-        <p className="mb-2 font-medium">Please sign in to write a review.</p>
-        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
-          Sign in / Create account
-        </Link>
-      </div>
-    );
-  }
-
   const {
     register,
     handleSubmit,
@@ -152,6 +140,18 @@ export const ReviewForm = ({
       isMounted = false;
     };
   }, [companyId, toast]);
+
+  // Auth gate: show CTA instead of form when not signed in
+  if (!user) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p className="mb-2 font-medium">Please sign in to write a review.</p>
+        <Link href="/auth/login?signup=true" className="underline underline-offset-2">
+          Sign in / Create account
+        </Link>
+      </div>
+    );
+  }
 
   const handleReviewSubmit = async (data: ReviewFormData) => {
     if (!user) {

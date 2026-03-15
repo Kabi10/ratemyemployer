@@ -144,7 +144,7 @@ export function LocationInsights({
           </div>
           <div className="text-center">
             <div className={`text-xl font-bold ${getRatingColor(averageRating)}`}>
-              {Number(averageRating ?? 0).toFixed(2)}
+              {Number(averageRating ?? 0).toFixed(1)}
             </div>
             <div className="text-xs text-gray-600">Avg Rating</div>
           </div>
@@ -167,7 +167,7 @@ export function LocationInsights({
                     </div>
                   </div>
                   <div className={`px-2 py-1 rounded-full text-sm font-medium ${getRatingBadgeColor(stat.average_rating ?? stat.avg_rating ?? 0)}`}>
-                    {Number(stat.average_rating ?? stat.avg_rating ?? 0).toFixed(2)}
+                    {Number(stat.average_rating ?? stat.avg_rating ?? 0).toFixed(1)}
                   </div>
                 </div>
 
@@ -209,7 +209,7 @@ export function LocationInsights({
             <h4 className="font-medium text-green-800 mb-2">Market Analysis</h4>
             <div className="text-sm text-green-700 space-y-1">
                 <p>
-                  • <strong>{topLocations[0].location}</strong> leads with {Number(topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0).toFixed(2)}/5 rating
+                  • <strong>{topLocations[0].location}</strong> leads with {Number(topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0).toFixed(1)}/5 rating
                 </p>
               <p>
                 • {topLocations.filter(stat => stat.company_count >= 50).length} major employment hubs identified
@@ -219,7 +219,7 @@ export function LocationInsights({
               </p>
               {topLocations.length > 1 && (
                   <p>
-                    • Rating spread: {Number((topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0) - (topLocations[topLocations.length - 1].average_rating ?? topLocations[topLocations.length - 1].avg_rating ?? 0)).toFixed(2)} points
+                    • Rating spread: {Number((topLocations[0].average_rating ?? topLocations[0].avg_rating ?? 0) - (topLocations[topLocations.length - 1].average_rating ?? topLocations[topLocations.length - 1].avg_rating ?? 0)).toFixed(1)} points
                   </p>
                 )}
             </div>

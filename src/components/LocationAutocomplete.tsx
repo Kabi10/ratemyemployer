@@ -4,7 +4,6 @@ import { FreeLocationAutocomplete } from './FreeLocationAutocomplete';
 
 /// <reference types="@types/google.maps" />
 
-
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -13,29 +12,14 @@ interface LocationAutocompleteProps {
   required?: boolean;
 }
 
-export function LocationAutocomplete({
+// Inner component that always calls hooks (only rendered when Google Maps key exists)
+function GoogleMapsAutocomplete({
   value,
   onChange,
   className = '',
   placeholder = 'Enter a location',
   required = false,
 }: LocationAutocompleteProps) {
-  // Check if Google Maps API key is available
-  const hasGoogleMapsKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
-
-  // If no Google Maps API key, use free alternative
-  if (!hasGoogleMapsKey) {
-    return (
-      <FreeLocationAutocomplete
-        value={value}
-        onChange={onChange}
-        className={className}
-        placeholder={placeholder}
-        required={required}
-      />
-    );
-  }
-
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: ['places'],
@@ -109,4 +93,14 @@ export function LocationAutocomplete({
       )}
     </div>
   );
+}
+
+export function LocationAutocomplete(props: LocationAutocompleteProps) {
+  const hasGoogleMapsKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+
+  if (!hasGoogleMapsKey) {
+    return <FreeLocationAutocomplete {...props} />;
+  }
+
+  return <GoogleMapsAutocomplete {...props} />;
 }

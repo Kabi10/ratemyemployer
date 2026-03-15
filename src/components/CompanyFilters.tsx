@@ -33,14 +33,14 @@ import { Label } from '@/components/ui/label';
 
 interface CompanyFiltersProps {
   industries: string[];
-  onFiltersChange: (filters: CompanyFilters) => void;
-  initialFilters?: Partial<CompanyFilters>;
+  onFiltersChange: (filters: CompanyFiltersState) => void;
+  initialFilters?: Partial<CompanyFiltersState>;
   showSortOptions?: boolean;
   locations?: string[];
   sizes?: string[];
 }
 
-export interface CompanyFilters {
+export interface CompanyFiltersState {
   search: string;
   industry: string;
   location?: string;
@@ -62,7 +62,7 @@ export function CompanyFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [filters, setFilters] = useState<CompanyFilters>({
+  const [filters, setFilters] = useState<CompanyFiltersState>({
     search: initialFilters.search || searchParams?.get('search') || '',
     industry: initialFilters.industry || searchParams?.get('industry') || '',
     location: initialFilters.location || searchParams?.get('location') || '',
@@ -70,7 +70,7 @@ export function CompanyFilters({
     minRating: initialFilters.minRating || Number(searchParams?.get('minRating')) || 0,
     maxRating: initialFilters.maxRating || Number(searchParams?.get('maxRating')) || 5,
     hasNews: initialFilters.hasNews || searchParams?.get('hasNews') === 'true' || false,
-    sortBy: (initialFilters.sortBy || searchParams?.get('sortBy') || 'rating-desc') as CompanyFilters['sortBy']
+    sortBy: (initialFilters.sortBy || searchParams?.get('sortBy') || 'rating-desc') as CompanyFiltersState['sortBy']
   });
   
   const [expanded, setExpanded] = useState(false);
@@ -140,7 +140,7 @@ export function CompanyFilters({
     setFilters(prev => ({ ...prev, hasNews: checked }));
   };
   
-  const handleSortChange = (value: CompanyFilters['sortBy']) => {
+  const handleSortChange = (value: CompanyFiltersState['sortBy']) => {
     setFilters(prev => ({ ...prev, sortBy: value }));
   };
   

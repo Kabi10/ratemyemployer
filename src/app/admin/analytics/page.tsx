@@ -10,7 +10,6 @@ import { AnalyticsSummary, TrendData } from '@/types/mcp';
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 import {
   LineChart,
   Line,

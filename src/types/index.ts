@@ -1,5 +1,5 @@
 import type { Database } from './supabase';
-import { UserProfile } from './database';
+import { UserProfile, ReviewStatus } from './database';
 
 
 // src/types/index.ts
@@ -12,7 +12,7 @@ export type ReviewRow = Tables['reviews']['Row'];
 export type UserProfileRow = UserProfile;
 
 export type EmploymentStatus = typeof EMPLOYMENT_STATUSES[number];
-export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+export type { ReviewStatus };
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
 // Constants

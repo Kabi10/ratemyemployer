@@ -98,14 +98,14 @@ export function SpamIndicator({
   const getSpamBadge = () => {
     if (isAnalyzing) return null;
 
-    if (spamScore >= 30) {
+    if (spamScore >= 15) {
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
           High Spam Risk
         </Badge>
       );
-    } else if (spamScore >= 15) {
+    } else if (spamScore >= 5) {
       return (
         <Badge variant="warning" className="flex items-center gap-1 bg-amber-500">
           <AlertTriangle className="h-3 w-3" />
@@ -136,10 +136,10 @@ export function SpamIndicator({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <div>{getSpamBadge()}</div>
         </TooltipTrigger>
-        <TooltipContent className="w-80">
+        <TooltipContent>
           <div className="space-y-2">
             <div className="font-semibold">Spam Analysis</div>
             <div className="text-sm">

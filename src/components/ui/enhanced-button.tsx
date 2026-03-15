@@ -12,17 +12,14 @@ import { Loader2 } from 'lucide-react';
 const enhancedButtonVariants = cva(
   [
     // Base styles
-    'inline-flex items-center justify-center gap-2',
-    'rounded-lg font-medium transition-all duration-200',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'group relative inline-flex items-center justify-center gap-2 font-medium',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ring-offset-background',
     'disabled:pointer-events-none disabled:opacity-50',
-    'relative overflow-hidden',
-    // Improved accessibility
-    'focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+    'overflow-hidden',
     // Better hover states
-    'transform-gpu hover:scale-[1.02] active:scale-[0.98]',
+    'motion-safe:transform-gpu motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]',
     // Smooth transitions
-    'transition-all duration-200 ease-out',
+    'motion-safe:transition-all motion-safe:duration-200 motion-safe:ease-out motion-reduce:transition-none',
   ],
   {
     variants: {
@@ -96,7 +93,7 @@ const enhancedButtonVariants = cva(
       },
       fullWidth: {
         true: 'w-full',
-        false: 'w-auto',
+        false: '',
       },
       rounded: {
         default: 'rounded-lg',
@@ -126,13 +123,13 @@ export interface EnhancedButtonProps
 }
 
 const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
+  ({
+    className,
+    variant,
+    size,
     fullWidth,
     rounded,
-    asChild = false, 
+    asChild = false,
     loading = false,
     loadingText,
     leftIcon,
@@ -141,10 +138,10 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     disabled,
     onClick,
     onKeyDown,
-    ...props 
+    ...props
   }, ref) => {
     const isDisabled = disabled || loading;
-    
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -154,14 +151,14 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
       }
       onKeyDown?.(e);
     };
-    
+
     const buttonClasses = cn(
       enhancedButtonVariants({ variant, size, fullWidth, rounded }),
       loading && 'cursor-not-allowed',
       size === 'icon' && 'w-10', // Force icon width
       className
     );
-    
+
     const buttonContent = (
       <>
         {loading && (
@@ -176,14 +173,13 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {!loading && rightIcon && (
           <span className="flex-shrink-0">{rightIcon}</span>
         )}
-        
         {/* Ripple effect overlay */}
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
       </>
     );
-    
+
     if (asChild) {
       return (
         <Slot
@@ -195,7 +191,7 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         </Slot>
       );
     }
-    
+
     return (
       <button
         className={buttonClasses}

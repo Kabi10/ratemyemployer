@@ -386,7 +386,7 @@ export class PerformanceMonitor {
           webVitals[metric.metric_name].push(metric.metric_value);
           break;
 
-        case 'api_performance':
+        case 'api_performance': {
           const endpoint = metric.context.endpoint;
           if (!apiPerformance[endpoint]) {
             apiPerformance[endpoint] = { times: [], errors: 0, total: 0 };
@@ -397,8 +397,9 @@ export class PerformanceMonitor {
             apiPerformance[endpoint].errors++;
           }
           break;
+        }
 
-        case 'database_query_performance':
+        case 'database_query_performance': {
           const table = metric.context.table_name;
           if (!databasePerformance[table]) {
             databasePerformance[table] = { times: [], errors: 0, total: 0 };
@@ -409,12 +410,14 @@ export class PerformanceMonitor {
             databasePerformance[table].errors++;
           }
           break;
+        }
 
-        case 'page_load_time':
+        case 'page_load_time': {
           const url = metric.context.url;
           if (!pageLoadTimes[url]) pageLoadTimes[url] = [];
           pageLoadTimes[url].push(metric.metric_value);
           break;
+        }
       }
     });
 

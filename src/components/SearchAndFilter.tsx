@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/lib/supabaseClient';
 import type { Company } from '@/types/database';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,8 @@ interface SearchAndFilterProps {
   onLocationChange?: (location: string) => void;
   selectedIndustry?: string;
   selectedLocation?: string;
+  /** Pre-fills the search input, typically from a `?search=` URL param */
+  initialQuery?: string;
 }
 
 const COMPANY_SIZES = [
@@ -36,17 +38,19 @@ const COMPANY_SIZES = [
   '5000+'
 ];
 
-const SearchAndFilter = ({ 
-  onSearch, 
-  onIndustryChange, 
+const SearchAndFilter = ({
+  onSearch,
+  onIndustryChange,
   onLocationChange,
   selectedIndustry = '',
-  selectedLocation = ''
+  selectedLocation = '',
+  initialQuery = ''
 }: SearchAndFilterProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery || '');
   const [industries, setIndustries] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const router = useRouter();
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -80,10 +84,22 @@ const SearchAndFilter = ({
     fetchFilters();
   }, []);
 
+  // Sync input when initialQuery changes (e.g. browser back/forward)
+  useEffect(() => {
+    setSearchQuery(initialQuery || '');
+  }, [initialQuery]);
+
+  // Fire onSearch only after debounce, skip initial mount
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onSearch?.(debouncedQuery);
+  }, [debouncedQuery, onSearch]);
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    onSearch?.(query);
+    setSearchQuery(event.target.value);
   };
 
   const handleIndustryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

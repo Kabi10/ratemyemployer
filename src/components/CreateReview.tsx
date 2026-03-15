@@ -18,9 +18,11 @@ import { ReviewForm } from './ReviewForm';
 
 interface CreateReviewProps {
   companyId: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-function CreateReview({ companyId }: CreateReviewProps) {
+function CreateReview({ companyId, onSuccess, onCancel }: CreateReviewProps) {
   const { company, loading, error } = useCompany(companyId);
   // Convert companyId to number for ReviewForm
   const numericCompanyId = parseInt(companyId, 10);

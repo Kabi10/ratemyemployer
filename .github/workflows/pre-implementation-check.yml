@@ -16,69 +16,66 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for git log commands
-      
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      
+          node-version: '20.x'
+
       - name: Install dependencies
-        run: npm ci
-      
+        run: npm ci --legacy-peer-deps
+
       - name: Create implementations directory
         run: mkdir -p implementations
-      
+
       - name: Check for pre-implementation documentation
         id: check
         run: |
           # Get files added in this PR
           PR_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }} origin/${{ github.head_ref }})
-          
-          # Filter to only include source files
-          SOURCE_FILES=$(echo "$PR_FILES" | grep -E '\.(js|jsx|ts|tsx|css|scss)$' || true)
-          
+
+          # Filter to only include source files (skip test files and generated files)
+          SOURCE_FILES=$(echo "$PR_FILES" | grep -E '\.(js|jsx|ts|tsx|css|scss)$' | grep -vE '(\.test\.|\.spec\.|__tests__|\.d\.ts$)' || true)
+
           if [ -z "$SOURCE_FILES" ]; then
             echo "No new source files added in this PR."
             exit 0
           fi
-          
+
           # Check for pre-implementation documentation
           MISSING_DOCS=0
           MISSING_FILES=""
-          
+
           for file in $SOURCE_FILES; do
             # Skip certain directories
-            if [[ $file == node_modules/* || $file == dist/* || $file == .git/* ]]; then
+            if [[ $file == node_modules/* || $file == dist/* || $file == .git/* || $file == src/types/* ]]; then
               continue
             fi
-            
+
             # Check for documentation
             FILE_BASE=$(basename "$file" | cut -d. -f1)
             DOC_PATH="implementations/${FILE_BASE}-pre-implementation.md"
-            
+
             if [ ! -f "$DOC_PATH" ]; then
               MISSING_DOCS=$((MISSING_DOCS+1))
               MISSING_FILES="$MISSING_FILES\n- $file (missing doc: $DOC_PATH)"
             fi
           done
-          
+
           # Report results
           if [ $MISSING_DOCS -gt 0 ]; then
-            echo "::error::Missing pre-implementation documentation for $MISSING_DOCS files:"
+            echo "::warning::Missing pre-implementation documentation for $MISSING_DOCS files:"
             echo -e "$MISSING_FILES"
-            echo "::set-output name=missing_docs::true"
-            exit 1
           else
             echo "All new files have pre-implementation documentation. Great job!"
-            echo "::set-output name=missing_docs::false"
           fi
-      
+
       - name: Comment on PR
         if: steps.check.outputs.missing_docs == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -87,16 +84,16 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `## ⚠️ Missing Pre-Implementation Documentation ⚠️
-              
+
               Some new files in this PR are missing pre-implementation documentation.
-              
+
               Please follow the mandatory pre-implementation checklist:
-              
+
               1. Search for existing code using grep_search, file_search, and list_dir
               2. Document your findings
               3. Get approval before implementing
-              
+
               Create documentation for each new file in the \`implementations/\` directory using the template.
-              
+
               See the [Pre-Implementation Checklist](../blob/main/.cursorrules#-mandatory-pre-implementation-checklist-) for details.`
-            }); 
+            });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { SpamIndicator } from '@/components/SpamIndicator';
 import { vi } from 'vitest';
 
@@ -27,42 +27,39 @@ vi.mock('lucide-react', () => ({
 }));
 
 describe('SpamIndicator', () => {
-  // Helper function to advance timers for useEffect to complete
-  const advanceTimers = async () => {
-    // Use fake timers
-    vi.useFakeTimers();
-    // Advance timers to allow useEffect to complete
-    vi.runAllTimers();
-    // Restore real timers
-    vi.useRealTimers();
+  // Helper to wait for async state updates from useEffect
+  const waitForAnalysis = async (testId: string) => {
+    return waitFor(() => screen.getByTestId(testId), { timeout: 2000 });
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should show analyzing state initially', () => {
+  it('should show genuine badge for normal content', async () => {
     render(
-      <SpamIndicator 
-        reviewTitle="Test Review" 
-        reviewContent="This is a test review content."
+      <SpamIndicator
+        reviewTitle="Test Review"
+        reviewContent="This is a test review content that is long enough."
         reviewerId="user123"
       />
     );
 
-    expect(screen.getByText('Analyzing...')).toBeInTheDocument();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
+    expect(screen.getByTestId('badge-success')).toBeInTheDocument();
+    expect(screen.getByText('Looks Genuine')).toBeInTheDocument();
   });
 
   it('should identify all caps title as potential spam', async () => {
     render(
-      <SpamIndicator 
-        reviewTitle="THIS IS AN ALL CAPS TITLE" 
-        reviewContent="Normal content here."
+      <SpamIndicator
+        reviewTitle="THIS IS AN ALL CAPS TITLE"
+        reviewContent="Normal content here that is long enough to pass."
         reviewerId="user123"
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show possible spam indicator
     expect(screen.getByTestId('badge-warning')).toBeInTheDocument();
@@ -76,13 +73,13 @@ describe('SpamIndicator', () => {
   it('should identify excessive punctuation as potential spam', async () => {
     render(
       <SpamIndicator 
-        reviewTitle="Too many exclamation marks!!!!!!" 
-        reviewContent="Normal content here."
+        reviewTitle="Too many exclamation marks!!!!!!"
+        reviewContent="Normal content here that is long enough to pass."
         reviewerId="user123"
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show possible spam indicator
     expect(screen.getByTestId('badge-warning')).toBeInTheDocument();
@@ -102,7 +99,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show possible spam indicator
     expect(screen.getByTestId('badge-warning')).toBeInTheDocument();
@@ -122,7 +119,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show possible spam indicator
     expect(screen.getByTestId('badge-warning')).toBeInTheDocument();
@@ -147,7 +144,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show high risk
     expect(screen.getByTestId('badge-destructive')).toBeInTheDocument();
@@ -167,7 +164,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show high risk
     expect(screen.getByTestId('badge-destructive')).toBeInTheDocument();
@@ -188,7 +185,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show possible spam
     expect(screen.getByTestId('badge-warning')).toBeInTheDocument();
@@ -213,7 +210,7 @@ describe('SpamIndicator', () => {
       />
     );
 
-    await advanceTimers();
+    await waitForAnalysis('badge-warning').catch(() => waitForAnalysis('badge-destructive').catch(() => waitForAnalysis('badge-success').catch(() => waitForAnalysis('badge-outline'))));
 
     // Should show genuine indicator
     expect(screen.getByTestId('badge-success')).toBeInTheDocument();

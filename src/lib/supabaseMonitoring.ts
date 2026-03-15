@@ -102,14 +102,8 @@ export async function estimateBandwidthUsage(): Promise<number> {
  * Get storage usage (file uploads, etc.)
  */
 export async function getStorageUsage(): Promise<number> {
-  try {
-    // Since we don't have direct storage API access, estimate based on known usage
-    // This would need to be implemented with actual storage bucket queries
-    return 0.05; // Estimated 50 MB current usage
-  } catch (error) {
-    console.error('Error in getStorageUsage:', error);
-    return 0;
-  }
+  // Since we don't have direct storage API access, estimate based on known usage
+  return 0.05; // Estimated 50 MB current usage
 }
 
 /**
