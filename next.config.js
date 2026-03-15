@@ -19,8 +19,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Exclude test configuration files from TypeScript checking
-    ignoreBuildErrors: true,
+    // Re-enable TypeScript checking to identify real issues
+    ignoreBuildErrors: false,
   },
 };
 

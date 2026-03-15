@@ -52,11 +52,11 @@ async function runOptimizationTasks(): Promise<string[]> {
     
     // 1. Clean up old error logs
     console.log('  • Cleaning up old error logs...');
-    const { data: cleanupResult, error: cleanupError } = await maintenanceTasks.cleanupErrorLogs(30);
+    const { count: cleanupCount, error: cleanupError } = await maintenanceTasks.cleanupErrorLogs(30);
     if (cleanupError) {
       console.error(chalk.yellow(`    Warning: ${cleanupError.message}`));
     } else {
-      optimizations.push(`Cleaned up old error logs: ${cleanupResult?.count || 0} records removed`);
+      optimizations.push(`Cleaned up old error logs: ${cleanupCount || 0} records removed`);
     }
     
     // 2. Optimize database performance

@@ -132,17 +132,10 @@ async function populateReviews(companyCount: number = 50, reviewsPerCompany: num
       reviews.push({
         company_id: company.id,
         title: template.title,
-        pros: template.pros,
-        cons: template.cons,
+        content: `**Pros:** ${template.pros}\n\n**Cons:** ${template.cons}`,
         rating: Math.round(rating * 10) / 10,
-        recommend: Math.random() > 0.3, // 70% recommend
-        position: position,
-        employment_status: Math.random() > 0.6 ? 'current' : 'former',
         work_life_balance: Math.max(1, Math.min(5, template.work_life_balance + Math.floor((Math.random() - 0.5) * 2))),
-        culture_values: Math.max(1, Math.min(5, template.culture_values + Math.floor((Math.random() - 0.5) * 2))),
-        career_opportunities: Math.max(1, Math.min(5, template.career_opportunities + Math.floor((Math.random() - 0.5) * 2))),
-        compensation_benefits: Math.max(1, Math.min(5, template.compensation_benefits + Math.floor((Math.random() - 0.5) * 2))),
-        senior_management: Math.max(1, Math.min(5, template.senior_management + Math.floor((Math.random() - 0.5) * 2))),
+        compensation: Math.max(1, Math.min(5, template.compensation_benefits + Math.floor((Math.random() - 0.5) * 2))),
         created_at: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(), // Last 6 months
       });
     }

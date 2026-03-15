@@ -87,9 +87,9 @@ const enhancedButtonVariants = cva(
         default: 'h-10 px-4 py-2',
         lg: 'h-12 px-6 text-lg',
         xl: 'h-14 px-8 text-xl',
-        icon: 'h-10 w-10',
-        'icon-sm': 'h-8 w-8',
-        'icon-lg': 'h-12 w-12',
+        icon: 'h-10 p-0 gap-0',
+        'icon-sm': 'h-8 w-8 p-0',
+        'icon-lg': 'h-12 w-12 p-0',
       },
       fullWidth: {
         true: 'w-full',
@@ -136,59 +136,33 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     rightIcon,
     children,
     disabled,
+    onClick,
+    onKeyDown,
     ...props
   }, ref) => {
     const isDisabled = disabled || loading;
 
-    if (asChild) {
-      const { onClick, tabIndex, ...rest } = props as any;
-      const handleClick = (e: React.MouseEvent) => {
-        if (isDisabled) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (!isDisabled && onClick) {
+          onClick(e as any);
         }
-        onClick?.(e);
-      };
-      return (
-        <Slot
-          ref={ref as any}
-          aria-busy={loading}
-          aria-disabled={isDisabled || undefined}
-          data-disabled={isDisabled || undefined}
-          tabIndex={isDisabled ? -1 : tabIndex}
-          className={cn(
-            enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-            loading && 'cursor-not-allowed',
-            isDisabled && 'pointer-events-none opacity-50'
-          )}
-          onClick={handleClick}
-          {...rest}
-        >
-          {children}
-        </Slot>
-      );
-    }
+      }
+      onKeyDown?.(e);
+    };
 
-    return (
-      <button
-        type={props.type ?? 'button'}
-        aria-busy={loading}
-        aria-disabled={isDisabled || undefined}
-        className={cn(
-          enhancedButtonVariants({ variant, size, fullWidth, rounded, className }),
-          loading && 'cursor-not-allowed'
-        )}
-        ref={ref}
-        disabled={isDisabled}
-        {...props}
-      >
+    const buttonClasses = cn(
+      enhancedButtonVariants({ variant, size, fullWidth, rounded }),
+      loading && 'cursor-not-allowed',
+      size === 'icon' && 'w-10', // Force icon width
+      className
+    );
+
+    const buttonContent = (
+      <>
         {loading && (
-          <Loader2
-            data-testid="loading-spinner"
-            className="h-4 w-4 animate-spin"
-            aria-hidden="true"
-          />
+          <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
         )}
         {!loading && leftIcon && (
           <span className="flex-shrink-0">{leftIcon}</span>
@@ -203,6 +177,32 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         <span className="absolute inset-0 overflow-hidden rounded-lg">
           <span className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-200 group-active:opacity-100" />
         </span>
+      </>
+    );
+
+    if (asChild) {
+      return (
+        <Slot
+          className={buttonClasses}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
+    return (
+      <button
+        className={buttonClasses}
+        ref={ref}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        {...props}
+      >
+        {buttonContent}
       </button>
     );
   }

@@ -7,6 +7,10 @@ import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useMCPQuery, useMCPQueryWithFallback } from '@/hooks/useMCPQuery';
 import { AnalyticsSummary, TrendData } from '@/types/mcp';
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import {
   LineChart,
   Line,

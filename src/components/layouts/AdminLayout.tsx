@@ -16,7 +16,7 @@ import {
   Menu,
   X,
   LogOut,
-  Database
+
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -44,7 +44,7 @@ function AdminLayoutBase({ children }: AdminLayoutProps) {
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3, current: pathname === '/admin/analytics', visible: isAdmin },
     { name: 'Background Checks', href: '/admin/background-check', icon: Shield, current: pathname === '/admin/background-check', visible: isAdmin },
     { name: 'Settings', href: '/admin/settings', icon: Settings, current: pathname === '/admin/settings', visible: isAdmin },
-    { name: 'MCP Developer Tools', href: '/admin/mcp-demo', icon: Database, current: pathname === '/admin/mcp-demo', visible: isFeatureEnabled('mcpDemo', userRole) },
+
   ];
 
   const toggleSidebar = () => {

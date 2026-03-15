@@ -169,7 +169,15 @@ export class ScrapingEngine {
 
       // Update job with results
       await this.updateJobStatus(job.job_id, 'completed', {
-        results_summary: result
+        // Store a serializable summary to satisfy typing
+        results_summary: {
+          success: result.success,
+          data_count: result.data_count,
+          errors: result.errors,
+          warnings: result.warnings,
+          processing_time_ms: result.processing_time_ms,
+          data_quality_score: result.data_quality_score,
+        } as Record<string, unknown>
       });
 
       await this.log(job.job_id, 'info', 

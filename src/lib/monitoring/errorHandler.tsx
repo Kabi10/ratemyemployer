@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabaseClient';
+import * as React from 'react';
 
 interface ErrorLog {
   id?: string;

@@ -57,32 +57,32 @@ export async function getFinancialDistressCompanies(
     let filteredData = companiesData;
 
     if (filters.industry) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.industry?.toLowerCase().includes(filters.industry!.toLowerCase())
       );
     }
 
     if (filters.location) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.location?.toLowerCase().includes(filters.location!.toLowerCase())
       );
     }
 
     if (filters.min_distress_score !== undefined) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.distress_score >= filters.min_distress_score!
       );
     }
 
     if (filters.max_distress_score !== undefined) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.distress_score <= filters.max_distress_score!
       );
     }
 
     // Apply sorting
     if (filters.sort_by) {
-      filteredData.sort((a, b) => {
+      filteredData.sort((a: any, b: any) => {
         let aValue: any, bValue: any;
         
         switch (filters.sort_by) {
@@ -116,7 +116,7 @@ export async function getFinancialDistressCompanies(
 
     // Fetch additional details for each company
     const companiesWithDetails = await Promise.all(
-      paginatedData.map(async (company) => {
+      paginatedData.map(async (company: any) => {
         // Fetch distress indicators
         const { data: indicators } = await supabase
           .from('financial_distress_indicators')
@@ -142,7 +142,7 @@ export async function getFinancialDistressCompanies(
     // Calculate statistics
     const totalCount = filteredData.length;
     const averageDistressScore = totalCount > 0 
-      ? filteredData.reduce((sum, company) => sum + company.distress_score, 0) / totalCount 
+      ? filteredData.reduce((sum: number, company: any) => sum + company.distress_score, 0) / totalCount 
       : 0;
 
     return {
@@ -196,38 +196,38 @@ export async function getRisingStartupCompanies(
     let filteredData = companiesData;
 
     if (filters.industry) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.industry?.toLowerCase().includes(filters.industry!.toLowerCase())
       );
     }
 
     if (filters.location) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.location?.toLowerCase().includes(filters.location!.toLowerCase())
       );
     }
 
     if (filters.min_growth_score !== undefined) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.growth_score >= filters.min_growth_score!
       );
     }
 
     if (filters.max_growth_score !== undefined) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         company.growth_score <= filters.max_growth_score!
       );
     }
 
     if (filters.min_funding !== undefined) {
-      filteredData = filteredData.filter(company => 
+      filteredData = filteredData.filter((company: any) => 
         (company.latest_funding || 0) >= filters.min_funding!
       );
     }
 
     // Apply sorting
     if (filters.sort_by) {
-      filteredData.sort((a, b) => {
+      filteredData.sort((a: any, b: any) => {
         let aValue: any, bValue: any;
         
         switch (filters.sort_by) {
@@ -265,7 +265,7 @@ export async function getRisingStartupCompanies(
 
     // Fetch additional details for each company
     const companiesWithDetails = await Promise.all(
-      paginatedData.map(async (company) => {
+      paginatedData.map(async (company: any) => {
         // Fetch growth indicators
         const { data: indicators } = await supabase
           .from('rising_startup_indicators')
@@ -292,9 +292,9 @@ export async function getRisingStartupCompanies(
     // Calculate statistics
     const totalCount = filteredData.length;
     const averageGrowthScore = totalCount > 0 
-      ? filteredData.reduce((sum, company) => sum + company.growth_score, 0) / totalCount 
+      ? filteredData.reduce((sum: number, company: any) => sum + company.growth_score, 0) / totalCount 
       : 0;
-    const totalFunding = filteredData.reduce((sum, company) => sum + (company.latest_funding || 0), 0);
+    const totalFunding = filteredData.reduce((sum: number, company: any) => sum + (company.latest_funding || 0), 0);
 
     return {
       companies: companiesWithDetails,

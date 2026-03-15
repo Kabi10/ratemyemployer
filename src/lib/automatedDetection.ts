@@ -4,7 +4,7 @@
  */
 
 import { supabase } from './supabaseClient';
-import { fetchCompanyNews } from './freeNewsApi';
+import { fetchFromGoogleNewsRSS } from './freeNewsApi';
 import type { 
   DistressIndicatorType, 
   GrowthIndicatorType,
@@ -321,7 +321,7 @@ export async function runAutomatedDetection(companyLimit: number = 50): Promise<
         console.log(`Analyzing company: ${company.name}`);
 
         // Analyze news for the company
-        const news = await fetchCompanyNews(company.name, 5);
+        const news = await fetchFromGoogleNewsRSS(company.name);
         
         for (const article of news) {
           const newsContent = `${article.title} ${article.description || ''}`;
@@ -330,7 +330,7 @@ export async function runAutomatedDetection(companyLimit: number = 50): Promise<
           const distressIndicators = analyzeDistressIndicators(
             company.id, 
             newsContent, 
-            article.link
+            article.url || undefined
           );
           result.distressIndicators.push(...distressIndicators);
 
@@ -338,7 +338,7 @@ export async function runAutomatedDetection(companyLimit: number = 50): Promise<
           const growthIndicators = analyzeGrowthIndicators(
             company.id, 
             newsContent, 
-            article.link
+            article.url || undefined
           );
           result.growthIndicators.push(...growthIndicators);
         }

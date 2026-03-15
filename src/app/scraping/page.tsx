@@ -1,6 +1,10 @@
 import { Metadata } from 'next';
 import { WebScrapingDashboard } from '@/components/WebScrapingDashboard';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Web Scraping Dashboard - RateMyEmployer',
   description: 'Monitor and manage automated data collection operations. Advanced web scraping infrastructure for company data, reviews, news, and job listings.',

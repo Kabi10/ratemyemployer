@@ -162,13 +162,13 @@ export function WallOfCompanies({
           ? Math.round((recommendCount / reviews.length) * 100)
           : 0;
 
-        return {
+        return ({
           ...company,
           average_rating: averageRating,
           recommend_percentage: recommendPercentage,
           review_count: reviews.length,
           reviews
-        };
+        } as any) as CompanyWithReviews;
       });
 
       // Filter companies with at least 3 reviews and a valid average rating
@@ -325,13 +325,13 @@ export function WallOfCompanies({
         filtered = filtered.sort((a, b) => a.average_rating - b.average_rating);
         break;
       case 'reviews-desc':
-        filtered = filtered.sort((a, b) => b.review_count - a.review_count);
+        filtered = filtered.sort((a, b) => (b as any).total_reviews - (a as any).total_reviews);
         break;
       case 'name-asc':
         filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'recommend-desc':
-        filtered = filtered.sort((a, b) => (b.recommend_percentage || 0) - (a.recommend_percentage || 0));
+        filtered = filtered.sort((a, b) => ((b as any).recommend_percentage || 0) - ((a as any).recommend_percentage || 0));
         break;
       default:
         // Default to rating-desc for fame, rating-asc for shame
@@ -565,7 +565,7 @@ export function WallOfCompanies({
           {showStats && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Industry Statistics */}
-              {industryStats?.length > 0 && (
+              {(industryStats?.length ?? 0) > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -600,7 +600,7 @@ export function WallOfCompanies({
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
+                          <span>{(stat as any).total_reviews} reviews</span>
                         </div>
                       </div>
                     ))}
@@ -609,7 +609,7 @@ export function WallOfCompanies({
               )}
               
               {/* Location Statistics */}
-              {locationStats?.length > 0 && (
+              {(locationStats?.length ?? 0) > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -644,7 +644,7 @@ export function WallOfCompanies({
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{stat.company_count} companies</span>
-                          <span>{stat.review_count} reviews</span>
+                          <span>{(stat as any).total_reviews} reviews</span>
                         </div>
                       </div>
                     ))}

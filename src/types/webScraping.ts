@@ -58,8 +58,8 @@ export interface ScrapingJob {
   retry_count: number;
   max_retries: number;
   error_message?: string;
-  configuration: Record<string, any>;
-  results_summary: Record<string, any>;
+  configuration: Record<string, unknown>;
+  results_summary: Record<string, unknown>;
   created_by?: string;
   created_at: string;
   updated_at: string;
@@ -71,8 +71,8 @@ export interface ScrapedData {
   company_id?: number;
   data_type: string;
   source_url?: string;
-  raw_data: Record<string, any>;
-  processed_data: Record<string, any>;
+  raw_data: Record<string, unknown>;
+  processed_data: Record<string, unknown>;
   data_hash?: string;
   confidence_score: number;
   is_processed: boolean;
@@ -124,7 +124,7 @@ export interface ScrapingLog {
   scraping_job_id: string;
   log_level: LogLevel;
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   url?: string;
   response_code?: number;
   response_time_ms?: number;
@@ -135,7 +135,7 @@ export interface DataQualityCheck {
   id: string;
   check_name: string;
   data_type: string;
-  validation_rule: Record<string, any>;
+  validation_rule: Record<string, unknown>;
   error_threshold: number;
   is_active: boolean;
   created_at: string;
@@ -280,7 +280,7 @@ export interface CreateScrapingJobRequest {
   target_company_name?: string;
   priority?: number;
   scheduled_at?: string;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
 }
 
 export interface ScrapingJobResponse {
