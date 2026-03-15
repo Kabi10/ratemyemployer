@@ -1,3 +1,4 @@
+import path from 'path';
 import { FileInfo, DependencyMap } from './types';
 
 /**
@@ -349,7 +350,7 @@ export class DependencyAnalyzer {
       // In a real implementation, you'd resolve the relative path
       // For now, we'll do a simple search
       for (const [filePath] of this.dependencyGraph) {
-        if (filePath.includes(dependency.replace(/\.\//g, '').replace(/\.\.\//g, ''))) {
+        if (filePath.includes(path.basename(path.normalize(dependency)))) {
           return filePath;
         }
       }
