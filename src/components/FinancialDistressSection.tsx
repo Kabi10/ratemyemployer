@@ -237,15 +237,15 @@ export function FinancialDistressSection({
 
               <div>
                 <label className="block text-sm font-medium mb-1">Industry</label>
-                <Select 
-                  value={filters.industry || ''} 
-                  onValueChange={(value) => handleFilterChange('industry', value || undefined)}
+                <Select
+                  value={filters.industry || 'all'}
+                  onValueChange={(value) => handleFilterChange('industry', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Industries" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Industries</SelectItem>
+                    <SelectItem value="all">All Industries</SelectItem>
                     <SelectItem value="Technology">Technology</SelectItem>
                     <SelectItem value="Healthcare">Healthcare</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
@@ -257,15 +257,15 @@ export function FinancialDistressSection({
 
               <div>
                 <label className="block text-sm font-medium mb-1">Distress Level</label>
-                <Select 
-                  value={filters.min_distress_score?.toString() || ''} 
-                  onValueChange={(value) => handleFilterChange('min_distress_score', value ? parseInt(value) : undefined)}
+                <Select
+                  value={filters.min_distress_score?.toString() || 'all'}
+                  onValueChange={(value) => handleFilterChange('min_distress_score', value === 'all' ? undefined : parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Levels" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Levels</SelectItem>
+                    <SelectItem value="all">All Levels</SelectItem>
                     <SelectItem value="25">Medium+ (25+)</SelectItem>
                     <SelectItem value="50">High+ (50+)</SelectItem>
                     <SelectItem value="75">Critical (75+)</SelectItem>

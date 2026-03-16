@@ -116,15 +116,15 @@ export function CompanyFilters({
   };
   
   const handleIndustryChange = (value: string) => {
-    setFilters(prev => ({ ...prev, industry: value }));
+    setFilters(prev => ({ ...prev, industry: value === 'all' ? '' : value }));
   };
-  
+
   const handleLocationChange = (value: string) => {
-    setFilters(prev => ({ ...prev, location: value }));
+    setFilters(prev => ({ ...prev, location: value === 'all' ? '' : value }));
   };
-  
+
   const handleSizeChange = (value: string) => {
-    setFilters(prev => ({ ...prev, size: value }));
+    setFilters(prev => ({ ...prev, size: value === 'all' ? '' : value }));
   };
   
   const handleRatingRangeChange = (value: [number, number]) => {
@@ -300,14 +300,14 @@ export function CompanyFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Industry</label>
                   <Select
-                    value={filters.industry}
+                    value={filters.industry || 'all'}
                     onValueChange={handleIndustryChange}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All Industries" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Industries</SelectItem>
+                      <SelectItem value="all">All Industries</SelectItem>
                       {industries.map(industry => (
                         <SelectItem key={industry} value={industry}>
                           {industry}
@@ -321,14 +321,14 @@ export function CompanyFilters({
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Location</label>
                     <Select
-                      value={filters.location}
+                      value={filters.location || 'all'}
                       onValueChange={handleLocationChange}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Locations</SelectItem>
+                        <SelectItem value="all">All Locations</SelectItem>
                         {locations.map(location => (
                           <SelectItem key={location} value={location}>
                             {location}
@@ -343,14 +343,14 @@ export function CompanyFilters({
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Company Size</label>
                     <Select
-                      value={filters.size}
+                      value={filters.size || 'all'}
                       onValueChange={handleSizeChange}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Any Size" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any Size</SelectItem>
+                        <SelectItem value="all">Any Size</SelectItem>
                         {sizes.map(size => (
                           <SelectItem key={size} value={size}>
                             {size}
