@@ -295,8 +295,8 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    WITH required_columns AS (
-        VALUES 
+    WITH required_columns(table_name, column_name, expected_type) AS (
+        VALUES
             ('companies', 'id', 'bigint'),
             ('companies', 'name', 'character varying'),
             ('companies', 'description', 'text'),
@@ -318,7 +318,7 @@ BEGIN
             ('reviews', 'recommend', 'boolean'),
             ('reviews', 'status', 'character varying'),
             ('reviews', 'is_current_employee', 'boolean')
-    ) AS t(table_name, column_name, expected_type)
+    )
     SELECT 
         rc.table_name::text,
         rc.column_name::text,

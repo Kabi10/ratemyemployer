@@ -5,8 +5,8 @@ ADD COLUMN IF NOT EXISTS recommend BOOLEAN DEFAULT NULL;
 -- Update existing reviews with default recommend values based on rating
 UPDATE public.reviews 
 SET recommend = CASE 
-    WHEN overall_rating >= 4 THEN true
-    WHEN overall_rating <= 2 THEN false
+    WHEN rating >= 4 THEN true
+    WHEN rating <= 2 THEN false
     ELSE NULL
 END
 WHERE recommend IS NULL;

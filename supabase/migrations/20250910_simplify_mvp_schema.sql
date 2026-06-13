@@ -3,6 +3,34 @@
 -- Focus: Keep only essential features for employer review platform
 
 -- ============================================================================
+-- STEP 0: Ensure consistent column naming (reviewer_id → user_id)
+-- ============================================================================
+
+-- The 20240128 migration renamed user_id to reviewer_id; rename it back
+-- so all subsequent migrations and app code can use user_id consistently
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'reviewer_id'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'user_id'
+    ) THEN
+        ALTER TABLE public.reviews RENAME COLUMN reviewer_id TO user_id;
+    END IF;
+END $$;
+
+-- Fix the set_reviewer_id trigger function to use user_id
+CREATE OR REPLACE FUNCTION set_reviewer_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.user_id = auth.uid();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
 -- STEP 1: Remove Non-MVP Tables and Infrastructure
 -- ============================================================================
 
@@ -128,11 +156,11 @@ CREATE INDEX IF NOT EXISTS reviews_user_company_idx ON public.reviews(user_id, c
 -- STEP 7: Update RLS Policies for Simplified Schema
 -- ============================================================================
 
--- Clean up policies for removed tables
-DROP POLICY IF EXISTS "Public can view company status" ON public.company_status_tracking;
-DROP POLICY IF EXISTS "Public can view distress indicators" ON public.financial_distress_indicators;
-DROP POLICY IF EXISTS "Public can view startup indicators" ON public.rising_startup_indicators;
-DROP POLICY IF EXISTS "Public can view company metrics" ON public.company_metrics;
+-- Clean up policies for removed tables (tables may not exist, so use DO blocks)
+DO $$ BEGIN DROP POLICY IF EXISTS "Public can view company status" ON public.company_status_tracking; EXCEPTION WHEN undefined_table THEN null; END $$;
+DO $$ BEGIN DROP POLICY IF EXISTS "Public can view distress indicators" ON public.financial_distress_indicators; EXCEPTION WHEN undefined_table THEN null; END $$;
+DO $$ BEGIN DROP POLICY IF EXISTS "Public can view startup indicators" ON public.rising_startup_indicators; EXCEPTION WHEN undefined_table THEN null; END $$;
+DO $$ BEGIN DROP POLICY IF EXISTS "Public can view company metrics" ON public.company_metrics; EXCEPTION WHEN undefined_table THEN null; END $$;
 
 -- Ensure essential policies exist for companies
 DROP POLICY IF EXISTS "Allow public read access to companies" ON public.companies;
@@ -204,9 +232,11 @@ COMMENT ON COLUMN public.reviews.status IS 'Review moderation status - pending/a
 ANALYZE public.companies;
 ANALYZE public.reviews;
 
--- Log completion
-INSERT INTO public.schema_migrations (version, applied_at) 
-VALUES ('20250910_simplify_mvp_schema', NOW())
-ON CONFLICT (version) DO UPDATE SET applied_at = NOW();
+-- Log completion (schema_migrations table may not exist in all environments)
+DO $$ BEGIN
+    INSERT INTO public.schema_migrations (version, applied_at)
+    VALUES ('20250910_simplify_mvp_schema', NOW())
+    ON CONFLICT (version) DO UPDATE SET applied_at = NOW();
+EXCEPTION WHEN undefined_table THEN null; END $$;
 
 COMMENT ON SCHEMA public IS 'Simplified MVP schema for employer review platform - focused on core functionality only';

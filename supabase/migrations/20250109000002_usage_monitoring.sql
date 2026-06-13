@@ -169,21 +169,18 @@ END;
 $$;
 
 -- Function to get industry statistics
-CREATE OR REPLACE FUNCTION "public"."get_industry_statistics"() 
+DROP FUNCTION IF EXISTS "public"."get_industry_statistics"();
+CREATE OR REPLACE FUNCTION "public"."get_industry_statistics"()
 RETURNS json
 LANGUAGE sql
 SECURITY DEFINER
 AS $$
     WITH industry_stats AS (
-        SELECT 
+        SELECT
             c.industry,
             COUNT(DISTINCT c.id) as company_count,
             COUNT(r.id) as review_count,
-            ROUND(AVG(r.rating), 2) as avg_rating,
-            ROUND(AVG(r.work_life_balance), 2) as avg_work_life_balance,
-            ROUND(AVG(r.compensation_rating), 2) as avg_compensation,
-            ROUND(AVG(r.career_growth), 2) as avg_career_growth,
-            ROUND(AVG(r.culture_rating), 2) as avg_culture
+            ROUND(AVG(r.rating), 2) as avg_rating
         FROM companies c
         LEFT JOIN reviews r ON c.id = r.company_id
         WHERE c.industry IS NOT NULL
@@ -196,17 +193,14 @@ AS $$
             'industry', industry,
             'companyCount', company_count,
             'reviewCount', review_count,
-            'averageRating', avg_rating,
-            'workLifeBalance', avg_work_life_balance,
-            'compensation', avg_compensation,
-            'careerGrowth', avg_career_growth,
-            'culture', avg_culture
+            'averageRating', avg_rating
         )
     ) FROM industry_stats;
 $$;
 
 -- Function to get location statistics
-CREATE OR REPLACE FUNCTION "public"."get_location_statistics"() 
+DROP FUNCTION IF EXISTS "public"."get_location_statistics"();
+CREATE OR REPLACE FUNCTION "public"."get_location_statistics"()
 RETURNS json
 LANGUAGE sql
 SECURITY DEFINER

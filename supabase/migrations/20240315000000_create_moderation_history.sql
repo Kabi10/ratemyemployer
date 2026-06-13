@@ -93,8 +93,8 @@ CREATE POLICY "Moderators can view moderation history"
       SELECT 1 FROM auth.users
       WHERE auth.users.id = auth.uid()
       AND (
-        auth.users.user_metadata->>'role' = 'moderator'
-        OR auth.users.user_metadata->>'role' = 'admin'
+        auth.users.raw_user_meta_data->>'role' = 'moderator'
+        OR auth.users.raw_user_meta_data->>'role' = 'admin'
       )
     )
   );
@@ -109,8 +109,8 @@ CREATE POLICY "Moderators can insert moderation history"
       SELECT 1 FROM auth.users
       WHERE auth.users.id = auth.uid()
       AND (
-        auth.users.user_metadata->>'role' = 'moderator'
-        OR auth.users.user_metadata->>'role' = 'admin'
+        auth.users.raw_user_meta_data->>'role' = 'moderator'
+        OR auth.users.raw_user_meta_data->>'role' = 'admin'
       )
     )
   );

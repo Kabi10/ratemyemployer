@@ -246,11 +246,11 @@ AS $$
             c.location,
             calculate_distress_score(c.id) as score,
             COUNT(fdi.id) as indicator_count,
-            c.average_rating
+            COALESCE((SELECT AVG(r2.rating) FROM public.reviews r2 WHERE r2.company_id = c.id), 0) as average_rating
         FROM companies c
         LEFT JOIN financial_distress_indicators fdi ON c.id = fdi.company_id
         WHERE calculate_distress_score(c.id) > 10
-        GROUP BY c.id, c.name, c.industry, c.location, c.average_rating
+        GROUP BY c.id, c.name, c.industry, c.location
     ),
     latest_indicators AS (
         SELECT DISTINCT ON (company_id)
@@ -299,11 +299,11 @@ AS $$
             c.location,
             calculate_growth_score(c.id) as score,
             COUNT(rsi.id) as indicator_count,
-            c.average_rating
+            COALESCE((SELECT AVG(r2.rating) FROM public.reviews r2 WHERE r2.company_id = c.id), 0) as average_rating
         FROM companies c
         LEFT JOIN rising_startup_indicators rsi ON c.id = rsi.company_id
         WHERE calculate_growth_score(c.id) > 10
-        GROUP BY c.id, c.name, c.industry, c.location, c.average_rating
+        GROUP BY c.id, c.name, c.industry, c.location
     ),
     latest_indicators AS (
         SELECT DISTINCT ON (company_id)

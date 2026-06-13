@@ -1,12 +1,12 @@
 -- Insight helper functions
 
+DROP FUNCTION IF EXISTS public.get_industry_statistics();
 CREATE OR REPLACE FUNCTION public.get_industry_statistics()
 RETURNS jsonb AS $$
   SELECT jsonb_build_object(
     'by_industry',
     COALESCE(
-      to_jsonb(array_agg(jsonb_build_object('industry', industry, 'score', score)))
-        FILTER (WHERE industry IS NOT NULL),
+      to_jsonb(array_agg(jsonb_build_object('industry', industry, 'score', score)) FILTER (WHERE industry IS NOT NULL)),
       '[]'::jsonb
     )
   )
@@ -33,7 +33,6 @@ RETURNS jsonb AS $$
            AVG(COALESCE(r.rating,0)) AS score
     FROM public.companies c
     LEFT JOIN public.reviews r ON r.company_id = c.id AND (r.status IS NULL OR r.status = 'approved')
-    WHERE c.size = 'Startup'
     GROUP BY c.id, c.name, c.industry
     ORDER BY score DESC
     LIMIT 10
