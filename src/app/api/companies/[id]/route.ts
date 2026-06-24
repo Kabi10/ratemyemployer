@@ -31,12 +31,13 @@ const createClient = () => {
   )
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
+  const { id } = await params
   const { data, error } = await supabase
     .from('companies')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error) {
@@ -46,14 +47,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
   return NextResponse.json(data)
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
   const updates = await request.json()
+  const { id } = await params
 
   const { data, error } = await supabase
     .from('companies')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single()
 
@@ -64,12 +66,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   return NextResponse.json(data)
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
+  const { id } = await params
   const { error } = await supabase
     .from('companies')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

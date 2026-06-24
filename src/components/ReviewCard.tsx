@@ -2,7 +2,6 @@
 'use client';
 import React from 'react';
 import { Review } from '@/types';
-import { ReviewActions } from './ReviewActions';
 
 export function ReviewCard({ review }: { review: Review }) {
   return (
@@ -44,7 +43,6 @@ export function ReviewCard({ review }: { review: Review }) {
         <div className="text-sm text-gray-500">
           {new Date(review.created_at).toLocaleDateString()}
         </div>
-        <ReviewActions reviewId={review.id.toString()} initialLikes={review.likes || 0} />
       </div>
     </div>
   );

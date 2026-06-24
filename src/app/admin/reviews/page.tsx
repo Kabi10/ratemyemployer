@@ -33,14 +33,14 @@ export default function AdminReviewsPage() {
         employment_status: review.employment_status || 'Not specified',
         company: {
           ...review.company,
-          industry: review.company.industry || 'Not specified',
-          location: review.company.location || 'Not specified',
+          industry: review.company?.industry || 'Not specified',
+          location: review.company?.location || 'Not specified',
           total_reviews: 0, // These would need to be calculated
           average_rating: 0, // These would need to be calculated
         }
       }));
 
-      setReviews(transformedData);
+      setReviews(transformedData as unknown as Review[]);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       showToast('Failed to load reviews', 'error');
@@ -59,7 +59,7 @@ export default function AdminReviewsPage() {
       const { error } = await supabase
         .from('reviews')
         .update({ status: 'approved' })
-        .eq('id', reviewId);
+        .eq('id', Number(reviewId));
 
       if (error) throw error;
       showToast('Review approved successfully', 'success');

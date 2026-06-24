@@ -91,7 +91,7 @@ export const dbQuery = {
           website,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', Number(id));
     }
   },
   reviews: {
@@ -135,7 +135,7 @@ export const dbQuery = {
           pros,
           cons
         })
-        .eq('id', id)
+        .eq('id', Number(id))
         .eq('user_id', userId); // Ensure user can only update their own reviews
     }
   }

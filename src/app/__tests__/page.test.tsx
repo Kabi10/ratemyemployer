@@ -1,34 +1,30 @@
+import { vi, describe, it, expect } from 'vitest';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import Home from '../page';
 
-jest.mock('@/lib/supabaseClient', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        order: jest.fn(() => ({
-          limit: jest.fn().mockResolvedValue({ data: [], error: null })
-        }))
-      }))
-    }))
-  }))
+vi.mock('@/lib/supabaseClient', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        order: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        })),
+      })),
+    })),
+  })),
+  supabase: { from: vi.fn() },
 }));
 
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn()
-  }))
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() })),
 }));
 
 describe('Home Page', () => {
   it('renders the main heading', () => {
     render(<Home />);
-    const mainHeading = screen.getByText('Rate My Employer');
-    const subHeading = screen.getByText('Share Your Work Experience');
-    expect(mainHeading).toBeInTheDocument();
-    expect(subHeading).toBeInTheDocument();
+    expect(screen.getByText('Rate My Employer')).toBeInTheDocument();
+    expect(screen.getByText('Share Your Work Experience')).toBeInTheDocument();
   });
 
   it('renders the search section', () => {
@@ -38,7 +34,9 @@ describe('Home Page', () => {
 
   it('renders the welcome message', () => {
     render(<Home />);
-    expect(screen.getByText(/join our community to share and discover authentic workplace experiences/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/join our community to share and discover authentic workplace experiences/i)
+    ).toBeInTheDocument();
   });
 
   it('renders the search input', () => {
@@ -47,4 +45,4 @@ describe('Home Page', () => {
     expect(searchInput).toBeInTheDocument();
     expect(searchInput).toHaveAttribute('placeholder', 'Search for a company...');
   });
-}); 
+});

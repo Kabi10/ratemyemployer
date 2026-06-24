@@ -44,9 +44,7 @@ export const reviewSchema = z.object({
     .min(2, ERROR_MESSAGES.min('Position', 2))
     .max(100, ERROR_MESSAGES.max('Position', 100))
     .trim(),
-  employment_status: z.enum(employmentStatusEnum, {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Employment status', employmentStatusEnum) })
-  }),
+  employment_status: z.enum(employmentStatusEnum),
   is_current_employee: z.boolean().default(false),
   reviewer_name: z.string().trim().optional(),
   reviewer_email: z.string().email(ERROR_MESSAGES.email).optional(),
@@ -63,9 +61,7 @@ export const companySchema = z.object({
     .min(10, ERROR_MESSAGES.min('Description', 10))
     .max(1000, ERROR_MESSAGES.max('Description', 1000))
     .trim(),
-  industry: z.enum(INDUSTRIES as unknown as [string, ...string[]], {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Industry', INDUSTRIES) })
-  }),
+  industry: z.enum(INDUSTRIES as unknown as [string, ...string[]]),
   location: z.string()
     .min(2, ERROR_MESSAGES.min('Location', 2))
     .max(100, ERROR_MESSAGES.max('Location', 100))
@@ -74,9 +70,7 @@ export const companySchema = z.object({
     .url(ERROR_MESSAGES.url)
     .trim()
     .optional(),
-  size: z.enum(['Small', 'Medium', 'Large', 'Enterprise'], {
-    errorMap: () => ({ message: ERROR_MESSAGES.invalidEnum('Company size', ['Small', 'Medium', 'Large', 'Enterprise']) })
-  })
+  size: z.enum(['Small', 'Medium', 'Large', 'Enterprise'])
     .optional(),
   logo_url: z.string()
     .url(ERROR_MESSAGES.url)
