@@ -20,11 +20,11 @@ export default function EditReview() {
       const { data, error } = await supabase
         .from('reviews')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', Number(params.id))
         .single();
 
       if (error) throw error;
-      setReview(data);
+      setReview(data as unknown as Review);
     } catch (err) {
       console.error('Error fetching review:', err);
       setError('Failed to load review');

@@ -30,7 +30,7 @@ export default function ProfilePage() {
           .single();
 
         if (error) throw error;
-        setProfile(data);
+        setProfile(data as unknown as Profile);
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile');

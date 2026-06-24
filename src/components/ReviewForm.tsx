@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -49,7 +49,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
   };
 
   const form = useForm<ReviewFormData>({
-    resolver: zodResolver(reviewSchema),
+    resolver: zodResolver(reviewSchema) as Resolver<ReviewFormData>,
     defaultValues,
   });
 
@@ -69,7 +69,7 @@ export function ReviewForm({ companyId, initialData, onSuccess }: ReviewFormProp
         const { data, error } = await supabase
           .from('companies')
           .select('*')
-          .eq('id', companyId)
+          .eq('id', Number(companyId))
           .single();
 
         if (error) throw error;

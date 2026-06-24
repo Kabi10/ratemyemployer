@@ -78,7 +78,7 @@ export default function Home() {
         .limit(5);
 
       if (error) throw error;
-      setSearchResults(data || []);
+      setSearchResults((data || []) as unknown as Company[]);
     } catch (error) {
       console.error('Error searching companies:', error);
     } finally {
@@ -121,7 +121,7 @@ export default function Home() {
       }
 
       console.log('Created company:', newCompany);
-      setSearchResults([newCompany, ...searchResults]);
+      setSearchResults([newCompany as unknown as Company, ...searchResults]);
       setShowAddCompany(false);
       reset();
     } catch (error) {

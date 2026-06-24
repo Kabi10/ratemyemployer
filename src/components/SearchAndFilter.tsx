@@ -19,7 +19,7 @@ export default function SearchAndFilter() {
       }
 
       const uniqueIndustries = Array.from(new Set(data.map(item => item.industry)))
-        .filter(Boolean)
+        .filter((x): x is string => Boolean(x))
         .sort();
 
       setIndustries(uniqueIndustries);

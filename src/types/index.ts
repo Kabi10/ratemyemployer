@@ -1,12 +1,13 @@
 // src/types/index.ts
 import type { Database } from '@/types/supabase';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
 export type { Database } from '@/types/supabase';
 
 // Base types from database
 type BaseCompany = Database['public']['Tables']['companies']['Row'];
 type BaseReview = Database['public']['Tables']['reviews']['Row'];
-export type User = Database['auth']['Tables']['users']['Row'];
+export type User = SupabaseAuthUser;
 
 // Extended types with additional fields
 export interface Company {
@@ -75,11 +76,3 @@ export const INDUSTRIES = [
   'Agriculture',
   'Other'
 ] as const;
-
-// ReviewLike type
-export interface ReviewLike {
-  id: number;
-  review_id: number;
-  user_id: string;
-  created_at: string;
-}

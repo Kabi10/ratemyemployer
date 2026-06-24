@@ -42,7 +42,7 @@ export const serverQuery = {
       return supabase
         .from('companies')
         .select('*')
-        .eq('id', id)
+        .eq('id', Number(id))
         .single()
     }
   },

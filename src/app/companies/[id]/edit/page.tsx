@@ -34,13 +34,13 @@ export default function EditCompany() {
 
   const fetchCompany = async (id: string) => {
     try {
-      const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
+      const { data, error } = await supabase.from('companies').select('*').eq('id', Number(id)).single();
 
       if (error) throw error;
-      setCompany(data);
+      setCompany(data as unknown as Company);
       setFormData({
         name: data.name,
-        industry: data.industry,
+        industry: data.industry || '',
         description: data.description || '',
         location: data.location,
         website: data.website || '',
@@ -62,7 +62,7 @@ export default function EditCompany() {
     setError(null);
 
     try {
-      const { error } = await supabase.from('companies').update(formData).eq('id', params.id);
+      const { error } = await supabase.from('companies').update(formData).eq('id', Number(params.id));
 
       if (error) throw error;
       router.push(`/companies/${params.id}`);

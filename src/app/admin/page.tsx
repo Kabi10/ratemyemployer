@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       try {
         const { data, error } = await supabase.rpc('get_admin_stats');
         if (error) throw error;
-        setStats(data);
+        setStats(data as unknown as Stats);
       } catch (err) {
         console.error('Error fetching stats:', err);
         setError('Failed to load dashboard statistics');

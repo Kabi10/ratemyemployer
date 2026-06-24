@@ -39,26 +39,26 @@ const fetcher = async (key: string, id: string | number, options: UseCompanyOpti
           )
         )
       `)
-      .eq('id', id)
+      .eq('id', Number(id))
       .single() as PostgrestSingleResponse<CompanyWithDetails>;
 
     if (error) throw error;
     return data;
   } else {
-    const { data, error } = await query.select('*').eq('id', id).single() as PostgrestSingleResponse<Company>;
+    const { data, error } = await query.select('*').eq('id', Number(id)).single() as PostgrestSingleResponse<Company>;
     if (error) throw error;
 
     if (options.withStats && data) {
       const { data: reviewStats, error: statsError } = await supabase
         .from('reviews')
         .select('rating')
-        .eq('company_id', id);
+        .eq('company_id', Number(id));
 
       if (statsError) throw statsError;
 
       const totalReviews = reviewStats?.length || 0;
       const averageRating = totalReviews && reviewStats
-        ? reviewStats.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+        ? reviewStats.reduce((acc, review) => acc + (review.rating ?? 0), 0) / totalReviews
         : 0;
 
       return {
@@ -156,7 +156,7 @@ const companiesListFetcher = async (
 
         const totalReviews = reviewStats?.length || 0;
         const averageRating = totalReviews && reviewStats
-          ? reviewStats.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+          ? reviewStats.reduce((acc, review) => acc + (review.rating ?? 0), 0) / totalReviews
           : 0;
 
         return {

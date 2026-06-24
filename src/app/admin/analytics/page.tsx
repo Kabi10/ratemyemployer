@@ -54,7 +54,7 @@ export default function AdminAnalytics() {
         if (totalError) throw totalError;
 
         const totalReviews = totalData.length;
-        const averageRating = totalData.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews;
+        const averageRating = totalData.reduce((acc, curr) => acc + (curr.rating ?? 0), 0) / totalReviews;
 
         // Fetch reviews by month
         const { data: monthlyData, error: monthlyError } = await supabase
@@ -65,7 +65,7 @@ export default function AdminAnalytics() {
         if (monthlyError) throw monthlyError;
 
         const reviewsByMonth = monthlyData.reduce((acc: MonthlyReview[], curr) => {
-          const month = new Date(curr.created_at).toLocaleString('default', {
+          const month = new Date(curr.created_at as string).toLocaleString('default', {
             month: 'short',
             year: 'numeric',
           });
@@ -73,14 +73,14 @@ export default function AdminAnalytics() {
 
           if (existingMonth) {
             existingMonth.count++;
-            existingMonth.totalRating += curr.rating;
+            existingMonth.totalRating += curr.rating ?? 0;
             existingMonth.averageRating = existingMonth.totalRating / existingMonth.count;
           } else {
             acc.push({
               month,
               count: 1,
-              totalRating: curr.rating,
-              averageRating: curr.rating,
+              totalRating: curr.rating ?? 0,
+              averageRating: curr.rating ?? 0,
             });
           }
           return acc;

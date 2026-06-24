@@ -40,7 +40,7 @@ export function useReviews(): UseReviewsReturn {
         .order('created_at', { ascending: false });
 
       if (supabaseError) throw supabaseError;
-      setReviews(data);
+      setReviews(data as unknown as Review[]);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch reviews'));
     } finally {

@@ -31,14 +31,15 @@ const createClient = () => {
   )
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
+  const { id } = await params
 
   try {
     const { data, error } = await supabase
       .from('reviews')
       .select('*')
-      .eq('company_id', params.id)
+      .eq('company_id', id)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -53,14 +54,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
   const reviewData = await request.json()
+  const { id } = await params
 
   try {
     const { data, error } = await supabase
       .from('reviews')
-      .insert([{ ...reviewData, company_id: params.id }])
+      .insert([{ ...reviewData, company_id: id }])
       .select()
       .single()
 

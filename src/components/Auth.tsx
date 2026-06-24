@@ -175,7 +175,7 @@ export default function Auth() {
             className="w-full"
             onClick={handleModeSwitch}
           >
-            {isSignUp ? 'Already have an account? Sign In' : "Don&apos;t have an account? Sign Up"}
+            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </Button>
         </form>
       </CardContent>
