@@ -1,10 +1,7 @@
 name: Automated Database Population
+# Schedule removed (was burning minutes). Use workflow_dispatch only.
 
 on:
-  # Run weekly on Sundays at 2 AM UTC
-  schedule:
-    - cron: '0 2 * * 0'
-  
   # Allow manual triggering
   workflow_dispatch:
     inputs:
