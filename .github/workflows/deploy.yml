@@ -1,15 +1,21 @@
-name: Deploy
+﻿name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: prod
-    
+
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -20,46 +26,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'
+        node-version: '20'
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: npm ci --legacy-peer-deps
 
     - name: Build
       run: npm run build
-    
-    - name: Deploy to Vercel
-      id: deploy
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
-    
-    - name: Run Supabase Migrations
-      uses: supabase/setup-cli@v1
-      with:
-        version: latest
-    - name: Push migrations
-      continue-on-error: true
-      run: |
-        supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
-        supabase db push
-      env:
-        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-    
-    - name: Notify on Success
-      if: success()
-      continue-on-error: true
-      uses: slackapi/slack-github-action@v1.24.0
-      with:
-        channel-id: 'deployments'
-        slack-message: '🚀 Successfully deployed to production! URL: ${{ steps.deploy.outputs.url }}'
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
